@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Travel Chapter — Admin</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --cream: #faf7f2; --cream2: #f2ede4; --navy: #1a1f2e; --navy2: #252b3b;
+  --gold: #b8955a; --gold2: #d4aa70; --smoke: #6b7280;
+  --border: #e5ddd0; --white: #ffffff; --text: #1a1f2e;
+  --green: #27ae60; --red: #e05252; --sidebar-w: 230px;
+}
+body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--text); min-height:100vh; display:flex; }
+
+/* ── SIDEBAR ── */
+.sidebar { width:var(--sidebar-w); min-height:100vh; background:var(--navy); display:flex; flex-direction:column; position:fixed; top:0; left:0; bottom:0; z-index:50; }
+.sb-header { padding:26px 22px 20px; border-bottom:1px solid rgba(255,255,255,0.08); }
+.sb-brand { font-family:'Cormorant Garamond',serif; font-size:1rem; font-weight:300; letter-spacing:0.15em; color:var(--white); }
+.sb-brand em { font-style:italic; color:var(--gold2); }
+.sb-sub { font-size:0.62rem; letter-spacing:0.2em; text-transform:uppercase; color:rgba(255,255,255,0.3); margin-top:4px; }
+.nav { flex:1; padding:16px 10px; display:flex; flex-direction:column; gap:3px; }
+.nav-item { display:flex; align-items:center; gap:11px; padding:11px 14px; border-radius:8px; cursor:pointer; color:rgba(255,255,255,0.45); font-size:0.82rem; border:none; background:transparent; width:100%; text-align:left; transition:all 0.2s; }
+.nav-item svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
+.nav-item:hover { background:rgba(255,255,255,0.07); color:rgba(255,255,255,0.85); }
+.nav-item.active { background:rgba(184,149,90,0.18); color:var(--gold2); }
+.sb-footer { padding:14px; border-top:1px solid rgba(255,255,255,0.08); }
+.admin-chip { display:flex; align-items:center; gap:8px; padding:9px 12px; background:rgba(255,255,255,0.06); border-radius:8px; margin-bottom:8px; }
+.admin-dot { width:7px; height:7px; border-radius:50%; background:var(--gold2); flex-shrink:0; }
+.admin-email { font-size:0.72rem; color:rgba(255,255,255,0.4); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:1; }
+
+/* ── MAIN ── */
+.main { margin-left:var(--sidebar-w); flex:1; padding:36px 40px; background:var(--cream); }
+.page { display:none; animation:fadeIn 0.22s ease; }
+.page.active { display:block; }
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+.page-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:26px; flex-wrap:wrap; gap:12px; }
+.page-header h1 { font-family:'Cormorant Garamond',serif; font-size:1.9rem; font-weight:300; color:var(--navy); }
+.page-header h1 em { font-style:italic; color:var(--gold); }
+.page-header p { font-size:0.8rem; color:var(--smoke); margin-top:3px; }
+
+/* ── STAT CARDS ── */
+.stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:22px; }
+.stat-card { background:var(--white); border:1px solid var(--border); border-radius:12px; padding:18px 20px; }
+.stat-val { font-family:'Cormorant Garamond',serif; font-size:2rem; font-weight:300; color:var(--navy); line-height:1; }
+.stat-lbl { font-size:0.67rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--smoke); margin-top:5px; }
+
+/* ── CARD ── */
+.card { background:var(--white); border:1px solid var(--border); border-radius:14px; padding:22px; margin-bottom:18px; }
+.card-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:16px; flex-wrap:wrap; gap:10px; }
+.card-title { font-size:0.68rem; font-weight:500; letter-spacing:0.15em; text-transform:uppercase; color:var(--smoke); }
+
+/* ── TABLE ── */
+.tbl-wrap { overflow-x:auto; }
+table { width:100%; border-collapse:collapse; font-size:0.82rem; }
+th { font-size:0.63rem; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--smoke); padding:10px 14px; text-align:left; border-bottom:1px solid var(--border); white-space:nowrap; background:var(--cream); }
+td { padding:12px 14px; border-bottom:1px solid rgba(229,221,208,0.5); color:var(--text); vertical-align:middle; }
+tr:last-child td { border-bottom:none; }
+tr:hover td { background:var(--cream); }
+
+/* ── PILLS ── */
+.pill { padding:3px 9px; border-radius:50px; font-size:0.63rem; font-weight:500; letter-spacing:0.06em; text-transform:uppercase; white-space:nowrap; border:1px solid; }
+.pill-pending   { background:rgba(184,149,90,0.1);  color:var(--gold);  border-color:rgba(184,149,90,0.25); }
+.pill-confirmed { background:rgba(39,174,96,0.1);   color:var(--green); border-color:rgba(39,174,96,0.25); }
+.pill-cancelled { background:rgba(224,82,82,0.1);   color:var(--red);   border-color:rgba(224,82,82,0.25); }
+.pill-completed { background:rgba(107,114,128,0.1); color:var(--smoke); border-color:var(--border); }
+.pill-explorer  { background:rgba(39,174,96,0.08);  color:var(--green); border-color:rgba(39,174,96,0.2); }
+.pill-premier   { background:rgba(184,149,90,0.08); color:var(--gold);  border-color:rgba(184,149,90,0.2); }
+.pill-elite     { background:rgba(26,31,46,0.08);   color:var(--navy);  border-color:rgba(26,31,46,0.15); }
+.pill-active    { background:rgba(39,174,96,0.08);  color:var(--green); border-color:rgba(39,174,96,0.2); }
+.pill-inactive  { background:rgba(224,82,82,0.08);  color:var(--red);   border-color:rgba(224,82,82,0.2); }
+.pill-admin     { background:rgba(184,149,90,0.12); color:var(--gold);  border-color:rgba(184,149,90,0.3); }
+
+/* ── BUTTONS ── */
+.btn { padding:8px 16px; border-radius:7px; border:none; font-family:'DM Sans',sans-serif; font-size:0.75rem; font-weight:500; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+.btn-primary { background:var(--navy); color:var(--white); box-shadow:0 3px 10px rgba(26,31,46,0.15); }
+.btn-primary:hover { background:var(--navy2); box-shadow:0 4px 16px rgba(26,31,46,0.25); transform:translateY(-1px); }
+.btn-ghost { background:transparent; color:var(--smoke); border:1px solid var(--border); }
+.btn-ghost:hover { background:var(--cream); color:var(--text); }
+.btn-gold { background:linear-gradient(135deg,var(--gold),#8a6a38); color:var(--white); }
+.btn-gold:hover { box-shadow:0 4px 14px rgba(184,149,90,0.35); transform:translateY(-1px); }
+.btn-danger { background:rgba(224,82,82,0.08); color:var(--red); border:1px solid rgba(224,82,82,0.2); }
+.btn-danger:hover { background:rgba(224,82,82,0.15); }
+.btn-success { background:rgba(39,174,96,0.08); color:var(--green); border:1px solid rgba(39,174,96,0.2); }
+.btn-success:hover { background:rgba(39,174,96,0.15); }
+.btn-sm { padding:5px 10px; font-size:0.68rem; }
+.btn:disabled { opacity:0.45; cursor:not-allowed; transform:none !important; }
+.btn-group { display:flex; gap:6px; }
+
+/* ── SEARCH / FILTER ── */
+.toolbar { display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+.search-wrap { position:relative; }
+.search-wrap input { padding:9px 12px 9px 34px; background:var(--cream); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.82rem; outline:none; width:220px; transition:border-color 0.2s; }
+.search-wrap input:focus { border-color:var(--gold); background:var(--white); }
+.search-wrap svg { position:absolute; left:10px; top:50%; transform:translateY(-50%); width:14px; height:14px; stroke:var(--smoke); fill:none; stroke-width:1.5; pointer-events:none; }
+.filter-select { padding:9px 12px; background:var(--cream); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.8rem; outline:none; }
+.filter-select option { background:var(--white); }
+
+/* ── MODAL ── */
+.modal-overlay { position:fixed; inset:0; background:rgba(26,31,46,0.45); backdrop-filter:blur(6px); z-index:100; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.25s; padding:20px; }
+.modal-overlay.open { opacity:1; pointer-events:all; }
+.modal { background:var(--white); border:1px solid var(--border); border-radius:16px; padding:30px; width:100%; max-width:520px; max-height:90vh; overflow-y:auto; transform:translateY(14px); transition:transform 0.25s; box-shadow:0 24px 60px rgba(26,31,46,0.15); }
+.modal-overlay.open .modal { transform:translateY(0); }
+.modal h2 { font-family:'Cormorant Garamond',serif; font-size:1.5rem; font-weight:300; color:var(--navy); margin-bottom:6px; }
+.modal-sub { font-size:0.78rem; color:var(--smoke); margin-bottom:22px; padding-bottom:18px; border-bottom:1px solid var(--border); }
+.form-grid { display:grid; grid-template-columns:1fr 1fr; gap:13px; }
+.field { display:flex; flex-direction:column; gap:5px; }
+.field.full { grid-column:1/-1; }
+label { font-size:0.67rem; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--smoke); }
+input[type=text],input[type=number],input[type=date],input[type=email],input[type=tel],select,textarea {
+  padding:10px 12px; background:var(--cream); border:1px solid var(--border);
+  border-radius:8px; color:var(--text); font-family:'DM Sans',sans-serif;
+  font-size:0.85rem; outline:none; width:100%; transition:border-color 0.2s;
+}
+input:focus,select:focus,textarea:focus { border-color:var(--gold); background:var(--white); }
+select option { background:var(--white); }
+textarea { resize:vertical; min-height:70px; }
+.modal-actions { display:flex; gap:10px; margin-top:22px; justify-content:flex-end; }
+.modal-section { margin-top:22px; padding-top:18px; border-top:1px solid var(--border); }
+.modal-section-title { font-size:0.67rem; font-weight:500; letter-spacing:0.15em; text-transform:uppercase; color:var(--smoke); margin-bottom:14px; }
+
+/* ── MINI BAR CHART ── */
+.mini-bar-wrap { display:flex; flex-direction:column; gap:9px; }
+.mini-bar-row { display:grid; grid-template-columns:110px 1fr 60px; align-items:center; gap:10px; font-size:0.75rem; }
+.mini-bar-label { color:var(--smoke); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.mini-bar-track { height:6px; background:var(--border); border-radius:3px; overflow:hidden; }
+.mini-bar-fill { height:100%; border-radius:3px; background:linear-gradient(90deg,var(--navy),var(--gold)); transition:width 0.6s ease; }
+.mini-bar-val { color:var(--gold); text-align:right; font-size:0.72rem; font-weight:500; }
+
+/* ── MEMBER DETAIL PANEL ── */
+.member-panel { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.info-row { display:flex; flex-direction:column; gap:3px; padding:10px 0; border-bottom:1px solid var(--border); }
+.info-row:last-child { border-bottom:none; }
+.info-label { font-size:0.65rem; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--smoke); }
+.info-value { font-size:0.88rem; color:var(--text); }
+
+/* ── BOOKING ITEM IN MODAL ── */
+.booking-item { padding:12px 14px; background:var(--cream); border:1px solid var(--border); border-radius:10px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.booking-item-info { flex:1; min-width:0; }
+.booking-item-title { font-size:0.85rem; color:var(--navy); font-weight:500; }
+.booking-item-meta { font-size:0.72rem; color:var(--smoke); margin-top:2px; }
+
+/* ── TIER SELECTOR ── */
+.tier-selector { display:flex; gap:8px; }
+.tier-opt { flex:1; padding:10px 8px; border:1px solid var(--border); border-radius:9px; background:var(--cream); color:var(--smoke); font-size:0.72rem; font-weight:500; letter-spacing:0.05em; text-align:center; cursor:pointer; transition:all 0.2s; }
+.tier-opt span { display:block; font-size:1.1rem; margin-bottom:4px; }
+.tier-opt.selected { border-color:var(--gold); background:rgba(184,149,90,0.08); color:var(--gold); }
+
+/* ── TOAST ── */
+.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); padding:11px 22px; border-radius:50px; font-size:0.8rem; transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1); z-index:200; white-space:nowrap; border:1px solid; background:var(--white); }
+.toast.show { transform:translateX(-50%) translateY(0); }
+
+/* ── EMPTY / LOADING ── */
+.loading,.empty { color:var(--smoke); font-size:0.82rem; text-align:center; padding:28px; }
+.empty-icon { font-size:2rem; margin-bottom:8px; }
+
+@media(max-width:900px) { .stats-row { grid-template-columns:1fr 1fr; } .form-grid { grid-template-columns:1fr; } .member-panel { grid-template-columns:1fr; } }
+@media(max-width:640px) { .sidebar { width:180px; } .main { margin-left:180px; padding:20px 16px; } .stats-row { grid-template-columns:1fr; } }
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="sb-header">
+    <div class="sb-brand">The <em>Travel</em> Chapter</div>
+    <div class="sb-sub">Admin Panel</div>
+  </div>
+  <nav class="nav" id="sidebar-nav">
+    <button class="nav-item active" data-page="dashboard">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>Dashboard
+    </button>
+    <button class="nav-item" data-page="members">
+      <svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75M21 21v-2a4 4 0 0 0-3-3.85"/></svg>Members
+    </button>
+    <button class="nav-item" data-page="admins">
+      <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Admins
+    </button>
+    <button class="nav-item" data-page="bookings">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Bookings
+    </button>
+    <button class="nav-item" data-page="trips">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>Trips
+    </button>
+  </nav>
+  <div class="sb-footer">
+    <div class="admin-chip">
+      <div class="admin-dot"></div>
+      <div class="admin-email" id="admin-email">—</div>
+    </div>
+    <a href="admin-cms.html" class="nav-item" style="text-decoration:none;margin-bottom:4px;">
+      <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      Content Editor
+    </a>
+    <button class="nav-item" id="btn-signout">
+      <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign Out
+    </button>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+
+  <!-- DASHBOARD -->
+  <div class="page active" id="page-dashboard">
+    <div class="page-header"><div><h1>Dashboard</h1><p>Overview of The Travel Chapter operations.</p></div></div>
+    <div class="stats-row" id="dash-stats"><div class="loading" style="grid-column:1/-1">Loading…</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+      <div class="card"><div class="card-header"><div class="card-title">Bookings by Status</div></div><div id="dash-status-chart"><div class="loading">Loading…</div></div></div>
+      <div class="card"><div class="card-header"><div class="card-title">Revenue by Trip</div></div><div id="dash-revenue-chart"><div class="loading">Loading…</div></div></div>
+    </div>
+    <div class="card" style="margin-top:18px;">
+      <div class="card-header"><div class="card-title">Recent Bookings</div></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Member</th><th>Trip</th><th>Departure</th><th>Total</th><th>Status</th></tr></thead><tbody id="dash-recent-body"><tr><td colspan="5" class="loading">Loading…</td></tr></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- MEMBERS -->
+  <div class="page" id="page-members">
+    <div class="page-header">
+      <div><h1>Members</h1><p>View, edit details, manage bookings and upgrade tiers.</p></div>
+      <button class="btn btn-gold" onclick="openCreateMemberModal(false)">+ New Member</button>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="toolbar">
+          <div class="search-wrap">
+            <input type="text" id="mb-search" placeholder="Search name or email…" oninput="filterMembers()">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          </div>
+          <select class="filter-select" id="mb-tier-filter" onchange="filterMembers()">
+            <option value="">All Tiers</option>
+            <option value="explorer">Explorer</option>
+            <option value="premier">Premier</option>
+            <option value="elite">Elite</option>
+          </select>
+        </div>
+        <div id="mb-count" style="font-size:0.75rem;color:var(--smoke);"></div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Name</th><th>Email</th><th>Tier</th><th>Points</th><th>Bookings</th><th>Total Spent</th><th>Joined</th><th>Actions</th></tr></thead>
+          <tbody id="members-body"><tr><td colspan="8" class="loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- ADMINS -->
+  <div class="page" id="page-admins">
+    <div class="page-header">
+      <div><h1>Admins</h1><p>Manage administrator accounts.</p></div>
+      <button class="btn btn-primary" onclick="openCreateMemberModal(true)">+ New Admin</button>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="toolbar">
+          <div class="search-wrap">
+            <input type="text" id="adm-search" placeholder="Search name or email…" oninput="filterAdmins()">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          </div>
+        </div>
+        <div id="adm-count" style="font-size:0.75rem;color:var(--smoke);"></div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Name</th><th>Email</th><th>Joined</th><th>Actions</th></tr></thead>
+          <tbody id="admins-body"><tr><td colspan="4" class="loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOOKINGS -->
+  <div class="page" id="page-bookings">
+    <div class="page-header"><div><h1>Bookings</h1><p>View and manage all member bookings.</p></div></div>
+    <div class="card">
+      <div class="card-header">
+        <div class="toolbar">
+          <div class="search-wrap">
+            <input type="text" id="bk-search" placeholder="Search member or trip…" oninput="filterBookings()">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          </div>
+          <select class="filter-select" id="bk-status-filter" onchange="filterBookings()">
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="completed">Completed</option>
+          </select>
+        </div>
+        <div id="bk-count" style="font-size:0.75rem;color:var(--smoke);"></div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Member</th><th>Trip</th><th>Departure</th><th>Pax</th><th>Total</th><th>Status</th><th>Booked On</th><th>Actions</th></tr></thead>
+          <tbody id="bookings-body"><tr><td colspan="8" class="loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- TRIPS -->
+  <div class="page" id="page-trips">
+    <div class="page-header">
+      <div><h1>Trips</h1><p>Create, edit and manage trip listings.</p></div>
+      <button class="btn btn-primary" onclick="openTripModal()">+ New Trip</button>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="toolbar">
+          <div class="search-wrap">
+            <input type="text" id="tr-search" placeholder="Search trips…" oninput="filterTrips()">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          </div>
+          <select class="filter-select" id="tr-tier-filter" onchange="filterTrips()">
+            <option value="">All Tiers</option>
+            <option value="explorer">Explorer</option>
+            <option value="premier">Premier</option>
+            <option value="elite">Elite</option>
+          </select>
+        </div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Title</th><th>Duration</th><th>Price (RM)</th><th>Min Tier</th><th>Max Pax</th><th>Departures</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="trips-body"><tr><td colspan="8" class="loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ═══════════════════════════════════════════════
+     MEMBER DETAIL MODAL
+     Full member profile + edit + bookings + tier
+════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="member-modal">
+  <div class="modal" style="max-width:600px;">
+    <h2 id="mm-title">Member Details</h2>
+    <div class="field" style="margin-bottom:0;padding-bottom:16px;border-bottom:1px solid var(--border);">
+      <label>Email Address</label>
+      <input type="email" id="mm-email" placeholder="member@example.com or leave blank for internal account">
+      <div class="field-hint" style="font-size:0.68rem;color:#c5bdb4;margin-top:3px;">Leave blank to keep existing email. Internal placeholder emails end in @thetravelchapter.internal</div>
+    </div>
+    <div class="modal-section" style="margin-top:16px;padding-top:0;border-top:none;">
+      <div class="modal-section-title">Password</div>
+      <div style="display:flex;gap:10px;align-items:flex-end;">
+        <div class="field" style="flex:1;margin-bottom:0;">
+          <label>New Password</label>
+          <input type="password" id="mm-password" placeholder="Leave blank to keep current password">
+        </div>
+        <button class="btn btn-ghost" onclick="resetToDefault()" style="white-space:nowrap;flex-shrink:0;height:40px;" title="Reset password to Qwer1234">
+          🔄 Reset to Default
+        </button>
+      </div>
+      <div class="field-hint" style="font-size:0.68rem;color:#c5bdb4;margin-top:6px;">Default password: <strong>Qwer1234</strong> — member must change after logging in.</div>
+    </div>
+
+    <!-- Personal Details -->
+    <div class="modal-section-title" style="margin-top:0;">Personal Information</div>
+    <div class="form-grid">
+      <div class="field"><label>First Name</label><input type="text" id="mm-first"></div>
+      <div class="field"><label>Last Name</label><input type="text" id="mm-last"></div>
+      <div class="field"><label>Phone</label><input type="tel" id="mm-phone"></div>
+      <div class="field"><label>Date of Birth</label><input type="date" id="mm-dob"></div>
+      <div class="field"><label>Nationality</label><input type="text" id="mm-nationality"></div>
+      <div class="field"><label>Passport No.</label><input type="text" id="mm-passport"></div>
+    </div>
+
+    <!-- Membership Tier -->
+    <div class="modal-section" id="mm-tier-section">
+      <div class="modal-section-title">Membership Tier</div>
+      <div class="tier-selector" id="mm-tier-selector">
+        <div class="tier-opt" data-tier="explorer" onclick="selectMemberTier(this)"><span>🌿</span>Explorer</div>
+        <div class="tier-opt" data-tier="premier"  onclick="selectMemberTier(this)"><span>✦</span>Premier</div>
+        <div class="tier-opt" data-tier="elite"    onclick="selectMemberTier(this)"><span>👑</span>Elite</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;margin-top:12px;">
+        <div class="field" id="mm-points-section" style="flex:1;">
+          <label>Tier Points</label>
+          <input type="number" id="mm-points" min="0" placeholder="0">
+        </div>
+        <div class="field" style="flex:1;flex-direction:row;align-items:center;gap:8px;margin-top:18px;">
+          <input type="checkbox" id="mm-admin" style="width:auto;padding:0;accent-color:var(--navy);">
+          <label for="mm-admin" style="text-transform:none;letter-spacing:0;font-size:0.82rem;color:var(--text);">Grant Admin Access</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Member's Bookings — shown for members only, hidden for admins -->
+    <div class="modal-section" id="mm-bookings-section">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+        <div class="modal-section-title" style="margin-bottom:0;">Bookings</div>
+        <button class="btn btn-gold btn-sm" onclick="openAddBookingModal()">+ Add Booking</button>
+      </div>
+      <div id="mm-bookings-list" style="display:flex;flex-direction:column;gap:8px;">
+        <div class="loading">Loading bookings…</div>
+      </div>
+    </div>
+
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('member-modal')">Cancel</button>
+      <button class="btn btn-primary" id="btn-save-member">Save All Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     ADD BOOKING MODAL (for a specific member)
+════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="add-booking-modal">
+  <div class="modal" style="max-width:420px;">
+    <h2>Add Booking</h2>
+    <div class="modal-sub" id="abm-member-name">For: —</div>
+    <div class="form-grid">
+      <div class="field full">
+        <label>Trip</label>
+        <select id="abm-trip"></select>
+      </div>
+      <div class="field">
+        <label>Departure Date</label>
+        <select id="abm-date"></select>
+      </div>
+      <div class="field">
+        <label>Travellers</label>
+        <input type="number" id="abm-pax" value="1" min="1" max="20" oninput="updateAddTotal()">
+      </div>
+      <div class="field full">
+        <label>Special Requests</label>
+        <textarea id="abm-requests" placeholder="Optional…"></textarea>
+      </div>
+      <div class="field full">
+        <label>Status</label>
+        <select id="abm-status">
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+        </select>
+      </div>
+      <div class="field full" style="padding:12px 14px;background:var(--cream2);border:1px solid var(--border);border-radius:9px;">
+        <div style="font-size:0.67rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--smoke);margin-bottom:4px;">Total</div>
+        <div id="abm-total" style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--gold);">RM 0</div>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('add-booking-modal')">Cancel</button>
+      <button class="btn btn-primary" id="btn-confirm-add-booking" onclick="confirmAddBooking()">Add Booking</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     EDIT BOOKING MODAL
+════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="edit-booking-modal">
+  <div class="modal" style="max-width:420px;">
+    <h2>Edit Booking</h2>
+    <div class="modal-sub" id="ebm-info">—</div>
+    <div class="form-grid">
+      <div class="field full"><label>Status</label>
+        <select id="ebm-status">
+          <option value="pending">Pending</option>
+          <option value="confirmed">Confirmed</option>
+          <option value="cancelled">Cancelled</option>
+          <option value="completed">Completed</option>
+        </select>
+      </div>
+      <div class="field"><label>Departure Date</label><input type="date" id="ebm-date"></div>
+      <div class="field"><label>Travellers</label><input type="number" id="ebm-pax" min="1" max="20"></div>
+      <div class="field full"><label>Special Requests</label><textarea id="ebm-requests"></textarea></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-danger" id="btn-delete-booking" onclick="deleteBooking()">Delete Booking</button>
+      <button class="btn btn-ghost" onclick="closeModal('edit-booking-modal')">Cancel</button>
+      <button class="btn btn-primary" id="btn-save-booking" onclick="saveBooking()">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     TRIP MODAL
+════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="trip-modal">
+  <div class="modal">
+    <h2 id="trip-modal-title">New Trip</h2>
+    <div class="form-grid">
+      <div class="field full"><label>Trip Title</label><input type="text" id="tm-title" placeholder="Kyoto in Autumn"></div>
+      <div class="field full"><label>Slug (URL key)</label><input type="text" id="tm-slug" placeholder="kyoto-autumn"></div>
+      <div class="field full"><label>Summary</label><textarea id="tm-summary" placeholder="One-line description…"></textarea></div>
+      <div class="field"><label>Duration (days)</label><input type="number" id="tm-duration" min="1" value="7"></div>
+      <div class="field"><label>Price (RM)</label><input type="number" id="tm-price" min="0" step="0.01" value="0"></div>
+      <div class="field"><label>Min Tier</label>
+        <select id="tm-tier"><option value="explorer">Explorer</option><option value="premier">Premier</option><option value="elite">Elite</option></select>
+      </div>
+      <div class="field"><label>Max Pax</label><input type="number" id="tm-pax" min="1" value="12"></div>
+      <div class="field full"><label>Departure Dates (YYYY-MM-DD, comma separated)</label><input type="text" id="tm-dates" placeholder="2026-10-15, 2026-11-01"></div>
+      <div class="field full" style="flex-direction:row;align-items:center;gap:10px;">
+        <input type="checkbox" id="tm-active" checked style="width:auto;padding:0;accent-color:var(--navy);">
+        <label for="tm-active" style="text-transform:none;letter-spacing:0;font-size:0.82rem;color:var(--text);">Active (visible to members)</label>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('trip-modal')">Cancel</button>
+      <button class="btn btn-primary" id="btn-save-trip" onclick="saveTrip()">Save Trip</button>
+    </div>
+  </div>
+</div>
+
+<!-- BOOKING STATUS MODAL (from bookings page) -->
+<div class="modal-overlay" id="booking-status-modal">
+  <div class="modal" style="max-width:380px;">
+    <h2>Update Booking</h2>
+    <div class="modal-sub" id="bsm-info">—</div>
+    <div class="field" style="margin-top:4px;"><label>New Status</label>
+      <select id="bsm-status">
+        <option value="pending">Pending</option>
+        <option value="confirmed">Confirmed</option>
+        <option value="cancelled">Cancelled</option>
+        <option value="completed">Completed</option>
+      </select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('booking-status-modal')">Cancel</button>
+      <button class="btn btn-primary" id="btn-update-bsm" onclick="updateBookingStatus()">Update Status</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- CREATE MEMBER / ADMIN MODAL -->
+<div class="modal-overlay" id="create-member-modal">
+  <div class="modal" style="max-width:500px;">
+    <h2 id="cm-title">New Member</h2>
+    <div class="modal-sub" id="cm-subtitle">Create a new member account. They will receive a temporary password via email.</div>
+    <div class="form-grid">
+      <div class="field"><label>First Name</label><input type="text" id="cm-first" placeholder="Jane"></div>
+      <div class="field"><label>Last Name</label><input type="text" id="cm-last" placeholder="Smith"></div>
+      <div class="field full"><label>Email Address</label><input type="email" id="cm-email" placeholder="Optional"></div>
+      <div class="field full"><label>Temporary Password</label><input type="text" id="cm-password" placeholder="Min. 8 characters"></div>
+      <div class="field"><label>Phone</label><input type="tel" id="cm-phone" placeholder="+60 12 345 6789"></div>
+      <div class="field"><label>Nationality</label><input type="text" id="cm-nationality" placeholder="Malaysian"></div>
+    </div>
+
+    <div class="modal-section" style="background:rgba(184,149,90,0.06);border:1px solid rgba(184,149,90,0.15);border-radius:10px;padding:12px 14px;margin-top:16px;">
+      <div style="display:flex;gap:8px;align-items:flex-start;">
+        <span style="font-size:1rem;flex-shrink:0;">ℹ️</span>
+        <span id="cm-note" style="font-size:0.75rem;color:var(--smoke);line-height:1.5;">The member will be able to log in using the email and temporary password you set. They can change their password after logging in.</span>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('create-member-modal')">Cancel</button>
+      <button class="btn btn-primary" id="btn-create-member" onclick="createMember()">Create Account</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ── CONFIG ─────────────────────────────────────────────────
+const SUPABASE_URL  = 'https://nkrpkfqibsudqsonljve.supabase.co';
+const SUPABASE_ANON        = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rcnBrZnFpYnN1ZHFzb25sanZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzE0NDMsImV4cCI6MjA5NTM0NzQ0M30.d84huBM9zaJ7lIT9LVxzWGCxsrgoOHHHhKqbUHeSXJg';
+const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rcnBrZnFpYnN1ZHFzb25sanZlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTc3MTQ0MywiZXhwIjoyMDk1MzQ3NDQzfQ.yPFH-5xaC77sk4wdjReLvzKWCdbLezkAs8GTwcNa-rQ'; // ← get from Supabase → Settings → API → service_role
+const { createClient } = supabase;
+const sb      = createClient(SUPABASE_URL, SUPABASE_ANON);
+const sbAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, { auth: { autoRefreshToken: false, persistSession: false } });
+
+// ── STATE ──────────────────────────────────────────────────
+let allBookings=[], allTrips=[], allMembers=[];
+let currentAdminId = null;
+let editingMemberId=null, editingMemberTier='explorer';
+let editingBookingId=null, addBookingMemberId=null;
+let editingTripId=null, editingBsmId=null;
+
+// ── NAVIGATION ─────────────────────────────────────────────
+document.getElementById('sidebar-nav').addEventListener('click', function(e) {
+  const btn = e.target.closest('.nav-item[data-page]');
+  if (!btn) return;
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  const target = document.getElementById('page-' + btn.getAttribute('data-page'));
+  if (target) target.classList.add('active');
+  btn.classList.add('active');
+});
+
+document.getElementById('btn-signout').addEventListener('click', async () => {
+  await sb.auth.signOut(); window.location.href = 'admin-login.html';
+});
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(o => {
+  o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); });
+});
+
+// ── INIT ───────────────────────────────────────────────────
+async function init() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'login.html'; return; }
+
+  const { data: profile } = await sb.from('profiles').select('is_admin').eq('id', session.user.id).single();
+  if (!profile?.is_admin) {
+    document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:12px;background:var(--cream);font-family:'DM Sans',sans-serif;">
+      <div style="font-size:2.5rem;">🔒</div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--navy);">Admin Access Only</div>
+      <a href="dashboard.html" style="color:var(--gold);font-size:0.85rem;text-decoration:none;">← Back to Dashboard</a>
+    </div>`;
+    return;
+  }
+  currentAdminId = session.user.id;
+  document.getElementById('admin-email').textContent = session.user.email;
+  await Promise.all([loadBookings(), loadTrips(), loadMembers()]);
+  renderDashboard(); renderMembersTable(); renderAdminsTable(); renderBookingsTable(); renderTripsTable();
+}
+
+// ── LOADERS ────────────────────────────────────────────────
+async function loadBookings() {
+  const { data } = await sb.from('admin_bookings').select('*').order('booked_at', { ascending: false });
+  allBookings = data || [];
+}
+async function loadTrips() {
+  const { data } = await sb.from('trips').select('*').order('price_usd');
+  allTrips = data || [];
+}
+async function loadMembers() {
+  const { data } = await sb.from('admin_members').select('*').order('joined_at', { ascending: false });
+  allMembers = data || [];
+}
+
+// ── DASHBOARD ──────────────────────────────────────────────
+function renderDashboard() {
+  const totalRev = allBookings.filter(b=>b.status!=='cancelled').reduce((s,b)=>s+Number(b.total_usd),0);
+  const pending  = allBookings.filter(b=>b.status==='pending').length;
+  document.getElementById('dash-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-val">${allMembers.length}</div><div class="stat-lbl">Total Members</div></div>
+    <div class="stat-card"><div class="stat-val">${allBookings.length}</div><div class="stat-lbl">Total Bookings</div></div>
+    <div class="stat-card"><div class="stat-val">RM ${Math.round(totalRev).toLocaleString()}</div><div class="stat-lbl">Total Revenue</div></div>
+    <div class="stat-card"><div class="stat-val">${pending}</div><div class="stat-lbl">Pending Review</div></div>`;
+
+  const statuses = ['pending','confirmed','cancelled','completed'];
+  const statusCounts = statuses.map(s => ({ s, n: allBookings.filter(b=>b.status===s).length }));
+  const maxS = Math.max(...statusCounts.map(x=>x.n), 1);
+  document.getElementById('dash-status-chart').innerHTML = `<div class="mini-bar-wrap">${
+    statusCounts.map(x=>`<div class="mini-bar-row">
+      <div class="mini-bar-label">${cap(x.s)}</div>
+      <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${Math.round(x.n/maxS*100)}%"></div></div>
+      <div class="mini-bar-val">${x.n}</div></div>`).join('')}</div>`;
+
+  const tripRev = {};
+  allBookings.filter(b=>b.status!=='cancelled').forEach(b => { tripRev[b.trip_title]=(tripRev[b.trip_title]||0)+Number(b.total_usd); });
+  const topTrips = Object.entries(tripRev).sort((a,b)=>b[1]-a[1]).slice(0,5);
+  const maxR = Math.max(...topTrips.map(x=>x[1]),1);
+  document.getElementById('dash-revenue-chart').innerHTML = topTrips.length
+    ? `<div class="mini-bar-wrap">${topTrips.map(([name,rev])=>`<div class="mini-bar-row">
+        <div class="mini-bar-label">${name}</div>
+        <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${Math.round(rev/maxR*100)}%"></div></div>
+        <div class="mini-bar-val">RM ${Math.round(rev/1000)}k</div></div>`).join('')}</div>`
+    : '<div class="empty">No revenue data yet.</div>';
+
+  document.getElementById('dash-recent-body').innerHTML = allBookings.slice(0,5).map(b=>`<tr>
+    <td>${b.first_name||''} ${b.last_name||''}<br><span style="font-size:0.7rem;color:var(--smoke);">${b.member_email||''}</span></td>
+    <td>${b.trip_title}</td><td>${fmtDate(b.departure_date)}</td>
+    <td style="color:var(--gold);font-weight:500;">RM ${Number(b.total_usd).toLocaleString()}</td>
+    <td><span class="pill pill-${b.status}">${b.status}</span></td></tr>`).join('') ||
+    '<tr><td colspan="5" class="empty">No bookings yet.</td></tr>';
+}
+
+// ── MEMBERS TABLE ──────────────────────────────────────────
+function filterMembers() {
+  const q=document.getElementById('mb-search').value.toLowerCase();
+  const tf=document.getElementById('mb-tier-filter').value;
+  // Exclude admins from members list
+  const filtered=allMembers.filter(m=>!m.is_admin&&`${m.first_name||''} ${m.last_name||''} ${m.email||''}`.toLowerCase().includes(q)&&(!tf||m.tier===tf));
+  document.getElementById('mb-count').textContent=`${filtered.length} members`;
+  renderMembersRows(filtered);
+}
+function renderMembersTable() {
+  const members = allMembers.filter(m=>!m.is_admin);
+  document.getElementById('mb-count').textContent=`${members.length} members`;
+  renderMembersRows(members);
+}
+function renderMembersRows(list) {
+  document.getElementById('members-body').innerHTML = list.length
+    ? list.map(m=>`<tr>
+        <td><strong>${m.first_name||''} ${m.last_name||''}</strong></td>
+        <td style="color:var(--smoke);font-size:0.78rem;">${m.email}</td>
+        <td><span class="pill pill-${m.tier}">${cap(m.tier)}</span></td>
+        <td>${(m.tier_points||0).toLocaleString()}</td>
+        <td>${m.total_bookings||0}</td>
+        <td style="color:var(--gold);font-weight:500;">RM ${Number(m.total_spent||0).toLocaleString()}</td>
+        <td style="font-size:0.75rem;color:var(--smoke);">${fmtDate(m.joined_at)}</td>
+        <td><div class="btn-group">
+          <button class="btn btn-ghost btn-sm" onclick="openMemberModal('${m.id}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteMember('${m.id}','${(m.first_name||'')+" "+(m.last_name||'')}')">Delete</button>
+        </div></td>
+      </tr>`).join('')
+    : '<tr><td colspan="8" class="empty">No members found.</td></tr>';
+}
+
+// ── ADMINS TABLE ────────────────────────────────────────────
+function filterAdmins() {
+  const q=document.getElementById('adm-search').value.toLowerCase();
+  const filtered=allMembers.filter(m=>m.is_admin&&`${m.first_name||''} ${m.last_name||''} ${m.email||''}`.toLowerCase().includes(q));
+  document.getElementById('adm-count').textContent=`${filtered.length} admins`;
+  renderAdminsRows(filtered);
+}
+function renderAdminsTable() {
+  const admins = allMembers.filter(m=>m.is_admin);
+  document.getElementById('adm-count').textContent=`${admins.length} admins`;
+  renderAdminsRows(admins);
+}
+function renderAdminsRows(list) {
+  document.getElementById('admins-body').innerHTML = list.length
+    ? list.map(m=>`<tr>
+        <td><strong>${m.first_name||''} ${m.last_name||''}</strong>${m.id===currentAdminId?' <span class="pill pill-admin" style="font-size:0.58rem;">You</span>':''}</td>
+        <td style="color:var(--smoke);font-size:0.78rem;">${m.email}</td>
+        <td style="font-size:0.75rem;color:var(--smoke);">${fmtDate(m.joined_at)}</td>
+        <td><div class="btn-group">
+          <button class="btn btn-ghost btn-sm" onclick="openMemberModal('${m.id}')">Edit</button>
+          ${m.id!==currentAdminId
+            ?`<button class="btn btn-danger btn-sm" onclick="deleteMember('${m.id}','${(m.first_name||'')+" "+(m.last_name||'')}',true)">Remove Admin</button>`
+            :`<span style="font-size:0.72rem;color:var(--smoke);padding:5px 10px;">Your account</span>`
+          }
+        </div></td>
+      </tr>`).join('')
+    : '<tr><td colspan="4" class="empty">No admins found.</td></tr>';
+}
+
+// ── DELETE MEMBER / ADMIN ───────────────────────────────────
+async function deleteMember(id, name, isAdmin=false) {
+  const label = isAdmin ? 'admin' : 'member';
+  const action = isAdmin ? 'remove admin access from' : 'permanently delete';
+  if (!confirm(`Are you sure you want to ${action} ${name.trim()||'this '+label}? ${isAdmin?'They will lose admin access but keep their account.':'This will delete their account and all bookings permanently.'}`)) return;
+  
+  if (isAdmin) {
+    // Just remove admin flag, keep the account
+    const { error } = await sbAdmin.from('profiles').update({ is_admin: false }).eq('id', id);
+    if (error) { showToast('Error: '+error.message, true); return; }
+    showToast(`Admin access removed from ${name.trim()} ✓`);
+  } else {
+    // Delete auth user entirely (cascades to profile and bookings via FK)
+    const { error } = await sbAdmin.auth.admin.deleteUser(id);
+    if (error) { showToast('Error: '+error.message, true); return; }
+    showToast(`Member ${name.trim()} deleted ✓`);
+  }
+  await loadMembers();
+  renderMembersTable();
+  renderAdminsTable();
+  renderDashboard();
+}
+
+// ── MEMBER MODAL ───────────────────────────────────────────
+async function openMemberModal(id) {
+  editingMemberId = id;
+  const m = allMembers.find(x=>x.id===id);
+  if (!m) return;
+
+  // Fill header
+  document.getElementById('mm-title').textContent = `${m.first_name||''} ${m.last_name||''}`.trim() || 'Member';
+  // Fill editable email — hide placeholder internal emails
+  const displayEmail = m.email && m.email.includes('@thetravelchapter.internal') ? '' : (m.email || '');
+  document.getElementById('mm-email').value = displayEmail;
+  // Always clear password field when opening modal
+  document.getElementById('mm-password').value = '';
+
+  // Fill fields
+  document.getElementById('mm-first').value       = m.first_name    || '';
+  document.getElementById('mm-last').value        = m.last_name     || '';
+  document.getElementById('mm-phone').value       = m.phone         || '';
+  document.getElementById('mm-dob').value         = m.date_of_birth || '';
+  document.getElementById('mm-nationality').value = m.nationality   || '';
+  document.getElementById('mm-passport').value    = m.passport_no   || '';
+  document.getElementById('mm-points').value      = m.tier_points   || 0;
+  document.getElementById('mm-admin').checked     = m.is_admin      || false;
+
+  // Set tier selector — hide for admins
+  editingMemberTier = m.tier || 'explorer';
+  document.querySelectorAll('#mm-tier-selector .tier-opt').forEach(opt => {
+    opt.classList.toggle('selected', opt.getAttribute('data-tier') === editingMemberTier);
+  });
+  // Hide tier and points for admin accounts
+  const tierSection = document.getElementById('mm-tier-section');
+  const ptsSection  = document.getElementById('mm-points-section');
+  const bkSection   = document.getElementById('mm-bookings-section');
+  if (tierSection) tierSection.style.display = m.is_admin ? 'none' : 'block';
+  if (ptsSection)  ptsSection.style.display  = m.is_admin ? 'none' : 'block';
+  if (bkSection)   bkSection.style.display   = m.is_admin ? 'none' : 'block';
+
+  // Load this member's bookings
+  await loadMemberBookings(id, m.first_name);
+
+  document.getElementById('btn-save-member').onclick = saveMember;
+  openModal('member-modal');
+}
+
+async function loadMemberBookings(memberId, firstName) {
+  const list = document.getElementById('mm-bookings-list');
+  list.innerHTML = '<div class="loading">Loading…</div>';
+  const { data } = await sb.from('bookings')
+    .select('*, trips(title, duration_days, price_usd)')
+    .eq('member_id', memberId)
+    .order('booked_at', { ascending: false });
+  const bookings = data || [];
+  addBookingMemberId = memberId;
+
+  if (!bookings.length) {
+    list.innerHTML = `<div class="empty"><div class="empty-icon">📋</div>No bookings yet for this member.</div>`;
+    return;
+  }
+  list.innerHTML = bookings.map(b => `
+    <div class="booking-item">
+      <div class="booking-item-info">
+        <div class="booking-item-title">${b.trips?.title||'—'}</div>
+        <div class="booking-item-meta">${fmtDate(b.departure_date)} · ${b.num_travellers} pax · RM ${Number(b.total_usd).toLocaleString()}</div>
+      </div>
+      <span class="pill pill-${b.status}">${b.status}</span>
+      <button class="btn btn-ghost btn-sm" onclick="openEditBookingModal('${b.id}')">Edit</button>
+    </div>`).join('');
+}
+
+function selectMemberTier(el) {
+  document.querySelectorAll('#mm-tier-selector .tier-opt').forEach(o=>o.classList.remove('selected'));
+  el.classList.add('selected');
+  editingMemberTier = el.getAttribute('data-tier');
+}
+
+async function saveMember() {
+  const btn = document.getElementById('btn-save-member');
+  btn.disabled=true; btn.textContent='Saving…';
+  const m = allMembers.find(x=>x.id===editingMemberId);
+  const isAdminAccount = m?.is_admin || document.getElementById('mm-admin').checked;
+  const updates = {
+    first_name:    document.getElementById('mm-first').value.trim(),
+    last_name:     document.getElementById('mm-last').value.trim(),
+    phone:         document.getElementById('mm-phone').value.trim(),
+    date_of_birth: document.getElementById('mm-dob').value || null,
+    nationality:   document.getElementById('mm-nationality').value.trim(),
+    passport_no:   document.getElementById('mm-passport').value.trim(),
+    is_admin:      document.getElementById('mm-admin').checked,
+  };
+  // Only update tier & points for regular members, not admins
+  if (!isAdminAccount) {
+    updates.tier = editingMemberTier;
+    updates.tier_points = parseInt(document.getElementById('mm-points').value)||0;
+  }
+  const { error } = await sb.from('profiles').update(updates).eq('id', editingMemberId);
+  if (error) { showToast('Error: '+error.message, true); btn.disabled=false; btn.textContent='Save All Changes'; return; }
+
+  // Update email and/or password via admin API
+  const newEmail    = document.getElementById('mm-email').value.trim();
+  const newPassword = document.getElementById('mm-password').value;
+  
+  if (newEmail || newPassword) {
+    const authUpdates = {};
+    if (newEmail)    { authUpdates.email = newEmail; authUpdates.email_confirm = true; }
+    if (newPassword) { authUpdates.password = newPassword; }
+    const { error: authErr } = await sbAdmin.auth.admin.updateUserById(editingMemberId, authUpdates);
+    if (authErr) { showToast('Profile saved but auth update failed: ' + authErr.message, true); btn.disabled=false; btn.textContent='Save All Changes'; return; }
+  }
+
+  closeModal('member-modal');
+  await loadMembers(); renderMembersTable(); renderAdminsTable();
+  showToast('Changes saved successfully ✓');
+  btn.disabled=false; btn.textContent='Save All Changes';
+}
+
+// ── RESET PASSWORD TO DEFAULT ───────────────────────────────
+function resetToDefault() {
+  const pwField = document.getElementById('mm-password');
+  pwField.value = 'Qwer1234';
+  pwField.type  = 'text'; // Show it briefly so admin can confirm
+  setTimeout(() => { pwField.type = 'password'; }, 2000);
+  // Mark status as unsaved
+  const status = document.getElementById('save-status');
+  if (!status) return;
+  showToast('Default password set — click Save All Changes to apply.');
+}
+
+// ── ADD BOOKING (for a member from member modal) ───────────
+function openAddBookingModal() {
+  const m = allMembers.find(x=>x.id===addBookingMemberId);
+  document.getElementById('abm-member-name').textContent = `For: ${m?.first_name||''} ${m?.last_name||''}`.trim();
+
+  // Populate trip dropdown
+  const tripSel = document.getElementById('abm-trip');
+  tripSel.innerHTML = allTrips.map(t=>`<option value="${t.id}" data-price="${t.price_usd}" data-dates='${JSON.stringify(t.departure_dates||[])}'>${t.title}</option>`).join('');
+  tripSel.onchange = updateAddDates;
+  updateAddDates();
+  document.getElementById('abm-pax').value=1;
+  document.getElementById('abm-requests').value='';
+  document.getElementById('abm-status').value='pending';
+  openModal('add-booking-modal');
+}
+
+function updateAddDates() {
+  const sel = document.getElementById('abm-trip');
+  const opt = sel.options[sel.selectedIndex];
+  const dates = JSON.parse(opt?.getAttribute('data-dates')||'[]');
+  document.getElementById('abm-date').innerHTML = dates.length
+    ? dates.map(d=>`<option value="${d}">${fmtDate(d)}</option>`).join('')
+    : '<option value="">No dates — enter manually</option>';
+  updateAddTotal();
+}
+
+function updateAddTotal() {
+  const sel = document.getElementById('abm-trip');
+  const opt = sel.options[sel.selectedIndex];
+  const price = parseFloat(opt?.getAttribute('data-price')||0);
+  const pax   = parseInt(document.getElementById('abm-pax').value)||1;
+  document.getElementById('abm-total').textContent = 'RM ' + (price*pax).toLocaleString();
+}
+
+async function confirmAddBooking() {
+  const btn=document.getElementById('btn-confirm-add-booking');
+  btn.disabled=true; btn.textContent='Adding…';
+  const sel   = document.getElementById('abm-trip');
+  const opt   = sel.options[sel.selectedIndex];
+  const price = parseFloat(opt?.getAttribute('data-price')||0);
+  const pax   = parseInt(document.getElementById('abm-pax').value)||1;
+  const date  = document.getElementById('abm-date').value;
+  const reqs  = document.getElementById('abm-requests').value.trim();
+  const status= document.getElementById('abm-status').value;
+  if (!sel.value) { showToast('Please select a trip.', true); btn.disabled=false; btn.textContent='Add Booking'; return; }
+  const { error } = await sb.from('bookings').insert({
+    member_id: addBookingMemberId, trip_id: sel.value,
+    departure_date: date, num_travellers: pax,
+    total_usd: price*pax, special_requests: reqs||null, status
+  });
+  if (error) showToast('Error: '+error.message, true);
+  else {
+    closeModal('add-booking-modal');
+    await Promise.all([loadBookings(), loadMemberBookings(addBookingMemberId)]);
+    renderBookingsTable(); renderDashboard();
+    showToast('Booking added ✓');
+  }
+  btn.disabled=false; btn.textContent='Add Booking';
+}
+
+// ── EDIT BOOKING ───────────────────────────────────────────
+async function openEditBookingModal(bookingId) {
+  editingBookingId = bookingId;
+  const { data: b } = await sb.from('bookings').select('*, trips(title)').eq('id', bookingId).single();
+  if (!b) return;
+  document.getElementById('ebm-info').textContent = b.trips?.title || '—';
+  document.getElementById('ebm-status').value   = b.status;
+  document.getElementById('ebm-date').value     = b.departure_date || '';
+  document.getElementById('ebm-pax').value      = b.num_travellers;
+  document.getElementById('ebm-requests').value = b.special_requests || '';
+  openModal('edit-booking-modal');
+}
+
+async function saveBooking() {
+  const btn=document.getElementById('btn-save-booking');
+  btn.disabled=true; btn.textContent='Saving…';
+  const updates = {
+    status:          document.getElementById('ebm-status').value,
+    departure_date:  document.getElementById('ebm-date').value,
+    num_travellers:  parseInt(document.getElementById('ebm-pax').value)||1,
+    special_requests:document.getElementById('ebm-requests').value.trim()||null,
+  };
+  const { error } = await sb.from('bookings').update(updates).eq('id', editingBookingId);
+  if (error) showToast('Error: '+error.message, true);
+  else {
+    closeModal('edit-booking-modal');
+    await Promise.all([loadBookings(), loadMemberBookings(addBookingMemberId)]);
+    renderBookingsTable(); renderDashboard();
+    showToast('Booking updated ✓');
+  }
+  btn.disabled=false; btn.textContent='Save Changes';
+}
+
+async function deleteBooking() {
+  if (!confirm('Delete this booking permanently? This cannot be undone.')) return;
+  const { error } = await sb.from('bookings').delete().eq('id', editingBookingId);
+  if (error) showToast('Error: '+error.message, true);
+  else {
+    closeModal('edit-booking-modal');
+    await Promise.all([loadBookings(), loadMemberBookings(addBookingMemberId)]);
+    renderBookingsTable(); renderDashboard();
+    showToast('Booking deleted.');
+  }
+}
+
+// ── BOOKINGS TABLE ─────────────────────────────────────────
+function filterBookings() {
+  const q=document.getElementById('bk-search').value.toLowerCase();
+  const sf=document.getElementById('bk-status-filter').value;
+  const filtered=allBookings.filter(b=>`${b.first_name||''} ${b.last_name||''} ${b.member_email||''} ${b.trip_title||''}`.toLowerCase().includes(q)&&(!sf||b.status===sf));
+  document.getElementById('bk-count').textContent=`${filtered.length} bookings`;
+  renderBookingsRows(filtered);
+}
+function renderBookingsTable() { document.getElementById('bk-count').textContent=`${allBookings.length} bookings`; renderBookingsRows(allBookings); }
+function renderBookingsRows(list) {
+  document.getElementById('bookings-body').innerHTML = list.length
+    ? list.map(b=>`<tr>
+        <td>${b.first_name||''} ${b.last_name||''}<br><span style="font-size:0.7rem;color:var(--smoke);">${b.member_email||''}</span></td>
+        <td>${b.trip_title}</td>
+        <td>${fmtDate(b.departure_date)}</td>
+        <td>${b.num_travellers}</td>
+        <td style="color:var(--gold);font-weight:500;">RM ${Number(b.total_usd).toLocaleString()}</td>
+        <td><span class="pill pill-${b.status}">${b.status}</span></td>
+        <td style="font-size:0.75rem;color:var(--smoke);">${fmtDate(b.booked_at)}</td>
+        <td><button class="btn btn-ghost btn-sm" onclick="openBsmModal('${b.id}')">Update</button></td>
+      </tr>`).join('')
+    : '<tr><td colspan="8" class="empty">No bookings found.</td></tr>';
+}
+
+function openBsmModal(id) {
+  editingBsmId=id;
+  const b=allBookings.find(x=>x.id===id);
+  document.getElementById('bsm-info').textContent=`${b?.trip_title||'—'} — ${b?.first_name||''} ${b?.last_name||''}`;
+  document.getElementById('bsm-status').value=b?.status||'pending';
+  openModal('booking-status-modal');
+}
+async function updateBookingStatus() {
+  const btn=document.getElementById('btn-update-bsm');
+  btn.disabled=true; btn.textContent='Saving…';
+  const { error } = await sb.from('bookings').update({ status: document.getElementById('bsm-status').value }).eq('id', editingBsmId);
+  if (error) showToast('Error: '+error.message, true);
+  else { closeModal('booking-status-modal'); await loadBookings(); renderBookingsTable(); renderDashboard(); showToast('Booking status updated ✓'); }
+  btn.disabled=false; btn.textContent='Update Status';
+}
+
+// ── TRIPS TABLE ────────────────────────────────────────────
+function filterTrips() {
+  const q=document.getElementById('tr-search').value.toLowerCase();
+  const tf=document.getElementById('tr-tier-filter').value;
+  const filtered=allTrips.filter(t=>t.title.toLowerCase().includes(q)&&(!tf||t.min_tier===tf));
+  renderTripsRows(filtered);
+}
+function renderTripsTable() { renderTripsRows(allTrips); }
+function renderTripsRows(list) {
+  document.getElementById('trips-body').innerHTML = list.length
+    ? list.map(t=>`<tr>
+        <td><strong>${t.title}</strong><br><span style="font-size:0.7rem;color:var(--smoke);">${t.slug}</span></td>
+        <td>${t.duration_days}d</td>
+        <td style="color:var(--gold);font-weight:500;">RM ${Number(t.price_usd).toLocaleString()}</td>
+        <td><span class="pill pill-${t.min_tier}">${cap(t.min_tier)}</span></td>
+        <td>${t.max_pax}</td>
+        <td style="font-size:0.75rem;color:var(--smoke);">${(t.departure_dates||[]).slice(0,2).map(d=>fmtDate(d)).join(', ')||'—'}</td>
+        <td><span class="pill pill-${t.is_active?'active':'inactive'}">${t.is_active?'Active':'Hidden'}</span></td>
+        <td><div class="btn-group">
+          <button class="btn btn-ghost btn-sm" onclick="openTripModal('${t.id}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteTrip('${t.id}')">Delete</button>
+        </div></td>
+      </tr>`).join('')
+    : '<tr><td colspan="8" class="empty">No trips found.</td></tr>';
+}
+
+// ── TRIP MODAL ─────────────────────────────────────────────
+function openTripModal(id) {
+  editingTripId=id||null;
+  document.getElementById('trip-modal-title').textContent=id?'Edit Trip':'New Trip';
+  if (id) {
+    const t=allTrips.find(x=>x.id===id); if (!t) return;
+    document.getElementById('tm-title').value   = t.title;
+    document.getElementById('tm-slug').value    = t.slug;
+    document.getElementById('tm-summary').value = t.summary||'';
+    document.getElementById('tm-duration').value= t.duration_days;
+    document.getElementById('tm-price').value   = t.price_usd;
+    document.getElementById('tm-tier').value    = t.min_tier;
+    document.getElementById('tm-pax').value     = t.max_pax;
+    document.getElementById('tm-dates').value   = (t.departure_dates||[]).join(', ');
+    document.getElementById('tm-active').checked= t.is_active;
+  } else {
+    ['tm-title','tm-slug','tm-summary','tm-dates'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('tm-duration').value=7;
+    document.getElementById('tm-price').value=0;
+    document.getElementById('tm-tier').value='explorer';
+    document.getElementById('tm-pax').value=12;
+    document.getElementById('tm-active').checked=true;
+  }
+  openModal('trip-modal');
+}
+async function saveTrip() {
+  const btn=document.getElementById('btn-save-trip');
+  btn.disabled=true; btn.textContent='Saving…';
+  const dates=document.getElementById('tm-dates').value.split(',').map(d=>d.trim()).filter(Boolean);
+  const payload={
+    title:document.getElementById('tm-title').value.trim(),
+    slug:document.getElementById('tm-slug').value.trim(),
+    summary:document.getElementById('tm-summary').value.trim(),
+    duration_days:parseInt(document.getElementById('tm-duration').value),
+    price_usd:parseFloat(document.getElementById('tm-price').value),
+    min_tier:document.getElementById('tm-tier').value,
+    max_pax:parseInt(document.getElementById('tm-pax').value),
+    departure_dates:dates, is_active:document.getElementById('tm-active').checked,
+  };
+  const { error }=editingTripId
+    ? await sb.from('trips').update(payload).eq('id',editingTripId)
+    : await sb.from('trips').insert(payload);
+  if (error) showToast('Error: '+error.message, true);
+  else { closeModal('trip-modal'); await loadTrips(); renderTripsTable(); showToast(editingTripId?'Trip updated ✓':'Trip created ✓'); }
+  btn.disabled=false; btn.textContent='Save Trip';
+}
+async function deleteTrip(id) {
+  if (!confirm('Delete this trip? This cannot be undone.')) return;
+  const { error }=await sb.from('trips').delete().eq('id',id);
+  if (error) showToast('Error: '+error.message, true);
+  else { await loadTrips(); renderTripsTable(); showToast('Trip deleted.'); }
+}
+
+// ── MODAL HELPERS ──────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+
+// ── CREATE MEMBER / ADMIN ──────────────────────────────────
+let createIsAdmin = false;
+
+
+function openCreateMemberModal(isAdmin) {
+  createIsAdmin = isAdmin;
+    document.getElementById('cm-title').textContent = isAdmin ? 'New Admin Account' : 'New Member Account';
+  document.getElementById('cm-subtitle').textContent = isAdmin
+    ? 'Create a new admin account. This person will have full access to the admin panel.'
+    : 'Create a new member account on behalf of your customer.';
+  document.getElementById('cm-note').textContent = isAdmin
+    ? 'The new admin can log in via admin-login.html using the email and password you set here.'
+    : 'The member can log in via the member portal using the email and password you set. They can change their password after logging in.';
+
+  // Reset form
+  ['cm-first','cm-last','cm-email','cm-password','cm-phone','cm-nationality'].forEach(id => document.getElementById(id).value = '');
+
+  document.getElementById('btn-create-member').textContent = isAdmin ? 'Create Admin Account' : 'Create Member Account';
+  openModal('create-member-modal');
+}
+
+
+
+async function createMember() {
+  const btn = document.getElementById('btn-create-member');
+  const first    = document.getElementById('cm-first').value.trim();
+  const last     = document.getElementById('cm-last').value.trim();
+  const email    = document.getElementById('cm-email').value.trim();
+  const password = document.getElementById('cm-password').value;
+  const phone    = document.getElementById('cm-phone').value.trim();
+  const nationality = document.getElementById('cm-nationality').value.trim();
+
+  if (!first || !password) { showToast('Please fill in First Name and Password.', true); return; }
+  if (password.length < 8) { showToast('Password must be at least 8 characters.', true); return; }
+
+  btn.disabled = true; btn.textContent = 'Creating…';
+
+  // Step 1: Create auth user via Admin API (does NOT affect current session)
+  // Build user payload — email is optional
+  // If no email provided, generate a placeholder so Supabase accepts the account
+  const finalEmail = email || `${first.toLowerCase().replace(/\s+/g,'')}.${last.toLowerCase().replace(/\s+/g,'')||'user'}.${Date.now()}@thetravelchapter.internal`;
+
+  const userPayload = {
+    email: finalEmail,
+    password,
+    email_confirm: true,
+    user_metadata: {
+      first_name: first, last_name: last,
+      tier: createIsAdmin ? 'elite' : 'explorer'
+    }
+  };
+
+  const { data: authData, error: authError } = await sbAdmin.auth.admin.createUser(userPayload);
+
+  if (authError) {
+    showToast('Error: ' + authError.message, true);
+    btn.disabled = false; btn.textContent = createIsAdmin ? 'Create Admin Account' : 'Create Member Account';
+    return;
+  }
+
+  // Step 2: Update profile with extra details + admin flag if needed
+  const updates = {
+    first_name: first, last_name: last,
+    phone: phone || null, nationality: nationality || null,
+    tier: createIsAdmin ? 'elite' : 'explorer',
+    is_admin: createIsAdmin
+  };
+
+  // Wait a moment for the trigger to create the profile row
+  await new Promise(r => setTimeout(r, 1500));
+  await sbAdmin.from('profiles').update(updates).eq('id', authData.user.id);
+
+  closeModal('create-member-modal');
+  await loadMembers(); renderMembersTable();
+  showToast(createIsAdmin ? 'Admin account created ✓' : 'Member account created ✓');
+  btn.disabled = false; btn.textContent = createIsAdmin ? 'Create Admin Account' : 'Create Member Account';
+}
+// ── HELPERS ────────────────────────────────────────────────
+function cap(s) { return s?s.charAt(0).toUpperCase()+s.slice(1):''; }
+function fmtDate(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); }
+let tt;
+function showToast(msg, err) {
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.style.background  = err?'#fff5f5':'#f0faf4';
+  t.style.borderColor = err?'rgba(224,82,82,0.3)':'rgba(39,174,96,0.3)';
+  t.style.color       = err?'#c0392b':'#27ae60';
+  t.classList.add('show');
+  clearTimeout(tt);
+  tt=setTimeout(()=>t.classList.remove('show'),3500);
+}
+
+init();
+</script>
+</body>
+</html>

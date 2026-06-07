@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Travel Chapter — Admin Login</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --navy:  #1a1f2e; --navy2: #252b3b; --navy3: #10131c;
+  --gold:  #b8955a; --gold2: #d4aa70;
+  --smoke: rgba(255,255,255,0.4); --border: rgba(255,255,255,0.08);
+  --white: #ffffff;
+}
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--navy3);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Background atmosphere */
+.bg {
+  position: fixed; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 60% 60% at 15% 85%, rgba(184,149,90,0.12) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 50% at 85% 15%, rgba(184,149,90,0.07) 0%, transparent 50%),
+    linear-gradient(135deg, #1a1f2e 0%, #0e1118 100%);
+}
+
+/* Subtle grid lines */
+.bg::after {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+.shell {
+  position: relative; z-index: 1;
+  width: 100%; max-width: 400px;
+  padding: 24px;
+  animation: fadeUp 0.6s ease both;
+}
+@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+/* Brand */
+.brand { text-align: center; margin-bottom: 32px; }
+.brand-icon {
+  width: 56px; height: 56px; border-radius: 14px;
+  background: linear-gradient(135deg, var(--gold), #8a6a38);
+  display: flex; align-items: center; justify-content: center;
+  margin: 0 auto 16px; font-size: 1.4rem;
+  box-shadow: 0 8px 24px rgba(184,149,90,0.3);
+}
+.brand-name {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.3rem; font-weight: 300; letter-spacing: 0.15em; color: var(--white);
+}
+.brand-name em { font-style: italic; color: var(--gold2); }
+.brand-sub {
+  font-size: 0.65rem; letter-spacing: 0.25em; text-transform: uppercase;
+  color: var(--smoke); margin-top: 5px;
+}
+.brand-divider {
+  width: 40px; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent);
+  margin: 14px auto 0;
+}
+
+/* Card */
+.card {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--border);
+  border-radius: 18px; padding: 32px 28px;
+  backdrop-filter: blur(20px);
+}
+
+.card-title {
+  font-size: 0.68rem; font-weight: 500; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--smoke);
+  text-align: center; margin-bottom: 24px;
+  display: flex; align-items: center; gap: 10px;
+}
+.card-title::before, .card-title::after {
+  content: ''; flex: 1; height: 1px; background: var(--border);
+}
+
+/* Fields */
+.form { display: flex; flex-direction: column; gap: 14px; }
+.field { display: flex; flex-direction: column; gap: 5px; }
+label {
+  font-size: 0.67rem; font-weight: 500; letter-spacing: 0.12em;
+  text-transform: uppercase; color: var(--smoke);
+}
+.input-wrap { position: relative; }
+.input-wrap svg {
+  position: absolute; left: 13px; top: 50%; transform: translateY(-50%);
+  width: 15px; height: 15px; stroke: rgba(255,255,255,0.25); fill: none;
+  stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round;
+  pointer-events: none; transition: stroke 0.2s;
+}
+.input-wrap:focus-within svg { stroke: var(--gold); }
+input {
+  width: 100%; padding: 12px 13px 12px 38px;
+  background: rgba(0,0,0,0.25); border: 1px solid var(--border);
+  border-radius: 10px; color: var(--white);
+  font-family: 'DM Sans', sans-serif; font-size: 0.88rem; font-weight: 300;
+  outline: none; transition: border-color 0.2s, background 0.2s;
+}
+input::placeholder { color: rgba(255,255,255,0.2); }
+input:focus { border-color: rgba(184,149,90,0.5); background: rgba(0,0,0,0.35); }
+
+/* Error */
+.err-msg { color: #f4a0a0; font-size: 0.73rem; display: none; margin-top: 2px; }
+.err-msg.visible { display: block; }
+
+/* Submit button */
+.btn-submit {
+  width: 100%; padding: 13px; border: none; border-radius: 10px;
+  background: linear-gradient(135deg, var(--gold), #8a6a38);
+  color: var(--white); font-family: 'DM Sans', sans-serif;
+  font-size: 0.82rem; font-weight: 500; letter-spacing: 0.12em;
+  text-transform: uppercase; cursor: pointer; margin-top: 6px;
+  transition: all 0.2s; box-shadow: 0 4px 18px rgba(184,149,90,0.3);
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+}
+.btn-submit:hover { transform: translateY(-1px); box-shadow: 0 6px 24px rgba(184,149,90,0.4); }
+.btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+.btn-submit svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; }
+
+/* Security notice */
+.security-note {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 20px; padding: 12px 14px;
+  background: rgba(184,149,90,0.07); border: 1px solid rgba(184,149,90,0.15);
+  border-radius: 9px;
+}
+.security-note svg { width: 14px; height: 14px; stroke: var(--gold); fill: none; stroke-width: 1.5; flex-shrink: 0; }
+.security-note span { font-size: 0.72rem; color: rgba(255,255,255,0.4); line-height: 1.4; }
+
+/* Back link */
+.back-link {
+  text-align: center; margin-top: 20px;
+  font-size: 0.75rem; color: rgba(255,255,255,0.25);
+}
+.back-link a { color: var(--gold); text-decoration: none; transition: color 0.2s; }
+.back-link a:hover { color: var(--gold2); }
+
+/* Loading overlay */
+.loading-overlay {
+  position: fixed; inset: 0; background: rgba(10,13,20,0.85);
+  backdrop-filter: blur(4px); z-index: 200;
+  display: none; align-items: center; justify-content: center;
+  flex-direction: column; gap: 14px;
+}
+.loading-overlay.show { display: flex; }
+.spinner {
+  width: 36px; height: 36px; border-radius: 50%;
+  border: 2px solid rgba(184,149,90,0.2);
+  border-top-color: var(--gold);
+  animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { font-size: 0.8rem; color: rgba(255,255,255,0.4); letter-spacing: 0.08em; }
+
+/* Toast */
+.toast {
+  position: fixed; bottom: 24px; left: 50%;
+  transform: translateX(-50%) translateY(80px);
+  padding: 11px 22px; border-radius: 50px; font-size: 0.8rem;
+  transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  z-index: 300; white-space: nowrap; border: 1px solid;
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+
+<div class="bg"></div>
+
+<!-- Loading overlay -->
+<div class="loading-overlay" id="loading-overlay">
+  <div class="spinner"></div>
+  <div class="loading-text">Verifying admin access…</div>
+</div>
+
+<div class="shell">
+  <!-- Brand -->
+  <div class="brand">
+    <div class="brand-icon">⚙️</div>
+    <div class="brand-name">The <em>Travel</em> Chapter</div>
+    <div class="brand-sub">Administration Portal</div>
+    <div class="brand-divider"></div>
+  </div>
+
+  <!-- Card -->
+  <div class="card">
+    <div class="card-title">Admin Sign In</div>
+
+    <div class="form">
+      <div class="field">
+        <label>Email Address</label>
+        <div class="input-wrap">
+          <input type="email" id="admin-email" placeholder="admin@thetravelchapter.com" autocomplete="email">
+          <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg>
+        </div>
+      </div>
+
+      <div class="field">
+        <label>Password</label>
+        <div class="input-wrap">
+          <input type="password" id="admin-password" placeholder="••••••••" autocomplete="current-password">
+          <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </div>
+        <span class="err-msg" id="login-err"></span>
+      </div>
+
+      <button class="btn-submit" id="btn-login" onclick="handleAdminLogin()">
+        <svg viewBox="0 0 24 24"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Enter Admin Panel
+      </button>
+
+      <div class="security-note">
+        <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span>This page is restricted to authorised administrators only. All access attempts are logged.</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="back-link">
+    Not an admin? <a href="index.html">Go to Member Portal</a>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const SUPABASE_URL  = 'https://nkrpkfqibsudqsonljve.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rcnBrZnFpYnN1ZHFzb25sanZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzE0NDMsImV4cCI6MjA5NTM0NzQ0M30.d84huBM9zaJ7lIT9LVxzWGCxsrgoOHHHhKqbUHeSXJg';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// If already logged in, check admin and redirect
+async function checkExistingSession() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) return;
+  showLoading(true);
+  const isAdmin = await checkAdminStatus(session.user.id);
+  if (isAdmin) {
+    window.location.href = 'admin.html';
+  } else {
+    showLoading(false);
+    // Signed in but not admin — sign them out silently
+    await sb.auth.signOut();
+  }
+}
+
+async function checkAdminStatus(userId) {
+  const { data } = await sb.from('profiles')
+    .select('is_admin')
+    .eq('id', userId)
+    .single();
+  return data?.is_admin === true;
+}
+
+async function handleAdminLogin() {
+  const email    = document.getElementById('admin-email').value.trim();
+  const password = document.getElementById('admin-password').value;
+  const errEl    = document.getElementById('login-err');
+  const btn      = document.getElementById('btn-login');
+
+  // Clear errors
+  errEl.textContent = ''; errEl.classList.remove('visible');
+
+  if (!email || !password) {
+    errEl.textContent = 'Please enter your email and password.';
+    errEl.classList.add('visible');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<div class="spinner" style="width:16px;height:16px;border-width:2px;"></div> Signing in…';
+
+  // Step 1: Sign in with Supabase Auth
+  const { data: authData, error: authError } = await sb.auth.signInWithPassword({ email, password });
+
+  if (authError) {
+    errEl.textContent = 'Invalid email or password.';
+    errEl.classList.add('visible');
+    btn.disabled = false;
+    btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Enter Admin Panel`;
+    return;
+  }
+
+  // Step 2: Check if this user is an admin
+  showLoading(true);
+  const isAdmin = await checkAdminStatus(authData.user.id);
+
+  if (!isAdmin) {
+    // Signed in successfully but not an admin — sign out and show error
+    await sb.auth.signOut();
+    showLoading(false);
+    errEl.textContent = 'Access denied. This account does not have admin privileges.';
+    errEl.classList.add('visible');
+    btn.disabled = false;
+    btn.innerHTML = `<svg viewBox="0 0 24 24" style="width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg> Enter Admin Panel`;
+    return;
+  }
+
+  // Step 3: Admin confirmed — redirect
+  window.location.href = 'admin.html';
+}
+
+// Allow Enter key to submit
+document.addEventListener('keydown', e => {
+  if (e.key === 'Enter') handleAdminLogin();
+});
+
+function showLoading(show) {
+  document.getElementById('loading-overlay').classList.toggle('show', show);
+}
+
+let tt;
+function showToast(msg, err) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background  = err ? 'rgba(224,82,82,0.15)'  : 'rgba(92,184,122,0.15)';
+  t.style.borderColor = err ? 'rgba(224,82,82,0.4)'   : 'rgba(92,184,122,0.4)';
+  t.style.color       = err ? '#f4a0a0'                : '#9ae3b4';
+  t.classList.add('show');
+  clearTimeout(tt);
+  tt = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// Check on load
+checkExistingSession();
+</script>
+</body>
+</html>

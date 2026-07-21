@@ -563,10 +563,26 @@ textarea { resize:vertical; min-height:70px; }
 // ── CONFIG ─────────────────────────────────────────────────
 const SUPABASE_URL  = 'https://nkrpkfqibsudqsonljve.supabase.co';
 const SUPABASE_ANON        = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rcnBrZnFpYnN1ZHFzb25sanZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzE0NDMsImV4cCI6MjA5NTM0NzQ0M30.d84huBM9zaJ7lIT9LVxzWGCxsrgoOHHHhKqbUHeSXJg';
-const SUPABASE_SERVICE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rcnBrZnFpYnN1ZHFzb25sanZlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTc3MTQ0MywiZXhwIjoyMDk1MzQ3NDQzfQ.yPFH-5xaC77sk4wdjReLvzKWCdbLezkAs8GTwcNa-rQ'; // ← get from Supabase → Settings → API → service_role
 const { createClient } = supabase;
-const sb      = createClient(SUPABASE_URL, SUPABASE_ANON);
-const sbAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, { auth: { autoRefreshToken: false, persistSession: false } });
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// Privileged operations (create/delete/update auth user) run server-side in the
+// admin-users edge function — the service_role key never lives in this page.
+async function callAdminFn(payload) {
+  const { data: { session } } = await sb.auth.getSession();
+  if (!session) { window.location.href = 'admin-login.html'; return { error: { message: 'Not signed in' } }; }
+  const res = await fetch(`${SUPABASE_URL}/functions/v1/admin-users`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify(payload),
+  });
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) return { error: { message: body.error || `Request failed (${res.status})` } };
+  return { data: body };
+}
 
 // ── STATE ──────────────────────────────────────────────────
 let allBookings=[], allTrips=[], allMembers=[];
@@ -617,7 +633,7 @@ async function init() {
 
 // ── LOADERS ────────────────────────────────────────────────
 async function loadBookings() {
-  const { data } = await sb.from('admin_bookings').select('*').order('booked_at', { ascending: false });
+  const { data } = await sb.rpc('get_admin_bookings').order('booked_at', { ascending: false });
   allBookings = data || [];
 }
 async function loadTrips() {
@@ -625,7 +641,7 @@ async function loadTrips() {
   allTrips = data || [];
 }
 async function loadMembers() {
-  const { data } = await sb.from('admin_members').select('*').order('joined_at', { ascending: false });
+  const { data } = await sb.rpc('get_admin_members').order('joined_at', { ascending: false });
   allMembers = data || [];
 }
 
@@ -735,13 +751,13 @@ async function deleteMember(id, name, isAdmin=false) {
   if (!confirm(`Are you sure you want to ${action} ${name.trim()||'this '+label}? ${isAdmin?'They will lose admin access but keep their account.':'This will delete their account and all bookings permanently.'}`)) return;
   
   if (isAdmin) {
-    // Just remove admin flag, keep the account
-    const { error } = await sbAdmin.from('profiles').update({ is_admin: false }).eq('id', id);
+    // Just remove admin flag, keep the account — plain RLS-gated update, no privileged API needed
+    const { error } = await sb.from('profiles').update({ is_admin: false }).eq('id', id);
     if (error) { showToast('Error: '+error.message, true); return; }
     showToast(`Admin access removed from ${name.trim()} ✓`);
   } else {
     // Delete auth user entirely (cascades to profile and bookings via FK)
-    const { error } = await sbAdmin.auth.admin.deleteUser(id);
+    const { error } = await callAdminFn({ action: 'delete', id });
     if (error) { showToast('Error: '+error.message, true); return; }
     showToast(`Member ${name.trim()} deleted ✓`);
   }
@@ -854,9 +870,9 @@ async function saveMember() {
   
   if (newEmail || newPassword) {
     const authUpdates = {};
-    if (newEmail)    { authUpdates.email = newEmail; authUpdates.email_confirm = true; }
+    if (newEmail)    { authUpdates.email = newEmail; }
     if (newPassword) { authUpdates.password = newPassword; }
-    const { error: authErr } = await sbAdmin.auth.admin.updateUserById(editingMemberId, authUpdates);
+    const { error: authErr } = await callAdminFn({ action: 'update', id: editingMemberId, ...authUpdates });
     if (authErr) { showToast('Profile saved but auth update failed: ' + authErr.message, true); btn.disabled=false; btn.textContent='Save All Changes'; return; }
   }
 
@@ -1150,16 +1166,16 @@ async function createMember() {
   const finalEmail = email || `${first.toLowerCase().replace(/\s+/g,'')}.${last.toLowerCase().replace(/\s+/g,'')||'user'}.${Date.now()}@thetravelchapter.internal`;
 
   const userPayload = {
+    action: 'create',
     email: finalEmail,
     password,
-    email_confirm: true,
     user_metadata: {
       first_name: first, last_name: last,
       tier: createIsAdmin ? 'elite' : 'explorer'
     }
   };
 
-  const { data: authData, error: authError } = await sbAdmin.auth.admin.createUser(userPayload);
+  const { data: authData, error: authError } = await callAdminFn(userPayload);
 
   if (authError) {
     showToast('Error: ' + authError.message, true);
@@ -1177,7 +1193,7 @@ async function createMember() {
 
   // Wait a moment for the trigger to create the profile row
   await new Promise(r => setTimeout(r, 1500));
-  await sbAdmin.from('profiles').update(updates).eq('id', authData.user.id);
+  await sb.from('profiles').update(updates).eq('id', authData.user.id);
 
   closeModal('create-member-modal');
   await loadMembers(); renderMembersTable();

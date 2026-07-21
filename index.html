@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/jpeg" href="the-travel-chapter-logo.jpg">
 <title>The Travel Chapter — Curated Journeys for Discerning Travellers</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -35,8 +36,9 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
   transition:box-shadow 0.3s;
 }
 .navbar.scrolled { box-shadow:0 4px 24px rgba(26,31,46,0.08); }
-.nav-logo { font-family:'Cormorant Garamond',serif; font-size:1.25rem; font-weight:400; letter-spacing:0.1em; color:var(--navy); text-decoration:none; }
+.nav-logo { display:flex; align-items:center; gap:9px; font-family:'Cormorant Garamond',serif; font-size:1.25rem; font-weight:400; letter-spacing:0.1em; color:var(--navy); text-decoration:none; }
 .nav-logo em { font-style:italic; color:var(--gold); }
+.nav-logo-img { height:34px; width:34px; object-fit:contain; border-radius:6px; flex-shrink:0; }
 .nav-links { display:flex; align-items:center; gap:36px; list-style:none; }
 .nav-links a { font-size:0.82rem; letter-spacing:0.04em; color:var(--smoke); text-decoration:none; transition:color 0.2s; }
 .nav-links a:hover { color:var(--navy); }
@@ -296,7 +298,7 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 
 <!-- ── NAVBAR ── -->
 <nav class="navbar" id="navbar">
-  <a href="#" class="nav-logo" id="nav-logo">The <em>Travel</em> Chapter</a>
+  <a href="#" class="nav-logo" id="nav-logo"><img src="the-travel-chapter-logo.jpg" alt="The Travel Chapter" class="nav-logo-img"><span id="nav-logo-text">The <em>Travel</em> Chapter</span></a>
   <ul class="nav-links">
     <li><a href="#destinations">Destinations</a></li>
     <li><a href="#trips">Trips</a></li>
@@ -777,7 +779,7 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 <script>
 // ── CONFIG ──────────────────────────────────────────────────
 const SUPABASE_URL  = 'https://nkrpkfqibsudqsonljve.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rcnBrZnFpYnN1ZHFzb25sanZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzE0NDMsImV4cCI6MjA5NTM0NzQ0M30.d84huBM9zaJ7lIT9LVxzWGCxsrgoOHHHhKqbUHeSXJg';
+const SUPABASE_ANON = 'sb_publishable_8mbRk904S5zktFv6UIlRUg_gp1PFAWm';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
@@ -935,7 +937,7 @@ function applyFooter(d) {
 }
 
 function applyNavbar(d) {
-  const logo=document.getElementById('nav-logo');
+  const logo=document.getElementById('nav-logo-text');
   if(logo&&d.logo) logo.innerHTML='The <em>Travel</em> Chapter';
 }
 

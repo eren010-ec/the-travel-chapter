@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/jpeg" href="the-travel-chapter-logo.jpg">
 <title>The Travel Chapter — Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -32,7 +33,9 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 }
 .sidebar-brand {
   padding:28px 24px 22px; border-bottom:1px solid rgba(255,255,255,0.08);
+  display:flex; align-items:center; gap:11px;
 }
+.sidebar-brand img { width:34px; height:34px; border-radius:7px; object-fit:contain; background:#fff; flex-shrink:0; }
 .sidebar-brand .name {
   font-family:'Cormorant Garamond',serif; font-size:1rem;
   font-weight:300; letter-spacing:0.15em; color:var(--white);
@@ -179,8 +182,11 @@ textarea { resize:vertical; min-height:80px; }
 <!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="sidebar-brand">
-    <div class="name">The <em>Travel</em> Chapter</div>
-    <div class="tagline">Member Portal</div>
+    <img src="the-travel-chapter-logo.jpg" alt="The Travel Chapter">
+    <div>
+      <div class="name">The <em>Travel</em> Chapter</div>
+      <div class="tagline">Member Portal</div>
+    </div>
   </div>
   <nav class="nav" id="sidebar-nav">
     <button class="nav-item active" data-page="overview">
@@ -341,7 +347,7 @@ textarea { resize:vertical; min-height:80px; }
 
 <script>
 const SUPABASE_URL  = 'https://nkrpkfqibsudqsonljve.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rcnBrZnFpYnN1ZHFzb25sanZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzE0NDMsImV4cCI6MjA5NTM0NzQ0M30.d84huBM9zaJ7lIT9LVxzWGCxsrgoOHHHhKqbUHeSXJg';
+const SUPABASE_ANON = 'sb_publishable_8mbRk904S5zktFv6UIlRUg_gp1PFAWm';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 

@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/jpeg" href="the-travel-chapter-logo.jpg">
 <title>The Travel Chapter — Admin Login</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -56,11 +57,12 @@ body {
 .brand { text-align: center; margin-bottom: 32px; }
 .brand-icon {
   width: 56px; height: 56px; border-radius: 14px;
-  background: linear-gradient(135deg, var(--gold), #8a6a38);
+  background: #fff;
   display: flex; align-items: center; justify-content: center;
-  margin: 0 auto 16px; font-size: 1.4rem;
+  margin: 0 auto 16px; font-size: 1.4rem; overflow: hidden; padding: 4px;
   box-shadow: 0 8px 24px rgba(184,149,90,0.3);
 }
+.brand-icon img { width: 100%; height: 100%; object-fit: contain; }
 .brand-name {
   font-family: 'Cormorant Garamond', serif;
   font-size: 1.3rem; font-weight: 300; letter-spacing: 0.15em; color: var(--white);
@@ -195,7 +197,7 @@ input:focus { border-color: rgba(184,149,90,0.5); background: rgba(0,0,0,0.35); 
 <div class="shell">
   <!-- Brand -->
   <div class="brand">
-    <div class="brand-icon">⚙️</div>
+    <div class="brand-icon"><img src="the-travel-chapter-logo.jpg" alt="The Travel Chapter"></div>
     <div class="brand-name">The <em>Travel</em> Chapter</div>
     <div class="brand-sub">Administration Portal</div>
     <div class="brand-divider"></div>
@@ -244,7 +246,7 @@ input:focus { border-color: rgba(184,149,90,0.5); background: rgba(0,0,0,0.35); 
 
 <script>
 const SUPABASE_URL  = 'https://nkrpkfqibsudqsonljve.supabase.co';
-const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rcnBrZnFpYnN1ZHFzb25sanZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzE0NDMsImV4cCI6MjA5NTM0NzQ0M30.d84huBM9zaJ7lIT9LVxzWGCxsrgoOHHHhKqbUHeSXJg';
+const SUPABASE_ANON = 'sb_publishable_8mbRk904S5zktFv6UIlRUg_gp1PFAWm';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 

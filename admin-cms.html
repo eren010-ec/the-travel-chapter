@@ -3,6 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/jpeg" href="the-travel-chapter-logo.jpg">
 <title>The Travel Chapter — Content Editor</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -18,7 +19,8 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 
 /* SIDEBAR */
 .sidebar { width:var(--sidebar-w); min-height:100vh; background:var(--navy); display:flex; flex-direction:column; position:fixed; top:0; left:0; bottom:0; z-index:50; }
-.sb-header { padding:22px 20px 18px; border-bottom:1px solid rgba(255,255,255,0.08); }
+.sb-header { padding:22px 20px 18px; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; gap:10px; }
+.sb-header img { width:32px; height:32px; border-radius:7px; object-fit:contain; background:#fff; flex-shrink:0; }
 .sb-brand { font-family:'Cormorant Garamond',serif; font-size:0.95rem; font-weight:300; letter-spacing:0.12em; color:var(--white); }
 .sb-brand em { font-style:italic; color:var(--gold2); }
 .sb-sub { font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase; color:rgba(255,255,255,0.3); margin-top:3px; }
@@ -132,8 +134,11 @@ textarea { resize:vertical; min-height:80px; line-height:1.6; }
 <!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="sb-header">
-    <div class="sb-brand">The <em>Travel</em> Chapter</div>
-    <div class="sb-sub">Content Editor</div>
+    <img src="the-travel-chapter-logo.jpg" alt="The Travel Chapter">
+    <div>
+      <div class="sb-brand">The <em>Travel</em> Chapter</div>
+      <div class="sb-sub">Content Editor</div>
+    </div>
   </div>
   <nav class="nav" id="cms-nav">
     <div class="nav-section-label">Page Sections</div>
@@ -189,11 +194,9 @@ textarea { resize:vertical; min-height:80px; line-height:1.6; }
 <script>
 // ── CONFIG ──────────────────────────────────────────────────
 const SUPABASE_URL        = 'https://nkrpkfqibsudqsonljve.supabase.co';
-const SUPABASE_ANON       = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rcnBrZnFpYnN1ZHFzb25sanZlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk3NzE0NDMsImV4cCI6MjA5NTM0NzQ0M30.d84huBM9zaJ7lIT9LVxzWGCxsrgoOHHHhKqbUHeSXJg';
-const SUPABASE_SERVICE_KEY= 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5rcnBrZnFpYnN1ZHFzb25sanZlIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTc3MTQ0MywiZXhwIjoyMDk1MzQ3NDQzfQ.yPFH-5xaC77sk4wdjReLvzKWCdbLezkAs8GTwcNa-rQ';
+const SUPABASE_ANON       = 'sb_publishable_8mbRk904S5zktFv6UIlRUg_gp1PFAWm';
 const { createClient } = supabase;
-const sb      = createClient(SUPABASE_URL, SUPABASE_ANON);
-const sbAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY, { auth: { autoRefreshToken:false, persistSession:false } });
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
 // ── STATE ───────────────────────────────────────────────────
 let cmsData   = {};     // all sections loaded from DB
@@ -228,7 +231,7 @@ async function saveSection(section) {
   const btn = document.getElementById('btn-save');
   btn.disabled = true; btn.textContent = 'Saving…';
   const content = buildContentFromForm(section);
-  const { error } = await sbAdmin.from('cms_content')
+  const { error } = await sb.from('cms_content')
     .upsert({ section, content, updated_at: new Date().toISOString() }, { onConflict: 'section' });
   if (error) { showToast('Error saving: ' + error.message, true); }
   else {

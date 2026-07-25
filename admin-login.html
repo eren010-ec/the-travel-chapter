@@ -267,10 +267,10 @@ async function checkExistingSession() {
 
 async function checkAdminStatus(userId) {
   const { data } = await sb.from('profiles')
-    .select('is_admin')
+    .select('is_admin, is_staff')
     .eq('id', userId)
     .single();
-  return data?.is_admin === true;
+  return data?.is_admin === true || data?.is_staff === true;
 }
 
 async function handleAdminLogin() {

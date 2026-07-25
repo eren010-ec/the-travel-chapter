@@ -4,7 +4,13 @@
 //
 // Every request must carry the caller's own session access token in the
 // Authorization header. That token is used to look up the caller and confirm
-// profiles.is_admin = true before any privileged action runs.
+// profiles.is_admin OR profiles.is_staff before any privileged action runs.
+//
+// Staff may create accounts and update/delete plain member accounts, but may not
+// touch (update or delete) any account that is itself an admin or staff account —
+// only a full admin can. This mirrors the profiles-table RLS policy split, but has
+// to be enforced here too since these are auth-level operations (email/password/
+// delete), not profile-row edits, so table RLS alone can't cover it.
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -50,8 +56,17 @@ Deno.serve(async (req) => {
   if (userErr || !user) return json({ error: 'Invalid or expired session' }, 401, origin);
 
   const { data: profile, error: profErr } = await admin
-    .from('profiles').select('is_admin').eq('id', user.id).single();
-  if (profErr || !profile?.is_admin) return json({ error: 'Admins only' }, 403, origin);
+    .from('profiles').select('is_admin, is_staff').eq('id', user.id).single();
+  if (profErr || !(profile?.is_admin || profile?.is_staff)) return json({ error: 'Admins only' }, 403, origin);
+  const isFullAdmin = !!profile.is_admin;
+
+  // Staff can't touch an existing admin-or-staff account (email/password/delete) —
+  // only a full admin can. No-op for full admins (they skip this check entirely).
+  async function blockedByStaffTargetingAdmin(targetId: string) {
+    if (isFullAdmin) return false;
+    const { data: target } = await admin.from('profiles').select('is_admin, is_staff').eq('id', targetId).single();
+    return !!(target?.is_admin || target?.is_staff);
+  }
 
   let body: Record<string, unknown>;
   try {
@@ -77,6 +92,7 @@ Deno.serve(async (req) => {
     const { id } = body as { id: string };
     if (!id) return json({ error: 'id is required' }, 400, origin);
     if (id === user.id) return json({ error: "You can't delete your own account" }, 400, origin);
+    if (await blockedByStaffTargetingAdmin(id)) return json({ error: 'Only admins can modify admin or staff accounts' }, 403, origin);
     const { error } = await admin.auth.admin.deleteUser(id);
     if (error) return json({ error: error.message }, 400, origin);
     return json({ ok: true }, 200, origin);
@@ -85,6 +101,7 @@ Deno.serve(async (req) => {
   if (action === 'update') {
     const { id, email, password } = body as { id: string; email?: string; password?: string };
     if (!id) return json({ error: 'id is required' }, 400, origin);
+    if (await blockedByStaffTargetingAdmin(id)) return json({ error: 'Only admins can modify admin or staff accounts' }, 403, origin);
     const updates: Record<string, unknown> = {};
     if (email) { updates.email = email; updates.email_confirm = true; }
     if (password) updates.password = password;

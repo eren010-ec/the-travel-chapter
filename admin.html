@@ -46,6 +46,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 
 /* ── STAT CARDS ── */
 .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:22px; }
+.stats-row.cols-3 { grid-template-columns:repeat(3,1fr); }
 .stat-card { background:var(--white); border:1px solid var(--border); border-radius:12px; padding:18px 20px; }
 .stat-val { font-family:'Cormorant Garamond',serif; font-size:2rem; font-weight:300; color:var(--navy); line-height:1; }
 .stat-lbl { font-size:0.67rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--smoke); margin-top:5px; }
@@ -75,6 +76,7 @@ tr:hover td { background:var(--cream); }
 .pill-active    { background:rgba(39,174,96,0.08);  color:var(--green); border-color:rgba(39,174,96,0.2); }
 .pill-inactive  { background:rgba(224,82,82,0.08);  color:var(--red);   border-color:rgba(224,82,82,0.2); }
 .pill-admin     { background:rgba(184,149,90,0.12); color:var(--gold);  border-color:rgba(184,149,90,0.3); }
+.pill-staff     { background:rgba(26,31,46,0.08);   color:var(--navy);  border-color:rgba(26,31,46,0.15); }
 
 /* ── BUTTONS ── */
 .btn { padding:8px 16px; border-radius:7px; border:none; font-family:'DM Sans',sans-serif; font-size:0.75rem; font-weight:500; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
@@ -181,7 +183,7 @@ textarea { resize:vertical; min-height:70px; }
     <button class="nav-item" data-page="members">
       <svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75M21 21v-2a4 4 0 0 0-3-3.85"/></svg>Members
     </button>
-    <button class="nav-item" data-page="admins">
+    <button class="nav-item" data-page="admins" id="nav-admins">
       <svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Admins
     </button>
     <button class="nav-item" data-page="bookings">
@@ -189,6 +191,12 @@ textarea { resize:vertical; min-height:70px; }
     </button>
     <button class="nav-item" data-page="trips">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>Trips
+    </button>
+    <button class="nav-item" data-page="vouchers">
+      <svg viewBox="0 0 24 24"><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6M2 7h20v5H2z"/><path d="M12 22V7M12 7a2.5 2.5 0 1 1-2.5-2.5C11 4.5 12 7 12 7ZM12 7a2.5 2.5 0 1 0 2.5-2.5C13 4.5 12 7 12 7Z"/></svg>Vouchers
+    </button>
+    <button class="nav-item" data-page="revenue" id="nav-revenue">
+      <svg viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Revenue
     </button>
   </nav>
   <div class="sb-footer">
@@ -213,9 +221,9 @@ textarea { resize:vertical; min-height:70px; }
   <div class="page active" id="page-dashboard">
     <div class="page-header"><div><h1>Dashboard</h1><p>Overview of The Travel Chapter operations.</p></div></div>
     <div class="stats-row" id="dash-stats"><div class="loading" style="grid-column:1/-1">Loading…</div></div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;" id="dash-charts-row">
       <div class="card"><div class="card-header"><div class="card-title">Bookings by Status</div></div><div id="dash-status-chart"><div class="loading">Loading…</div></div></div>
-      <div class="card"><div class="card-header"><div class="card-title">Revenue by Trip</div></div><div id="dash-revenue-chart"><div class="loading">Loading…</div></div></div>
+      <div class="card" id="dash-revenue-card"><div class="card-header"><div class="card-title">Revenue by Trip</div></div><div id="dash-revenue-chart"><div class="loading">Loading…</div></div></div>
     </div>
     <div class="card" style="margin-top:18px;">
       <div class="card-header"><div class="card-title">Recent Bookings</div></div>
@@ -272,8 +280,8 @@ textarea { resize:vertical; min-height:70px; }
       </div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Name</th><th>Email</th><th>Joined</th><th>Actions</th></tr></thead>
-          <tbody id="admins-body"><tr><td colspan="4" class="loading">Loading…</td></tr></tbody>
+          <thead><tr><th>Name</th><th>Email</th><th>Position</th><th>Joined</th><th>Actions</th></tr></thead>
+          <tbody id="admins-body"><tr><td colspan="5" class="loading">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -338,6 +346,79 @@ textarea { resize:vertical; min-height:70px; }
     </div>
   </div>
 
+  <!-- VOUCHERS -->
+  <div class="page" id="page-vouchers">
+    <div class="page-header">
+      <div><h1>Vouchers</h1><p>Issue discount codes to new or existing members.</p></div>
+      <button class="btn btn-gold" onclick="openCreateVoucherModal()">+ New Voucher</button>
+    </div>
+    <div class="stats-row" id="voucher-stats"><div class="loading" style="grid-column:1/-1">Loading…</div></div>
+    <div class="card">
+      <div class="card-header">
+        <div class="toolbar">
+          <div class="search-wrap">
+            <input type="text" id="vc-search" placeholder="Search code or member…" oninput="filterVouchers()">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          </div>
+          <select class="filter-select" id="vc-status-filter" onchange="filterVouchers()">
+            <option value="">All Statuses</option>
+            <option value="active">Active</option>
+            <option value="redeemed">Redeemed</option>
+            <option value="expired">Expired</option>
+            <option value="revoked">Revoked</option>
+          </select>
+        </div>
+        <div id="vc-count" style="font-size:0.75rem;color:var(--smoke);"></div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Code</th><th>Discount</th><th>Assigned To</th><th>Status</th><th>Expires</th><th>Issued By</th><th>Actions</th></tr></thead>
+          <tbody id="vouchers-body"><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- REVENUE (admin only) -->
+  <div class="page" id="page-revenue">
+    <div class="page-header">
+      <div><h1>Revenue</h1><p>Recognized on trip departure — money collected for trips that haven't happened yet shows as deferred.</p></div>
+      <button class="btn btn-ghost" onclick="exportRevenueCsv()">⬇ Export CSV</button>
+    </div>
+    <div id="rev-missing-cost-banner" style="display:none;margin-bottom:16px;padding:12px 16px;background:rgba(184,149,90,0.08);border:1px solid rgba(184,149,90,0.25);border-radius:10px;font-size:0.8rem;color:var(--gold);"></div>
+    <div class="stats-row cols-3" id="rev-stats"><div class="loading" style="grid-column:1/-1">Loading…</div></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px;">
+      <div class="card"><div class="card-header"><div class="card-title">Monthly Revenue (by Departure)</div></div><div id="rev-trend-chart"><div class="loading">Loading…</div></div></div>
+      <div class="card"><div class="card-header"><div class="card-title">Revenue by Trip</div></div><div id="rev-trip-chart"><div class="loading">Loading…</div></div></div>
+    </div>
+    <div class="card">
+      <div class="card-header">
+        <div class="toolbar">
+          <div class="search-wrap">
+            <input type="text" id="rev-search" placeholder="Search member or trip…" oninput="filterRevenue()">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          </div>
+          <select class="filter-select" id="rev-bucket-filter" onchange="filterRevenue()">
+            <option value="">All Statuses</option>
+            <option value="recognized">Recognized</option>
+            <option value="deferred">Deferred</option>
+            <option value="pipeline">Pipeline (Pending)</option>
+            <option value="lost">Lost (Cancelled)</option>
+          </select>
+          <input type="date" id="rev-date-from" style="width:150px;" onchange="filterRevenue()" title="Departure from">
+          <input type="date" id="rev-date-to" style="width:150px;" onchange="filterRevenue()" title="Departure to">
+        </div>
+        <div id="rev-count" style="font-size:0.75rem;color:var(--smoke);"></div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Departure</th><th>Member</th><th>Trip</th><th>Pax</th><th>Revenue</th><th>Cost</th><th>Margin</th><th>Status</th></tr></thead>
+          <tbody id="revenue-body"><tr><td colspan="8" class="loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
 </main>
 
 <!-- ═══════════════════════════════════════════════
@@ -390,9 +471,13 @@ textarea { resize:vertical; min-height:70px; }
           <label>Tier Points</label>
           <input type="number" id="mm-points" min="0" placeholder="0">
         </div>
-        <div class="field" style="flex:1;flex-direction:row;align-items:center;gap:8px;margin-top:18px;">
-          <input type="checkbox" id="mm-admin" style="width:auto;padding:0;accent-color:var(--navy);">
-          <label for="mm-admin" style="text-transform:none;letter-spacing:0;font-size:0.82rem;color:var(--text);">Grant Admin Access</label>
+        <div class="field" id="mm-position-section" style="flex:1;">
+          <label>Grant Admin Panel Access</label>
+          <select id="mm-position">
+            <option value="member">None (Member)</option>
+            <option value="staff">Staff</option>
+            <option value="admin">Admin</option>
+          </select>
         </div>
       </div>
     </div>
@@ -502,6 +587,10 @@ textarea { resize:vertical; min-height:70px; }
         <select id="tm-tier"><option value="explorer">Explorer</option><option value="premier">Premier</option><option value="elite">Elite</option></select>
       </div>
       <div class="field"><label>Max Pax</label><input type="number" id="tm-pax" min="1" value="12"></div>
+      <div class="field" id="tm-cost-field" style="display:none;">
+        <label>Cost Price (RM, per person)</label>
+        <input type="number" id="tm-cost" min="0" step="0.01" placeholder="Supplier cost — admin only">
+      </div>
       <div class="field full"><label>Departure Dates (YYYY-MM-DD, comma separated)</label><input type="text" id="tm-dates" placeholder="2026-10-15, 2026-11-01"></div>
       <div class="field full" style="flex-direction:row;align-items:center;gap:10px;">
         <input type="checkbox" id="tm-active" checked style="width:auto;padding:0;accent-color:var(--navy);">
@@ -548,6 +637,13 @@ textarea { resize:vertical; min-height:70px; }
       <div class="field full"><label>Temporary Password</label><input type="text" id="cm-password" placeholder="Min. 8 characters"></div>
       <div class="field"><label>Phone</label><input type="tel" id="cm-phone" placeholder="+60 12 345 6789"></div>
       <div class="field"><label>Nationality</label><input type="text" id="cm-nationality" placeholder="Malaysian"></div>
+      <div class="field full" id="cm-position-field" style="display:none;">
+        <label>Position</label>
+        <select id="cm-position">
+          <option value="admin">Admin — full access</option>
+          <option value="staff">Staff — no revenue view, can't manage admins</option>
+        </select>
+      </div>
     </div>
 
     <div class="modal-section" style="background:rgba(184,149,90,0.06);border:1px solid rgba(184,149,90,0.15);border-radius:10px;padding:12px 14px;margin-top:16px;">
@@ -559,6 +655,45 @@ textarea { resize:vertical; min-height:70px; }
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('create-member-modal')">Cancel</button>
       <button class="btn btn-primary" id="btn-create-member" onclick="createMember()">Create Account</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     CREATE VOUCHER MODAL
+════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="create-voucher-modal">
+  <div class="modal" style="max-width:480px;">
+    <h2>New Voucher</h2>
+    <div class="modal-sub">Give a discount code to a new or existing member. Not auto-applied at checkout — staff reference the code when creating a booking.</div>
+    <div class="form-grid">
+      <div class="field full">
+        <label>Code</label>
+        <div style="display:flex;gap:8px;">
+          <input type="text" id="vc-code" style="flex:1;text-transform:uppercase;" placeholder="WELCOME-XXXXXX">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('vc-code').value=generateVoucherCode()">🎲 Generate</button>
+        </div>
+      </div>
+      <div class="field">
+        <label>Discount Type</label>
+        <select id="vc-type">
+          <option value="fixed">Fixed (RM)</option>
+          <option value="percent">Percent (%)</option>
+        </select>
+      </div>
+      <div class="field"><label>Value</label><input type="number" id="vc-value" min="0.01" step="0.01" placeholder="e.g. 100"></div>
+      <div class="field full">
+        <label>Assign To (optional)</label>
+        <select id="vc-member">
+          <option value="">General code — anyone can use it</option>
+        </select>
+      </div>
+      <div class="field"><label>Expires On (optional)</label><input type="date" id="vc-expires"></div>
+      <div class="field full"><label>Note (optional)</label><input type="text" id="vc-note" placeholder="e.g. New member welcome voucher"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('create-voucher-modal')">Cancel</button>
+      <button class="btn btn-primary" id="btn-create-voucher" onclick="createVoucher()">Create Voucher</button>
     </div>
   </div>
 </div>
@@ -590,8 +725,9 @@ async function callAdminFn(payload) {
 }
 
 // ── STATE ──────────────────────────────────────────────────
-let allBookings=[], allTrips=[], allMembers=[];
+let allBookings=[], allTrips=[], allMembers=[], allRevenue=[], allTripCosts={}, allVouchers=[];
 let currentAdminId = null;
+let currentUserIsAdmin = false, currentUserIsStaff = false;
 let editingMemberId=null, editingMemberTier='explorer';
 let editingBookingId=null, addBookingMemberId=null;
 let editingTripId=null, editingBsmId=null;
@@ -621,8 +757,8 @@ async function init() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'login.html'; return; }
 
-  const { data: profile } = await sb.from('profiles').select('is_admin').eq('id', session.user.id).single();
-  if (!profile?.is_admin) {
+  const { data: profile } = await sb.from('profiles').select('is_admin, is_staff').eq('id', session.user.id).single();
+  if (!profile?.is_admin && !profile?.is_staff) {
     document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:12px;background:var(--cream);font-family:'DM Sans',sans-serif;">
       <div style="font-size:2.5rem;">🔒</div>
       <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--navy);">Admin Access Only</div>
@@ -631,15 +767,38 @@ async function init() {
     return;
   }
   currentAdminId = session.user.id;
+  currentUserIsAdmin = !!profile.is_admin;
+  currentUserIsStaff = !!profile.is_staff;
+  if (!currentUserIsAdmin) {
+    // Staff: no access to the Admins or Revenue tabs — only a full admin sees those
+    document.getElementById('nav-admins')?.remove();
+    document.getElementById('nav-revenue')?.remove();
+  }
   document.getElementById('admin-email').textContent = session.user.email;
-  await Promise.all([loadBookings(), loadTrips(), loadMembers()]);
-  renderDashboard(); renderMembersTable(); renderAdminsTable(); renderBookingsTable(); renderTripsTable();
+  const loaders = [loadBookings(), loadTrips(), loadMembers(), loadVouchers()];
+  if (currentUserIsAdmin) loaders.push(loadTripCosts(), loadRevenue());
+  await Promise.all(loaders);
+  renderDashboard(); renderMembersTable(); renderAdminsTable(); renderBookingsTable(); renderTripsTable(); renderVouchersTable();
+  if (currentUserIsAdmin) renderRevenuePage();
 }
 
 // ── LOADERS ────────────────────────────────────────────────
 async function loadBookings() {
   const { data } = await sb.rpc('get_admin_bookings').order('booked_at', { ascending: false });
   allBookings = data || [];
+}
+async function loadTripCosts() {
+  const { data } = await sb.from('trip_costs').select('*');
+  allTripCosts = {};
+  (data || []).forEach(c => { allTripCosts[c.trip_id] = c.cost_price; });
+}
+async function loadRevenue() {
+  const { data } = await sb.rpc('get_admin_revenue').order('departure_date', { ascending: false });
+  allRevenue = data || [];
+}
+async function loadVouchers() {
+  const { data } = await sb.rpc('get_admin_vouchers').order('created_at', { ascending: false });
+  allVouchers = data || [];
 }
 async function loadTrips() {
   const { data } = await sb.from('trips').select('*').order('price_usd');
@@ -657,8 +816,14 @@ function renderDashboard() {
   document.getElementById('dash-stats').innerHTML = `
     <div class="stat-card"><div class="stat-val">${allMembers.length}</div><div class="stat-lbl">Total Members</div></div>
     <div class="stat-card"><div class="stat-val">${allBookings.length}</div><div class="stat-lbl">Total Bookings</div></div>
-    <div class="stat-card"><div class="stat-val">RM ${Math.round(totalRev).toLocaleString()}</div><div class="stat-lbl">Total Revenue</div></div>
+    ${currentUserIsAdmin ? `<div class="stat-card"><div class="stat-val">RM ${Math.round(totalRev).toLocaleString()}</div><div class="stat-lbl">Total Revenue</div></div>` : ''}
     <div class="stat-card"><div class="stat-val">${pending}</div><div class="stat-lbl">Pending Review</div></div>`;
+
+  // Staff can't see revenue figures — hide the Revenue by Trip breakdown too
+  const revenueCard = document.getElementById('dash-revenue-card');
+  const chartsRow = document.getElementById('dash-charts-row');
+  if (revenueCard) revenueCard.style.display = currentUserIsAdmin ? '' : 'none';
+  if (chartsRow) chartsRow.style.gridTemplateColumns = currentUserIsAdmin ? '1fr 1fr' : '1fr';
 
   const statuses = ['pending','confirmed','cancelled','completed'];
   const statusCounts = statuses.map(s => ({ s, n: allBookings.filter(b=>b.status===s).length }));
@@ -669,16 +834,20 @@ function renderDashboard() {
       <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${Math.round(x.n/maxS*100)}%"></div></div>
       <div class="mini-bar-val">${x.n}</div></div>`).join('')}</div>`;
 
-  const tripRev = {};
-  allBookings.filter(b=>b.status!=='cancelled').forEach(b => { tripRev[b.trip_title]=(tripRev[b.trip_title]||0)+Number(b.total_usd); });
-  const topTrips = Object.entries(tripRev).sort((a,b)=>b[1]-a[1]).slice(0,5);
-  const maxR = Math.max(...topTrips.map(x=>x[1]),1);
-  document.getElementById('dash-revenue-chart').innerHTML = topTrips.length
-    ? `<div class="mini-bar-wrap">${topTrips.map(([name,rev])=>`<div class="mini-bar-row">
-        <div class="mini-bar-label">${name}</div>
-        <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${Math.round(rev/maxR*100)}%"></div></div>
-        <div class="mini-bar-val">RM ${Math.round(rev/1000)}k</div></div>`).join('')}</div>`
-    : '<div class="empty">No revenue data yet.</div>';
+  // Skip building revenue data entirely for staff — hidden via CSS isn't enough,
+  // it shouldn't even land in the DOM where devtools could reveal it.
+  if (currentUserIsAdmin) {
+    const tripRev = {};
+    allBookings.filter(b=>b.status!=='cancelled').forEach(b => { tripRev[b.trip_title]=(tripRev[b.trip_title]||0)+Number(b.total_usd); });
+    const topTrips = Object.entries(tripRev).sort((a,b)=>b[1]-a[1]).slice(0,5);
+    const maxR = Math.max(...topTrips.map(x=>x[1]),1);
+    document.getElementById('dash-revenue-chart').innerHTML = topTrips.length
+      ? `<div class="mini-bar-wrap">${topTrips.map(([name,rev])=>`<div class="mini-bar-row">
+          <div class="mini-bar-label">${name}</div>
+          <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${Math.round(rev/maxR*100)}%"></div></div>
+          <div class="mini-bar-val">RM ${Math.round(rev/1000)}k</div></div>`).join('')}</div>`
+      : '<div class="empty">No revenue data yet.</div>';
+  }
 
   document.getElementById('dash-recent-body').innerHTML = allBookings.slice(0,5).map(b=>`<tr>
     <td>${b.first_name||''} ${b.last_name||''}<br><span style="font-size:0.7rem;color:var(--smoke);">${b.member_email||''}</span></td>
@@ -692,13 +861,13 @@ function renderDashboard() {
 function filterMembers() {
   const q=document.getElementById('mb-search').value.toLowerCase();
   const tf=document.getElementById('mb-tier-filter').value;
-  // Exclude admins from members list
-  const filtered=allMembers.filter(m=>!m.is_admin&&`${m.first_name||''} ${m.last_name||''} ${m.email||''}`.toLowerCase().includes(q)&&(!tf||m.tier===tf));
+  // Exclude admins and staff from members list — they live in the Admins tab
+  const filtered=allMembers.filter(m=>!m.is_admin&&!m.is_staff&&`${m.first_name||''} ${m.last_name||''} ${m.email||''}`.toLowerCase().includes(q)&&(!tf||m.tier===tf));
   document.getElementById('mb-count').textContent=`${filtered.length} members`;
   renderMembersRows(filtered);
 }
 function renderMembersTable() {
-  const members = allMembers.filter(m=>!m.is_admin);
+  const members = allMembers.filter(m=>!m.is_admin&&!m.is_staff);
   document.getElementById('mb-count').textContent=`${members.length} members`;
   renderMembersRows(members);
 }
@@ -720,15 +889,15 @@ function renderMembersRows(list) {
     : '<tr><td colspan="8" class="empty">No members found.</td></tr>';
 }
 
-// ── ADMINS TABLE ────────────────────────────────────────────
+// ── ADMINS TABLE (admin position + staff position) ─────────
 function filterAdmins() {
   const q=document.getElementById('adm-search').value.toLowerCase();
-  const filtered=allMembers.filter(m=>m.is_admin&&`${m.first_name||''} ${m.last_name||''} ${m.email||''}`.toLowerCase().includes(q));
+  const filtered=allMembers.filter(m=>(m.is_admin||m.is_staff)&&`${m.first_name||''} ${m.last_name||''} ${m.email||''}`.toLowerCase().includes(q));
   document.getElementById('adm-count').textContent=`${filtered.length} admins`;
   renderAdminsRows(filtered);
 }
 function renderAdminsTable() {
-  const admins = allMembers.filter(m=>m.is_admin);
+  const admins = allMembers.filter(m=>m.is_admin||m.is_staff);
   document.getElementById('adm-count').textContent=`${admins.length} admins`;
   renderAdminsRows(admins);
 }
@@ -737,29 +906,34 @@ function renderAdminsRows(list) {
     ? list.map(m=>`<tr>
         <td><strong>${m.first_name||''} ${m.last_name||''}</strong>${m.id===currentAdminId?' <span class="pill pill-admin" style="font-size:0.58rem;">You</span>':''}</td>
         <td style="color:var(--smoke);font-size:0.78rem;">${m.email}</td>
+        <td><span class="pill pill-${m.is_admin?'admin':'staff'}">${m.is_admin?'Admin':'Staff'}</span></td>
         <td style="font-size:0.75rem;color:var(--smoke);">${fmtDate(m.joined_at)}</td>
         <td><div class="btn-group">
-          <button class="btn btn-ghost btn-sm" onclick="openMemberModal('${m.id}')">Edit</button>
-          ${m.id!==currentAdminId
-            ?`<button class="btn btn-danger btn-sm" onclick="deleteMember('${m.id}','${(m.first_name||'')+" "+(m.last_name||'')}',true)">Remove Admin</button>`
-            :`<span style="font-size:0.72rem;color:var(--smoke);padding:5px 10px;">Your account</span>`
+          ${currentUserIsAdmin?`<button class="btn btn-ghost btn-sm" onclick="openMemberModal('${m.id}')">Edit</button>`:''}
+          ${m.id!==currentAdminId && currentUserIsAdmin
+            ?`<button class="btn btn-danger btn-sm" onclick="deleteMember('${m.id}','${(m.first_name||'')+" "+(m.last_name||'')}',true)">Remove ${m.is_admin?'Admin':'Staff'}</button>`
+            :m.id===currentAdminId?`<span style="font-size:0.72rem;color:var(--smoke);padding:5px 10px;">Your account</span>`:''
           }
         </div></td>
       </tr>`).join('')
-    : '<tr><td colspan="4" class="empty">No admins found.</td></tr>';
+    : '<tr><td colspan="5" class="empty">No admins found.</td></tr>';
 }
 
 // ── DELETE MEMBER / ADMIN ───────────────────────────────────
-async function deleteMember(id, name, isAdmin=false) {
-  const label = isAdmin ? 'admin' : 'member';
-  const action = isAdmin ? 'remove admin access from' : 'permanently delete';
-  if (!confirm(`Are you sure you want to ${action} ${name.trim()||'this '+label}? ${isAdmin?'They will lose admin access but keep their account.':'This will delete their account and all bookings permanently.'}`)) return;
-  
-  if (isAdmin) {
-    // Just remove admin flag, keep the account — plain RLS-gated update, no privileged API needed
-    const { error } = await sb.from('profiles').update({ is_admin: false }).eq('id', id);
+// isAdminPanel=true means "this is an admin-or-staff-position account" — only
+// reachable from the Admins tab, which only true admins can see, so this whole
+// branch is already admin-only in practice; RLS ("admins: update any profile",
+// is_admin()-only) and the edge function enforce it too, defense in depth.
+async function deleteMember(id, name, isAdminPanel=false) {
+  const label = isAdminPanel ? 'admin/staff' : 'member';
+  const action = isAdminPanel ? 'remove admin panel access from' : 'permanently delete';
+  if (!confirm(`Are you sure you want to ${action} ${name.trim()||'this '+label}? ${isAdminPanel?'They will lose admin panel access but keep their account.':'This will delete their account and all bookings permanently.'}`)) return;
+
+  if (isAdminPanel) {
+    // Just clear the position flags, keep the account — plain RLS-gated update, no privileged API needed
+    const { error } = await sb.from('profiles').update({ is_admin: false, is_staff: false }).eq('id', id);
     if (error) { showToast('Error: '+error.message, true); return; }
-    showToast(`Admin access removed from ${name.trim()} ✓`);
+    showToast(`Admin panel access removed from ${name.trim()} ✓`);
   } else {
     // Delete auth user entirely (cascades to profile and bookings via FK)
     const { error } = await callAdminFn({ action: 'delete', id });
@@ -794,20 +968,26 @@ async function openMemberModal(id) {
   document.getElementById('mm-nationality').value = m.nationality   || '';
   document.getElementById('mm-passport').value    = m.passport_no   || '';
   document.getElementById('mm-points').value      = m.tier_points   || 0;
-  document.getElementById('mm-admin').checked     = m.is_admin      || false;
+  document.getElementById('mm-position').value    = m.is_admin ? 'admin' : m.is_staff ? 'staff' : 'member';
 
-  // Set tier selector — hide for admins
+  // Set tier selector — hide for admin/staff accounts
   editingMemberTier = m.tier || 'explorer';
   document.querySelectorAll('#mm-tier-selector .tier-opt').forEach(opt => {
     opt.classList.toggle('selected', opt.getAttribute('data-tier') === editingMemberTier);
   });
-  // Hide tier and points for admin accounts
+  const isAdminPanelAccount = m.is_admin || m.is_staff;
+  // Hide tier and points for admin/staff accounts
   const tierSection = document.getElementById('mm-tier-section');
   const ptsSection  = document.getElementById('mm-points-section');
   const bkSection   = document.getElementById('mm-bookings-section');
-  if (tierSection) tierSection.style.display = m.is_admin ? 'none' : 'block';
-  if (ptsSection)  ptsSection.style.display  = m.is_admin ? 'none' : 'block';
-  if (bkSection)   bkSection.style.display   = m.is_admin ? 'none' : 'block';
+  if (tierSection) tierSection.style.display = isAdminPanelAccount ? 'none' : 'block';
+  if (ptsSection)  ptsSection.style.display  = isAdminPanelAccount ? 'none' : 'block';
+  if (bkSection)   bkSection.style.display   = isAdminPanelAccount ? 'none' : 'block';
+
+  // Only a true admin can grant admin/staff position, and only on a plain member
+  // (demoting/reassigning an existing admin/staff row happens via the Admins tab instead)
+  const posSection = document.getElementById('mm-position-section');
+  if (posSection) posSection.style.display = (currentUserIsAdmin && !isAdminPanelAccount) ? 'block' : 'none';
 
   // Load this member's bookings
   await loadMemberBookings(id, m.first_name);
@@ -851,7 +1031,10 @@ async function saveMember() {
   const btn = document.getElementById('btn-save-member');
   btn.disabled=true; btn.textContent='Saving…';
   const m = allMembers.find(x=>x.id===editingMemberId);
-  const isAdminAccount = m?.is_admin || document.getElementById('mm-admin').checked;
+  // 'member' | 'staff' | 'admin' — select is hidden (and thus unchanged from m's current
+  // state) unless the viewer is a true admin editing a plain member; see openMemberModal.
+  const position = document.getElementById('mm-position').value;
+  const isAdminPanelAccount = m?.is_admin || m?.is_staff || position !== 'member';
   const updates = {
     first_name:    document.getElementById('mm-first').value.trim(),
     last_name:     document.getElementById('mm-last').value.trim(),
@@ -859,10 +1042,11 @@ async function saveMember() {
     date_of_birth: document.getElementById('mm-dob').value || null,
     nationality:   document.getElementById('mm-nationality').value.trim(),
     passport_no:   document.getElementById('mm-passport').value.trim(),
-    is_admin:      document.getElementById('mm-admin').checked,
+    is_admin:      position === 'admin',
+    is_staff:      position === 'staff',
   };
-  // Only update tier & points for regular members, not admins
-  if (!isAdminAccount) {
+  // Only update tier & points for regular members, not admin/staff accounts
+  if (!isAdminPanelAccount) {
     updates.tier = editingMemberTier;
     updates.tier_points = parseInt(document.getElementById('mm-points').value)||0;
   }
@@ -1085,14 +1269,17 @@ function openTripModal(id) {
     document.getElementById('tm-pax').value     = t.max_pax;
     document.getElementById('tm-dates').value   = (t.departure_dates||[]).join(', ');
     document.getElementById('tm-active').checked= t.is_active;
+    document.getElementById('tm-cost').value    = allTripCosts[t.id] ?? '';
   } else {
-    ['tm-title','tm-slug','tm-summary','tm-dates'].forEach(i=>document.getElementById(i).value='');
+    ['tm-title','tm-slug','tm-summary','tm-dates','tm-cost'].forEach(i=>document.getElementById(i).value='');
     document.getElementById('tm-duration').value=7;
     document.getElementById('tm-price').value=0;
     document.getElementById('tm-tier').value='explorer';
     document.getElementById('tm-pax').value=12;
     document.getElementById('tm-active').checked=true;
   }
+  // Cost/margin is admin-only — staff never sees or edits supplier cost
+  document.getElementById('tm-cost-field').style.display = currentUserIsAdmin ? 'block' : 'none';
   openModal('trip-modal');
 }
 async function saveTrip() {
@@ -1109,11 +1296,22 @@ async function saveTrip() {
     max_pax:parseInt(document.getElementById('tm-pax').value),
     departure_dates:dates, is_active:document.getElementById('tm-active').checked,
   };
-  const { error }=editingTripId
-    ? await sb.from('trips').update(payload).eq('id',editingTripId)
-    : await sb.from('trips').insert(payload);
-  if (error) showToast('Error: '+error.message, true);
-  else { closeModal('trip-modal'); await loadTrips(); renderTripsTable(); showToast(editingTripId?'Trip updated ✓':'Trip created ✓'); }
+  const { data, error }=editingTripId
+    ? await sb.from('trips').update(payload).eq('id',editingTripId).select().single()
+    : await sb.from('trips').insert(payload).select().single();
+  if (error) { showToast('Error: '+error.message, true); btn.disabled=false; btn.textContent='Save Trip'; return; }
+
+  // Cost price is a separate admin-only table — only touch it if the field was shown
+  if (currentUserIsAdmin) {
+    const costVal = document.getElementById('tm-cost').value;
+    const cost_price = costVal === '' ? null : parseFloat(costVal);
+    await sb.from('trip_costs').upsert({ trip_id: data.id, cost_price }, { onConflict: 'trip_id' });
+    await loadTripCosts();
+  }
+
+  closeModal('trip-modal'); await loadTrips(); renderTripsTable();
+  if (currentUserIsAdmin) { await loadRevenue(); renderRevenuePage(); }
+  showToast(editingTripId?'Trip updated ✓':'Trip created ✓');
   btn.disabled=false; btn.textContent='Save Trip';
 }
 async function deleteTrip(id) {
@@ -1121,6 +1319,261 @@ async function deleteTrip(id) {
   const { error }=await sb.from('trips').delete().eq('id',id);
   if (error) showToast('Error: '+error.message, true);
   else { await loadTrips(); renderTripsTable(); showToast('Trip deleted.'); }
+}
+
+// ── VOUCHERS (admin + staff) ─────────────────────────────────
+function voucherStatus(v) {
+  if (v.used_at) return 'redeemed';
+  if (!v.is_active) return 'revoked';
+  if (v.expires_at && v.expires_at < new Date().toISOString().slice(0,10)) return 'expired';
+  return 'active';
+}
+function generateVoucherCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // no ambiguous 0/O/1/I
+  let suffix = '';
+  for (let i=0;i<6;i++) suffix += chars[Math.floor(Math.random()*chars.length)];
+  return `WELCOME-${suffix}`;
+}
+function renderVouchersTable() {
+  const active   = allVouchers.filter(v=>voucherStatus(v)==='active').length;
+  const redeemed = allVouchers.filter(v=>voucherStatus(v)==='redeemed').length;
+  const expired  = allVouchers.filter(v=>voucherStatus(v)==='expired').length;
+  document.getElementById('voucher-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-val">${allVouchers.length}</div><div class="stat-lbl">Total Vouchers</div></div>
+    <div class="stat-card"><div class="stat-val">${active}</div><div class="stat-lbl">Active</div></div>
+    <div class="stat-card"><div class="stat-val">${redeemed}</div><div class="stat-lbl">Redeemed</div></div>
+    <div class="stat-card"><div class="stat-val">${expired}</div><div class="stat-lbl">Expired</div></div>`;
+  filterVouchers();
+}
+function filterVouchers() {
+  const q = document.getElementById('vc-search').value.toLowerCase();
+  const sf = document.getElementById('vc-status-filter').value;
+  const filtered = allVouchers.filter(v => {
+    const text = `${v.code||''} ${v.member_first_name||''} ${v.member_last_name||''} ${v.member_email||''}`.toLowerCase();
+    if (!text.includes(q)) return false;
+    if (sf && voucherStatus(v) !== sf) return false;
+    return true;
+  });
+  document.getElementById('vc-count').textContent = `${filtered.length} vouchers`;
+  renderVouchersRows(filtered);
+}
+function renderVouchersRows(list) {
+  const statusPill = { active:'active', redeemed:'confirmed', expired:'cancelled', revoked:'inactive' };
+  const statusLabel = { active:'Active', redeemed:'Redeemed', expired:'Expired', revoked:'Revoked' };
+  document.getElementById('vouchers-body').innerHTML = list.length
+    ? list.map(v => {
+        const st = voucherStatus(v);
+        const discount = v.discount_type==='percent' ? `${Number(v.discount_value)}%` : `RM ${Number(v.discount_value).toLocaleString()}`;
+        const assignee = v.member_id ? `${v.member_first_name||''} ${v.member_last_name||''}`.trim()||'—' : '<span style="color:var(--smoke);">General</span>';
+        return `<tr>
+          <td><strong style="font-family:monospace;letter-spacing:0.02em;">${v.code}</strong></td>
+          <td>${discount}</td>
+          <td>${assignee}</td>
+          <td><span class="pill pill-${statusPill[st]}">${statusLabel[st]}</span></td>
+          <td style="font-size:0.75rem;color:var(--smoke);">${v.expires_at?fmtDate(v.expires_at):'—'}</td>
+          <td style="font-size:0.75rem;color:var(--smoke);">${v.created_by_first_name||'—'}</td>
+          <td><div class="btn-group">
+            <button class="btn btn-ghost btn-sm" onclick="copyVoucherCode('${v.code}')">Copy</button>
+            ${st==='active'?`<button class="btn btn-success btn-sm" onclick="markVoucherRedeemed('${v.id}')">Mark Redeemed</button>`:''}
+            <button class="btn btn-danger btn-sm" onclick="deleteVoucher('${v.id}','${v.code}')">Delete</button>
+          </div></td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="7" class="empty">No vouchers found.</td></tr>';
+}
+function copyVoucherCode(code) {
+  navigator.clipboard.writeText(code).then(
+    () => showToast(`Code ${code} copied ✓`),
+    () => showToast('Could not copy — copy it manually.', true)
+  );
+}
+async function markVoucherRedeemed(id) {
+  if (!confirm('Mark this voucher as redeemed? This cannot be undone.')) return;
+  const { error } = await sb.from('vouchers').update({ used_at: new Date().toISOString(), used_by: (allVouchers.find(v=>v.id===id)||{}).member_id || null }).eq('id', id);
+  if (error) { showToast('Error: '+error.message, true); return; }
+  await loadVouchers(); renderVouchersTable();
+  showToast('Voucher marked as redeemed ✓');
+}
+async function deleteVoucher(id, code) {
+  if (!confirm(`Delete voucher ${code}? This cannot be undone.`)) return;
+  const { error } = await sb.from('vouchers').delete().eq('id', id);
+  if (error) { showToast('Error: '+error.message, true); return; }
+  await loadVouchers(); renderVouchersTable();
+  showToast('Voucher deleted.');
+}
+
+function openCreateVoucherModal() {
+  document.getElementById('vc-code').value = generateVoucherCode();
+  document.getElementById('vc-type').value = 'fixed';
+  document.getElementById('vc-value').value = '';
+  document.getElementById('vc-expires').value = '';
+  document.getElementById('vc-note').value = '';
+  const memberSelect = document.getElementById('vc-member');
+  const members = allMembers.filter(m=>!m.is_admin&&!m.is_staff).sort((a,b)=>`${a.first_name}`.localeCompare(b.first_name));
+  memberSelect.innerHTML = '<option value="">General code — anyone can use it</option>' +
+    members.map(m=>`<option value="${m.id}">${m.first_name||''} ${m.last_name||''} — ${m.email||''}</option>`).join('');
+  openModal('create-voucher-modal');
+}
+async function createVoucher() {
+  const btn = document.getElementById('btn-create-voucher');
+  const code = document.getElementById('vc-code').value.trim().toUpperCase();
+  const discount_type = document.getElementById('vc-type').value;
+  const discount_value = parseFloat(document.getElementById('vc-value').value);
+  const member_id = document.getElementById('vc-member').value || null;
+  const expires_at = document.getElementById('vc-expires').value || null;
+  const note = document.getElementById('vc-note').value.trim() || null;
+
+  if (!code) { showToast('Please enter or generate a code.', true); return; }
+  if (!discount_value || discount_value <= 0) { showToast('Please enter a discount value.', true); return; }
+  if (discount_type === 'percent' && discount_value > 100) { showToast('Percent discount cannot exceed 100.', true); return; }
+
+  btn.disabled = true; btn.textContent = 'Creating…';
+  const { error } = await sb.from('vouchers').insert({
+    code, discount_type, discount_value, member_id, expires_at, note, created_by: currentAdminId,
+  });
+  if (error) {
+    showToast(error.message.includes('duplicate') ? 'That code is already in use — try another.' : 'Error: '+error.message, true);
+    btn.disabled = false; btn.textContent = 'Create Voucher';
+    return;
+  }
+  closeModal('create-voucher-modal');
+  await loadVouchers(); renderVouchersTable();
+  showToast(`Voucher ${code} created ✓`);
+  btn.disabled = false; btn.textContent = 'Create Voucher';
+}
+
+// ── REVENUE (admin only — accrual basis) ────────────────────
+// revenue_bucket, computed by get_admin_revenue():
+//   recognized = completed, or confirmed with departure date already passed
+//   deferred   = confirmed, departure still upcoming (collected but not yet earned)
+//   pipeline   = pending (not counted as revenue)
+//   lost       = cancelled (not counted as revenue, tracked for visibility)
+function renderRevenuePage() {
+  const recognized = allRevenue.filter(r=>r.revenue_bucket==='recognized');
+  const deferred    = allRevenue.filter(r=>r.revenue_bucket==='deferred');
+  const pipeline     = allRevenue.filter(r=>r.revenue_bucket==='pipeline');
+  const lost         = allRevenue.filter(r=>r.revenue_bucket==='lost');
+  const sum = (list,key) => list.reduce((s,r)=>s+Number(r[key]||0),0);
+
+  const recognizedRevenue = sum(recognized,'total_usd');
+  const deferredRevenue   = sum(deferred,'total_usd');
+  const pipelineValue     = sum(pipeline,'total_usd');
+  const lostValue         = sum(lost,'total_usd');
+
+  const recognizedWithCost = recognized.filter(r=>r.margin!==null);
+  const missingCostCount   = recognized.length - recognizedWithCost.length;
+  const grossMargin        = sum(recognizedWithCost,'margin');
+  const marginBaseRevenue  = sum(recognizedWithCost,'total_usd');
+  const marginPct = marginBaseRevenue ? (grossMargin/marginBaseRevenue*100) : null;
+
+  document.getElementById('rev-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-val">RM ${Math.round(recognizedRevenue).toLocaleString()}</div><div class="stat-lbl">Recognized Revenue</div></div>
+    <div class="stat-card"><div class="stat-val">RM ${Math.round(deferredRevenue).toLocaleString()}</div><div class="stat-lbl">Deferred Revenue</div></div>
+    <div class="stat-card"><div class="stat-val" style="color:${grossMargin<0?'var(--red)':'var(--navy)'}">RM ${Math.round(grossMargin).toLocaleString()}</div><div class="stat-lbl">Gross Margin (Recognized)</div></div>
+    <div class="stat-card"><div class="stat-val">${marginPct===null?'—':marginPct.toFixed(1)+'%'}</div><div class="stat-lbl">Margin %</div></div>
+    <div class="stat-card"><div class="stat-val">RM ${Math.round(pipelineValue).toLocaleString()}</div><div class="stat-lbl">Pipeline (Pending)</div></div>
+    <div class="stat-card"><div class="stat-val">RM ${Math.round(lostValue).toLocaleString()}</div><div class="stat-lbl">Lost (Cancelled)</div></div>`;
+
+  const banner = document.getElementById('rev-missing-cost-banner');
+  if (missingCostCount > 0) {
+    banner.style.display = 'block';
+    banner.textContent = `⚠ ${missingCostCount} recognized booking${missingCostCount===1?'':'s'} missing cost data — margin is understated. Set a cost price on the relevant trip(s) to see accurate margin.`;
+  } else {
+    banner.style.display = 'none';
+  }
+
+  // Monthly trend, by departure month
+  const monthKey = d => d ? new Date(d).toLocaleDateString('en-US',{month:'short',year:'2-digit'}) : 'Unknown';
+  const trendMap = {};
+  [...recognized,...deferred].forEach(r => {
+    const k = monthKey(r.departure_date);
+    if (!trendMap[k]) trendMap[k] = 0;
+    trendMap[k] += Number(r.total_usd||0);
+  });
+  const months = Object.keys(trendMap).sort((a,b)=> new Date('1 '+a) - new Date('1 '+b));
+  const maxMonth = Math.max(...months.map(m=>trendMap[m]),1);
+  document.getElementById('rev-trend-chart').innerHTML = months.length
+    ? `<div class="mini-bar-wrap">${months.map(m=>`<div class="mini-bar-row">
+        <div class="mini-bar-label">${m}</div>
+        <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${Math.round(trendMap[m]/maxMonth*100)}%"></div></div>
+        <div class="mini-bar-val">RM ${Math.round(trendMap[m]/1000)}k</div></div>`).join('')}</div>`
+    : '<div class="empty">No revenue data yet.</div>';
+
+  // By trip
+  const tripMap = {};
+  [...recognized,...deferred].forEach(r => {
+    if (!tripMap[r.trip_title]) tripMap[r.trip_title] = 0;
+    tripMap[r.trip_title] += Number(r.total_usd||0);
+  });
+  const tripEntries = Object.entries(tripMap).sort((a,b)=>b[1]-a[1]).slice(0,6);
+  const maxTrip = Math.max(...tripEntries.map(([,v])=>v),1);
+  document.getElementById('rev-trip-chart').innerHTML = tripEntries.length
+    ? `<div class="mini-bar-wrap">${tripEntries.map(([name,v])=>`<div class="mini-bar-row">
+        <div class="mini-bar-label">${name}</div>
+        <div class="mini-bar-track"><div class="mini-bar-fill" style="width:${Math.round(v/maxTrip*100)}%"></div></div>
+        <div class="mini-bar-val">RM ${Math.round(v/1000)}k</div></div>`).join('')}</div>`
+    : '<div class="empty">No revenue data yet.</div>';
+
+  filterRevenue();
+}
+
+function filterRevenue() {
+  const q      = document.getElementById('rev-search').value.toLowerCase();
+  const bucket = document.getElementById('rev-bucket-filter').value;
+  const from   = document.getElementById('rev-date-from').value;
+  const to     = document.getElementById('rev-date-to').value;
+  const filtered = allRevenue.filter(r => {
+    const text = `${r.first_name||''} ${r.last_name||''} ${r.trip_title||''}`.toLowerCase();
+    if (!text.includes(q)) return false;
+    if (bucket && r.revenue_bucket !== bucket) return false;
+    if (from && (!r.departure_date || r.departure_date < from)) return false;
+    if (to && (!r.departure_date || r.departure_date > to)) return false;
+    return true;
+  });
+  document.getElementById('rev-count').textContent = `${filtered.length} bookings`;
+  renderRevenueRows(filtered);
+}
+
+function renderRevenueRows(list) {
+  const bucketLabel = { recognized:'Recognized', deferred:'Deferred', pipeline:'Pending', lost:'Cancelled' };
+  const bucketPill  = { recognized:'confirmed', deferred:'pending', pipeline:'pending', lost:'cancelled' };
+  document.getElementById('revenue-body').innerHTML = list.length
+    ? list.map(r => `<tr>
+        <td style="font-size:0.75rem;color:var(--smoke);">${fmtDate(r.departure_date)}</td>
+        <td>${r.first_name||''} ${r.last_name||''}</td>
+        <td>${r.trip_title||''}</td>
+        <td>${r.num_travellers}</td>
+        <td style="color:var(--gold);font-weight:500;">RM ${Number(r.total_usd).toLocaleString()}</td>
+        <td>${r.cost_price==null?'—':'RM '+Number(r.cost_price*r.num_travellers).toLocaleString()}</td>
+        <td style="color:${r.margin==null?'var(--smoke)':r.margin<0?'var(--red)':'var(--green)'};font-weight:500;">${r.margin==null?'—':'RM '+Number(r.margin).toLocaleString()}</td>
+        <td><span class="pill pill-${bucketPill[r.revenue_bucket]}">${bucketLabel[r.revenue_bucket]}</span></td>
+      </tr>`).join('')
+    : '<tr><td colspan="8" class="empty">No bookings match your filters.</td></tr>';
+}
+
+function exportRevenueCsv() {
+  if (!currentUserIsAdmin) return;
+  if (!allRevenue.length) { showToast('Nothing to export.', true); return; }
+  const headers = ['Departure Date','Booked On','Member','Email','Trip','Pax','Revenue (RM)','Cost (RM)','Margin (RM)','Status'];
+  const rows = allRevenue.map(r => [
+    r.departure_date || '',
+    r.booked_at ? new Date(r.booked_at).toISOString().slice(0,10) : '',
+    `${r.first_name||''} ${r.last_name||''}`.trim(),
+    r.member_email || '',
+    r.trip_title || '',
+    r.num_travellers,
+    r.total_usd,
+    r.cost_price==null ? '' : (r.cost_price*r.num_travellers),
+    r.margin==null ? '' : r.margin,
+    r.revenue_bucket,
+  ]);
+  const csv = [headers, ...rows].map(row => row.map(v => `"${String(v).replace(/"/g,'""')}"`).join(',')).join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = `revenue-export-${new Date().toISOString().slice(0,10)}.csv`;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
 }
 
 // ── MODAL HELPERS ──────────────────────────────────────────
@@ -1134,18 +1587,20 @@ let createIsAdmin = false;
 
 function openCreateMemberModal(isAdmin) {
   createIsAdmin = isAdmin;
-    document.getElementById('cm-title').textContent = isAdmin ? 'New Admin Account' : 'New Member Account';
+    document.getElementById('cm-title').textContent = isAdmin ? 'New Admin Panel Account' : 'New Member Account';
   document.getElementById('cm-subtitle').textContent = isAdmin
-    ? 'Create a new admin account. This person will have full access to the admin panel.'
+    ? 'Create a new admin panel account — choose Admin for full access, or Staff for limited access.'
     : 'Create a new member account on behalf of your customer.';
   document.getElementById('cm-note').textContent = isAdmin
-    ? 'The new admin can log in via admin-login.html using the email and password you set here.'
+    ? 'The new account can log in via admin-login.html using the email and password you set here.'
     : 'The member can log in via the member portal using the email and password you set. They can change their password after logging in.';
 
   // Reset form
   ['cm-first','cm-last','cm-email','cm-password','cm-phone','cm-nationality'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('cm-position-field').style.display = isAdmin ? 'block' : 'none';
+  document.getElementById('cm-position').value = 'admin';
 
-  document.getElementById('btn-create-member').textContent = isAdmin ? 'Create Admin Account' : 'Create Member Account';
+  document.getElementById('btn-create-member').textContent = isAdmin ? 'Create Account' : 'Create Member Account';
   openModal('create-member-modal');
 }
 
@@ -1159,6 +1614,9 @@ async function createMember() {
   const password = document.getElementById('cm-password').value;
   const phone    = document.getElementById('cm-phone').value.trim();
   const nationality = document.getElementById('cm-nationality').value.trim();
+  // Only meaningful when createIsAdmin — the field is hidden otherwise and defaults to 'admin'
+  const position = createIsAdmin ? document.getElementById('cm-position').value : 'member';
+  const btnResetLabel = createIsAdmin ? 'Create Account' : 'Create Member Account';
 
   if (!first || !password) { showToast('Please fill in First Name and Password.', true); return; }
   if (password.length < 8) { showToast('Password must be at least 8 characters.', true); return; }
@@ -1184,16 +1642,17 @@ async function createMember() {
 
   if (authError) {
     showToast('Error: ' + authError.message, true);
-    btn.disabled = false; btn.textContent = createIsAdmin ? 'Create Admin Account' : 'Create Member Account';
+    btn.disabled = false; btn.textContent = btnResetLabel;
     return;
   }
 
-  // Step 2: Update profile with extra details + admin flag if needed
+  // Step 2: Update profile with extra details + position flags if needed
   const updates = {
     first_name: first, last_name: last,
     phone: phone || null, nationality: nationality || null,
     tier: createIsAdmin ? 'elite' : 'explorer',
-    is_admin: createIsAdmin
+    is_admin: position === 'admin',
+    is_staff: position === 'staff',
   };
 
   // Wait a moment for the trigger to create the profile row
@@ -1201,9 +1660,9 @@ async function createMember() {
   await sb.from('profiles').update(updates).eq('id', authData.user.id);
 
   closeModal('create-member-modal');
-  await loadMembers(); renderMembersTable();
-  showToast(createIsAdmin ? 'Admin account created ✓' : 'Member account created ✓');
-  btn.disabled = false; btn.textContent = createIsAdmin ? 'Create Admin Account' : 'Create Member Account';
+  await loadMembers(); renderMembersTable(); renderAdminsTable();
+  showToast(createIsAdmin ? `${position==='admin'?'Admin':'Staff'} account created ✓` : 'Member account created ✓');
+  btn.disabled = false; btn.textContent = btnResetLabel;
 }
 // ── HELPERS ────────────────────────────────────────────────
 function cap(s) { return s?s.charAt(0).toUpperCase()+s.slice(1):''; }

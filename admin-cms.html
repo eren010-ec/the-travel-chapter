@@ -217,8 +217,8 @@ document.getElementById('cms-nav').addEventListener('click', function(e) {
 async function init() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'admin-login.html'; return; }
-  const { data: profile } = await sb.from('profiles').select('is_admin').eq('id', session.user.id).single();
-  if (!profile?.is_admin) { window.location.href = 'admin.html'; return; }
+  const { data: profile } = await sb.from('profiles').select('is_admin, is_staff').eq('id', session.user.id).single();
+  if (!profile?.is_admin && !profile?.is_staff) { window.location.href = 'admin.html'; return; }
 
   const { data, error } = await sb.from('cms_content').select('*');
   if (error) { showToast('Error loading CMS: ' + error.message, true); return; }

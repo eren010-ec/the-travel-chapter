@@ -289,13 +289,21 @@ const SUPABASE_ANON = 'sb_publishable_8mbRk904S5zktFv6UIlRUg_gp1PFAWm';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
+// Admin/staff accounts belong on admin-login.html, not the member portal.
+async function routeSession(session) {
+  if (!session) return;
+  const { data: profile } = await sb.from('profiles').select('is_admin, is_staff').eq('id', session.user.id).single();
+  if (profile?.is_admin || profile?.is_staff) {
+    await sb.auth.signOut();
+    showErr('login-err', 'This is an admin/staff account — please sign in at the admin portal instead.');
+    return;
+  }
+  window.location.href = 'dashboard.html';
+}
+
 // Redirect if already logged in
-sb.auth.getSession().then(({ data: { session } }) => {
-  if (session) window.location.href = 'dashboard.html';
-});
-sb.auth.onAuthStateChange((event, session) => {
-  if (session) window.location.href = 'dashboard.html';
-});
+sb.auth.getSession().then(({ data: { session } }) => routeSession(session));
+sb.auth.onAuthStateChange((event, session) => routeSession(session));
 
 function clearErrors() {
   document.querySelectorAll('.err-msg').forEach(e => { e.textContent = ''; e.classList.remove('visible'); });

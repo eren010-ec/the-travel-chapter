@@ -878,10 +878,12 @@ async function loadTrips() {
   grid.innerHTML = data.map((t, i) => {
     const thumb = TRIP_THUMBS[i % TRIP_THUMBS.length];
     const window = departureWindow(t.departure_dates);
+    const hasImage = !!t.cover_image;
+    const thumbStyle = hasImage ? `background:url('${t.cover_image}') center/cover no-repeat;` : `background:${thumb.gradient};`;
     return `
       <div class="trip-card reveal">
-        <div class="trip-thumb" style="background:${thumb.gradient};">
-          ${thumb.emoji} <span class="trip-tier-badge tier-${t.min_tier}">${cap(t.min_tier)}</span>
+        <div class="trip-thumb" style="${thumbStyle}">
+          ${hasImage?'':thumb.emoji} <span class="trip-tier-badge tier-${t.min_tier}">${cap(t.min_tier)}</span>
         </div>
         <div class="trip-body">
           <div class="trip-name">${t.title||''}</div>

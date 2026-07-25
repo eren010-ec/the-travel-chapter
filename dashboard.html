@@ -378,6 +378,15 @@ async function init() {
   const { data: { session } } = await sb.auth.getSession();
   if (!session) { window.location.href = 'index.html'; return; }
   currentUser = session.user;
+
+  // Admin/staff accounts belong on the admin portal, not here
+  const { data: roleCheck } = await sb.from('profiles').select('is_admin, is_staff').eq('id', currentUser.id).single();
+  if (roleCheck?.is_admin || roleCheck?.is_staff) {
+    await sb.auth.signOut();
+    window.location.href = 'login.html';
+    return;
+  }
+
   await Promise.all([loadProfile(), loadTrips(), loadBookings()]);
   renderSidebar(); renderOverview(); renderTrips(); renderBookings(); renderMembership(); prefillProfile();
 }
@@ -448,8 +457,10 @@ function renderTrips() {
     const emoji  = tripEmojis[t.slug]||'✈️';
     const grad   = tripGrads[i%tripGrads.length];
     const dates  = (t.departure_dates||[]).slice(0,2).map(d=>fmtDate(d)).join(' · ');
+    const hasImage = !!t.cover_image;
+    const thumbStyle = hasImage ? `background:url('${t.cover_image}') center/cover no-repeat;` : `background:${grad};`;
     return `<div class="trip-card">
-      <div class="trip-thumb" style="background:${grad};">${emoji}</div>
+      <div class="trip-thumb" style="${thumbStyle}">${hasImage?'':emoji}</div>
       <div class="trip-body">
         <div class="trip-name">${t.title}</div>
         <div class="trip-desc">${t.summary||''}</div>

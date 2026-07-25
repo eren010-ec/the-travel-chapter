@@ -581,6 +581,18 @@ textarea { resize:vertical; min-height:70px; }
       <div class="field full"><label>Trip Title</label><input type="text" id="tm-title" placeholder="Kyoto in Autumn"></div>
       <div class="field full"><label>Slug (URL key)</label><input type="text" id="tm-slug" placeholder="kyoto-autumn"></div>
       <div class="field full"><label>Summary</label><textarea id="tm-summary" placeholder="One-line description…"></textarea></div>
+      <div class="field full">
+        <label>Cover Image</label>
+        <div id="tm-image-preview-wrap" style="display:none;margin-bottom:8px;">
+          <img id="tm-image-preview" src="" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px;border:1px solid var(--border);">
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="file" id="tm-image-file" accept="image/*" style="display:none;" onchange="handleTripImageSelect(event)">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('tm-image-file').click()">📷 Choose Photo</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="btn-remove-trip-image" style="display:none;" onclick="removeTripImage()">✕ Remove</button>
+          <span id="tm-image-status" style="font-size:0.72rem;color:var(--smoke);"></span>
+        </div>
+      </div>
       <div class="field"><label>Duration (days)</label><input type="number" id="tm-duration" min="1" value="7"></div>
       <div class="field"><label>Price (RM)</label><input type="number" id="tm-price" min="0" step="0.01" value="0"></div>
       <div class="field"><label>Min Tier</label>
@@ -731,6 +743,7 @@ let currentUserIsAdmin = false, currentUserIsStaff = false;
 let editingMemberId=null, editingMemberTier='explorer';
 let editingBookingId=null, addBookingMemberId=null;
 let editingTripId=null, editingBsmId=null;
+let tripImageFile=null, tripImageRemoved=false;
 
 // ── NAVIGATION ─────────────────────────────────────────────
 document.getElementById('sidebar-nav').addEventListener('click', function(e) {
@@ -813,8 +826,9 @@ async function loadMembers() {
 function renderDashboard() {
   const totalRev = allBookings.filter(b=>b.status!=='cancelled').reduce((s,b)=>s+Number(b.total_usd),0);
   const pending  = allBookings.filter(b=>b.status==='pending').length;
+  const memberCount = allMembers.filter(m=>!m.is_admin&&!m.is_staff).length;
   document.getElementById('dash-stats').innerHTML = `
-    <div class="stat-card"><div class="stat-val">${allMembers.length}</div><div class="stat-lbl">Total Members</div></div>
+    <div class="stat-card"><div class="stat-val">${memberCount}</div><div class="stat-lbl">Total Members</div></div>
     <div class="stat-card"><div class="stat-val">${allBookings.length}</div><div class="stat-lbl">Total Bookings</div></div>
     ${currentUserIsAdmin ? `<div class="stat-card"><div class="stat-val">RM ${Math.round(totalRev).toLocaleString()}</div><div class="stat-lbl">Total Revenue</div></div>` : ''}
     <div class="stat-card"><div class="stat-val">${pending}</div><div class="stat-lbl">Pending Review</div></div>`;
@@ -1257,7 +1271,11 @@ function renderTripsRows(list) {
 // ── TRIP MODAL ─────────────────────────────────────────────
 function openTripModal(id) {
   editingTripId=id||null;
+  tripImageFile=null; tripImageRemoved=false;
+  document.getElementById('tm-image-file').value='';
+  document.getElementById('tm-image-status').textContent='';
   document.getElementById('trip-modal-title').textContent=id?'Edit Trip':'New Trip';
+  let existingImage = '';
   if (id) {
     const t=allTrips.find(x=>x.id===id); if (!t) return;
     document.getElementById('tm-title').value   = t.title;
@@ -1270,6 +1288,7 @@ function openTripModal(id) {
     document.getElementById('tm-dates').value   = (t.departure_dates||[]).join(', ');
     document.getElementById('tm-active').checked= t.is_active;
     document.getElementById('tm-cost').value    = allTripCosts[t.id] ?? '';
+    existingImage = t.cover_image || '';
   } else {
     ['tm-title','tm-slug','tm-summary','tm-dates','tm-cost'].forEach(i=>document.getElementById(i).value='');
     document.getElementById('tm-duration').value=7;
@@ -1278,9 +1297,38 @@ function openTripModal(id) {
     document.getElementById('tm-pax').value=12;
     document.getElementById('tm-active').checked=true;
   }
+  showTripImagePreview(existingImage);
   // Cost/margin is admin-only — staff never sees or edits supplier cost
   document.getElementById('tm-cost-field').style.display = currentUserIsAdmin ? 'block' : 'none';
   openModal('trip-modal');
+}
+
+function showTripImagePreview(url) {
+  const wrap = document.getElementById('tm-image-preview-wrap');
+  const img  = document.getElementById('tm-image-preview');
+  const removeBtn = document.getElementById('btn-remove-trip-image');
+  if (url) {
+    img.src = url; wrap.style.display = 'block'; removeBtn.style.display = 'inline-flex';
+  } else {
+    img.src = ''; wrap.style.display = 'none'; removeBtn.style.display = 'none';
+  }
+}
+function handleTripImageSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showToast('Please choose an image file.', true); return; }
+  if (file.size > 5 * 1024 * 1024) { showToast('Image must be under 5MB.', true); return; }
+  tripImageFile = file;
+  tripImageRemoved = false;
+  showTripImagePreview(URL.createObjectURL(file));
+  document.getElementById('tm-image-status').textContent = file.name;
+}
+function removeTripImage() {
+  tripImageFile = null;
+  tripImageRemoved = true;
+  document.getElementById('tm-image-file').value = '';
+  document.getElementById('tm-image-status').textContent = '';
+  showTripImagePreview('');
 }
 async function saveTrip() {
   const btn=document.getElementById('btn-save-trip');
@@ -1296,6 +1344,17 @@ async function saveTrip() {
     max_pax:parseInt(document.getElementById('tm-pax').value),
     departure_dates:dates, is_active:document.getElementById('tm-active').checked,
   };
+
+  if (tripImageFile) {
+    const ext = (tripImageFile.name.split('.').pop() || 'jpg').toLowerCase();
+    const path = `trips/${(crypto.randomUUID ? crypto.randomUUID() : Date.now())}.${ext}`;
+    const { error: uploadErr } = await sb.storage.from('trip-images').upload(path, tripImageFile);
+    if (uploadErr) { showToast('Image upload failed: '+uploadErr.message, true); btn.disabled=false; btn.textContent='Save Trip'; return; }
+    payload.cover_image = sb.storage.from('trip-images').getPublicUrl(path).data.publicUrl;
+  } else if (tripImageRemoved) {
+    payload.cover_image = null;
+  }
+
   const { data, error }=editingTripId
     ? await sb.from('trips').update(payload).eq('id',editingTripId).select().single()
     : await sb.from('trips').insert(payload).select().single();

@@ -307,8 +307,7 @@ footer { background:var(--navy); padding:56px 6% 32px; }
     <li><a href="#contact">Contact</a></li>
   </ul>
   <div class="nav-cta">
-    <a href="login.html" class="btn-nav-ghost">Sign In</a>
-    <a href="login.html" class="btn-nav-primary">Join Us</a>
+    <a href="login.html" class="btn-nav-primary">Sign In</a>
   </div>
   <button class="nav-mobile-toggle" onclick="toggleMobileNav()">
     <span></span><span></span><span></span>
@@ -326,7 +325,6 @@ footer { background:var(--navy); padding:56px 6% 32px; }
       <p id="hero-subtext">The Travel Chapter curates extraordinary journeys for discerning travellers — from intimate ryokans in Kyoto to private yacht charters along the Amalfi Coast.</p>
       <div class="hero-actions">
         <a href="#trips" class="btn-hero-primary" id="hero-cta-primary">Explore Trips</a>
-        <a href="login.html" class="btn-hero-ghost" id="hero-cta-secondary">Become a Member</a>
       </div>
       <div class="hero-stats" id="hero-stats">
         <div><span class="hero-stat-val">48+</span><span class="hero-stat-lbl">Destinations</span></div>
@@ -544,7 +542,6 @@ footer { background:var(--navy); padding:56px 6% 32px; }
         <li>Email travel updates</li>
         <li>24/7 member support</li>
       </ul>
-      <a href="index.html?tab=register" class="btn-tier">Start as Explorer</a>
     </div>
     <div class="tier-card featured reveal">
       <div class="tier-featured-label">Most Popular</div>
@@ -559,7 +556,6 @@ footer { background:var(--navy); padding:56px 6% 32px; }
         <li>Complimentary travel insurance</li>
         <li>Exclusive member events</li>
       </ul>
-      <a href="index.html?tab=register" class="btn-tier featured">Join & Earn Points</a>
     </div>
     <div class="tier-card reveal">
       <div class="tier-icon">👑</div>
@@ -573,7 +569,6 @@ footer { background:var(--navy); padding:56px 6% 32px; }
         <li>Airport lounge access</li>
         <li>Annual gift & surprises</li>
       </ul>
-      <a href="index.html?tab=register" class="btn-tier">Aspire to Elite</a>
     </div>
   </div>
 </section>
@@ -673,8 +668,7 @@ footer { background:var(--navy); padding:56px 6% 32px; }
   <h2 class="reveal" id="cta-heading">Ready to Begin Your <em>Chapter</em>?</h2>
   <p class="reveal" id="cta-subtext">Join thousands of discerning travellers who have trusted us with their most precious journeys.</p>
   <div class="cta-actions reveal">
-    <a href="index.html?tab=register" class="btn-hero-primary" id="cta-primary">Create Your Account</a>
-    <a href="#contact" class="btn-hero-ghost" id="cta-secondary">Talk to Us First</a>
+    <a href="#contact" class="btn-hero-primary" id="cta-primary">Talk to Us</a>
   </div>
 </div>
 
@@ -754,8 +748,7 @@ footer { background:var(--navy); padding:56px 6% 32px; }
     <div>
       <div class="footer-col-title">Members</div>
       <ul class="footer-links">
-        <li><a href="index.html">Sign In</a></li>
-        <li><a href="index.html?tab=register">Join Us</a></li>
+        <li><a href="login.html">Sign In</a></li>
         <li><a href="dashboard.html">Dashboard</a></li>
       </ul>
     </div>
@@ -865,7 +858,6 @@ function applyMembership(d) {
         <div class="tier-pts">${t.points||''}</div>
         <div class="tier-divider"></div>
         <ul class="tier-perks">${(t.perks||[]).map(p=>`<li>${p}</li>`).join('')}</ul>
-        <a href="index.html?tab=register" class="btn-tier ${t.featured?'featured':''}">${t.cta||'Join Now'}</a>
       </div>`).join('');
   }
 }
@@ -958,9 +950,6 @@ const observer = new IntersectionObserver((entries) => {
   entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); observer.unobserve(e.target); } });
 }, { threshold: 0.12 });
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-// ── Auto-switch tab on index.html if ?tab=register in URL
-// (This runs on index.html, not here — already handled there)
 
 // ── Contact form
 function handleContact() {

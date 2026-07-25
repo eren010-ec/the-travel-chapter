@@ -406,12 +406,12 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 <section id="trips">
   <div class="section-header-split reveal">
     <div>
-      <div class="section-eyebrow">Our Journeys</div>
-      <h2 class="section-title">Featured <em>Trips</em></h2>
+      <div class="section-eyebrow" id="ft-eyebrow">Our Journeys</div>
+      <h2 class="section-title" id="ft-heading">Featured <em>Trips</em></h2>
     </div>
-    <p class="section-sub">Each journey is crafted with intention — expert guides, intimate group sizes and access to experiences no ordinary tourist agency can offer.</p>
+    <p class="section-sub" id="ft-subtext">Each journey is crafted with intention — expert guides, intimate group sizes and access to experiences no ordinary tourist agency can offer.</p>
   </div>
-  <div class="trips-grid">
+  <div class="trips-grid" id="trips-grid">
     <div class="trip-card reveal">
       <div class="trip-thumb" style="background:linear-gradient(160deg,#1a3a2a,#2d6a4f);">
         🍁 <span class="trip-tier-badge tier-explorer">Explorer</span>
@@ -786,6 +786,7 @@ async function loadCMS() {
   // Apply each section
   if (cms.hero)         applyHero(cms.hero);
   if (cms.destinations) applyDestinations(cms.destinations);
+  if (cms.featured_trips) applyFeaturedTrips(cms.featured_trips);
   if (cms.membership)   applyMembership(cms.membership);
   if (cms.about)        applyAbout(cms.about);
   if (cms.testimonials) applyTestimonials(cms.testimonials);
@@ -793,6 +794,9 @@ async function loadCMS() {
   if (cms.contact)      applyContact(cms.contact);
   if (cms.footer)       applyFooter(cms.footer);
   if (cms.navbar)       applyNavbar(cms.navbar);
+
+  // Trip cards live in the `trips` table, not cms_content
+  await loadTrips();
 
   // Re-run scroll reveal after DOM updates
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
@@ -842,6 +846,58 @@ function applyDestinations(d) {
         </div>
       </div>`).join('');
   }
+}
+
+function applyFeaturedTrips(d) {
+  txt('ft-eyebrow', d.eyebrow);
+  html('ft-heading', italicHeading(d.heading, d.heading_italic));
+  txt('ft-subtext', d.subtext);
+}
+
+// Rotating thumb styling — trips table has no gradient/emoji columns of its own
+const TRIP_THUMBS = [
+  { gradient:'linear-gradient(160deg,#1a3a2a,#2d6a4f)', emoji:'🍁' },
+  { gradient:'linear-gradient(160deg,#1a2a3a,#1e6091)', emoji:'⛵' },
+  { gradient:'linear-gradient(160deg,#3a1a1a,#7a3520)', emoji:'🐪' },
+  { gradient:'linear-gradient(160deg,#1a2a3a,#2d3561)', emoji:'🛶' },
+  { gradient:'linear-gradient(160deg,#2a1a3a,#4a2f6a)', emoji:'🏔️' },
+  { gradient:'linear-gradient(160deg,#1a1a3a,#2d3561)', emoji:'🏯' },
+];
+function cap(s) { return s ? s[0].toUpperCase()+s.slice(1) : ''; }
+function departureWindow(dates) {
+  if (!dates || !dates.length) return '';
+  const months = dates.map(d => new Date(d).toLocaleDateString('en-US', { month:'short' }));
+  return [...new Set(months)].slice(0,2).join(' – ');
+}
+
+async function loadTrips() {
+  const { data, error } = await sb.from('trips').select('*').eq('is_active', true).order('created_at');
+  if (error || !data || !data.length) return; // keep static fallback cards
+  const grid = document.getElementById('trips-grid');
+  if (!grid) return;
+  grid.innerHTML = data.map((t, i) => {
+    const thumb = TRIP_THUMBS[i % TRIP_THUMBS.length];
+    const window = departureWindow(t.departure_dates);
+    return `
+      <div class="trip-card reveal">
+        <div class="trip-thumb" style="background:${thumb.gradient};">
+          ${thumb.emoji} <span class="trip-tier-badge tier-${t.min_tier}">${cap(t.min_tier)}</span>
+        </div>
+        <div class="trip-body">
+          <div class="trip-name">${t.title||''}</div>
+          <div class="trip-desc">${t.summary||''}</div>
+          <div class="trip-meta">
+            <span class="trip-tag">📅 ${t.duration_days} days</span>
+            <span class="trip-tag">👥 Max ${t.max_pax}</span>
+            ${window?`<span class="trip-tag">✈️ ${window}</span>`:''}
+          </div>
+          <div class="trip-footer">
+            <div class="trip-price">RM ${Number(t.price_usd).toLocaleString()} <span>/ person</span></div>
+            <a href="index.html" class="btn-trip">Book Now</a>
+          </div>
+        </div>
+      </div>`;
+  }).join('');
 }
 
 function applyMembership(d) {

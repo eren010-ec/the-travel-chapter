@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="the-travel-chapter-icon.png">
+<link rel="manifest" href="manifest-customer.json">
+<meta name="theme-color" content="#1a1f2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Travel Chapter">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon-customer.png">
 <title>The Travel Chapter — Member Portal</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -40,19 +46,20 @@ nav {
 }
 .nav-logo {
   display: flex; align-items: center; gap: 10px;
-  text-decoration: none;
+  text-decoration: none; min-width: 0;
 }
 .nav-logo-img { height: 38px; width: auto; object-fit: contain; flex-shrink: 0; }
 .nav-logo-text {
   font-family: 'DM Sans', sans-serif;
   font-size: 0.88rem; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase;
   color: var(--gold);
+  min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
 .nav-links a { font-size: 0.82rem; letter-spacing: 0.05em; color: var(--smoke); text-decoration: none; transition: color 0.2s; }
 .nav-links a:hover { color: var(--navy); }
 .nav-back {
-  display: flex; align-items: center; gap: 6px;
+  display: flex; align-items: center; gap: 6px; flex-shrink: 0;
   font-size: 0.8rem; color: var(--smoke); text-decoration: none;
   transition: color 0.2s;
 }
@@ -224,6 +231,10 @@ input:focus { border-color: var(--gold); background: var(--white); }
 @media(max-width: 480px) {
   .auth-card { padding: 28px 20px; }
   .field-row { flex-direction: column; }
+  nav { padding: 0 4%; }
+  .nav-logo-text { font-size: 0.72rem; letter-spacing: 0.08em; }
+  .nav-logo-img { height: 30px; }
+  .nav-back-label { display: none; }
 }
 </style>
 </head>
@@ -234,7 +245,7 @@ input:focus { border-color: var(--gold); background: var(--white); }
   <a href="index.html" class="nav-logo"><img src="the-travel-chapter-icon.png" alt="The Travel Chapter" class="nav-logo-img"><span class="nav-logo-text">The Travel Chapter</span></a>
   <a href="index.html" class="nav-back">
     <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
-    Back to Website
+    <span class="nav-back-label">Back to Website</span>
   </a>
 </nav>
 
@@ -346,6 +357,13 @@ function showToast(msg, err) {
   t.classList.add('show');
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+}
+
+// ── PWA: service worker registration
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw-customer.js').catch(() => {});
+  });
 }
 </script>
 </body>

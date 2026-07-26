@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="the-travel-chapter-icon.png">
+<link rel="manifest" href="manifest-admin.json">
+<meta name="theme-color" content="#1a1f2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TC Admin">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon-admin.png">
 <title>The Travel Chapter — Content Editor</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -21,8 +27,9 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 .sidebar { width:var(--sidebar-w); min-height:100vh; background:var(--navy); display:flex; flex-direction:column; position:fixed; top:0; left:0; bottom:0; z-index:50; }
 .sb-header { padding:22px 20px 18px; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; gap:10px; }
 .sb-header img { width:40px; height:40px; object-fit:contain; flex-shrink:0; }
-.sb-brand { font-family:'DM Sans',sans-serif; font-size:0.76rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold2); }
-.sb-sub { font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase; color:rgba(255,255,255,0.3); margin-top:3px; }
+.sb-header > div { min-width:0; flex:1; }
+.sb-brand { font-family:'DM Sans',sans-serif; font-size:0.76rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.sb-sub { font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase; color:rgba(255,255,255,0.3); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .nav { flex:1; padding:14px 10px; display:flex; flex-direction:column; gap:2px; overflow-y:auto; }
 .nav-section-label { font-size:0.58rem; letter-spacing:0.2em; text-transform:uppercase; color:rgba(255,255,255,0.2); padding:10px 14px 4px; }
 .nav-item { display:flex; align-items:center; gap:10px; padding:10px 13px; border-radius:7px; cursor:pointer; color:rgba(255,255,255,0.45); font-size:0.8rem; border:none; background:transparent; width:100%; text-align:left; transition:all 0.2s; }
@@ -130,6 +137,10 @@ textarea { resize:vertical; min-height:80px; line-height:1.6; }
 @media(max-width:768px) {
   .sidebar { width:180px; } .main { margin-left:180px; padding:20px 16px; }
   .field-row { grid-template-columns:1fr; }
+  .sb-header { padding:16px 12px 12px; gap:8px; }
+  .sb-header img { width:28px; height:28px; }
+  .sb-brand { font-size:0.6rem; letter-spacing:0.05em; }
+  .sb-sub { font-size:0.5rem; letter-spacing:0.12em; }
 }
 </style>
 </head>
@@ -178,7 +189,7 @@ textarea { resize:vertical; min-height:80px; line-height:1.6; }
     </button>
   </nav>
   <div class="sb-footer">
-    <a href="index.html" target="_blank" class="btn-preview">
+    <a href="https://thetravelchapter.netlify.app/index.html" target="_blank" class="btn-preview">
       <svg viewBox="0 0 24 24" style="width:13px;height:13px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
       Preview Landing Page
     </a>
@@ -342,7 +353,7 @@ function renderEditor(section) {
     </div>
     <div class="preview-strip">
       <p>Changes saved here will appear on your <strong>landing page</strong> automatically.</p>
-      <a href="index.html" target="_blank" class="btn btn-ghost" style="color:rgba(255,255,255,0.6);border-color:rgba(255,255,255,0.15);font-size:0.72rem;">Preview Page ↗</a>
+      <a href="https://thetravelchapter.netlify.app/index.html" target="_blank" class="btn btn-ghost" style="color:rgba(255,255,255,0.6);border-color:rgba(255,255,255,0.15);font-size:0.72rem;">Preview Page ↗</a>
     </div>`;
 
   // Render section-specific form
@@ -818,6 +829,13 @@ function showToast(msg, err) {
 }
 
 init();
+
+// ── PWA: service worker registration
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw-admin.js').catch(() => {});
+  });
+}
 </script>
 </body>
 </html>

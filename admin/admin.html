@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="the-travel-chapter-icon.png">
+<link rel="manifest" href="manifest-admin.json">
+<meta name="theme-color" content="#1a1f2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="TC Admin">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon-admin.png">
 <title>The Travel Chapter — Admin</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -21,8 +27,9 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 .sidebar { width:var(--sidebar-w); min-height:100vh; background:var(--navy); display:flex; flex-direction:column; position:fixed; top:0; left:0; bottom:0; z-index:50; }
 .sb-header { padding:26px 22px 20px; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; gap:11px; }
 .sb-header img { width:40px; height:40px; object-fit:contain; flex-shrink:0; }
-.sb-brand { font-family:'DM Sans',sans-serif; font-size:0.78rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold2); }
-.sb-sub { font-size:0.62rem; letter-spacing:0.2em; text-transform:uppercase; color:rgba(255,255,255,0.3); margin-top:4px; }
+.sb-header > div { min-width:0; flex:1; }
+.sb-brand { font-family:'DM Sans',sans-serif; font-size:0.78rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.sb-sub { font-size:0.62rem; letter-spacing:0.2em; text-transform:uppercase; color:rgba(255,255,255,0.3); margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .nav { flex:1; padding:16px 10px; display:flex; flex-direction:column; gap:3px; }
 .nav-item { display:flex; align-items:center; gap:11px; padding:11px 14px; border-radius:8px; cursor:pointer; color:rgba(255,255,255,0.45); font-size:0.82rem; border:none; background:transparent; width:100%; text-align:left; transition:all 0.2s; }
 .nav-item svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
@@ -161,7 +168,13 @@ textarea { resize:vertical; min-height:70px; }
 .empty-icon { font-size:2rem; margin-bottom:8px; }
 
 @media(max-width:900px) { .stats-row { grid-template-columns:1fr 1fr; } .form-grid { grid-template-columns:1fr; } .member-panel { grid-template-columns:1fr; } }
-@media(max-width:640px) { .sidebar { width:180px; } .main { margin-left:180px; padding:20px 16px; } .stats-row { grid-template-columns:1fr; } }
+@media(max-width:640px) {
+  .sidebar { width:180px; } .main { margin-left:180px; padding:20px 16px; } .stats-row { grid-template-columns:1fr; }
+  .sb-header { padding:18px 14px 14px; gap:8px; }
+  .sb-header img { width:30px; height:30px; }
+  .sb-brand { font-size:0.62rem; letter-spacing:0.05em; }
+  .sb-sub { font-size:0.52rem; letter-spacing:0.12em; }
+}
 </style>
 </head>
 <body>
@@ -767,14 +780,14 @@ document.querySelectorAll('.modal-overlay').forEach(o => {
 // ── INIT ───────────────────────────────────────────────────
 async function init() {
   const { data: { session } } = await sb.auth.getSession();
-  if (!session) { window.location.href = 'login.html'; return; }
+  if (!session) { window.location.href = 'https://thetravelchapter.netlify.app/login.html'; return; }
 
   const { data: profile } = await sb.from('profiles').select('is_admin, is_staff').eq('id', session.user.id).single();
   if (!profile?.is_admin && !profile?.is_staff) {
     document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;flex-direction:column;gap:12px;background:var(--cream);font-family:'DM Sans',sans-serif;">
       <div style="font-size:2.5rem;">🔒</div>
       <div style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--navy);">Admin Access Only</div>
-      <a href="dashboard.html" style="color:var(--gold);font-size:0.85rem;text-decoration:none;">← Back to Dashboard</a>
+      <a href="https://thetravelchapter.netlify.app/dashboard.html" style="color:var(--gold);font-size:0.85rem;text-decoration:none;">← Back to Dashboard</a>
     </div>`;
     return;
   }
@@ -1738,6 +1751,13 @@ function showToast(msg, err) {
 }
 
 init();
+
+// ── PWA: service worker registration
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw-admin.js').catch(() => {});
+  });
+}
 </script>
 </body>
 </html>

@@ -19,8 +19,13 @@ const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 
 // Restrict to your real site origin(s) in production.
 // Add a custom domain here too if/when you put one in front of Netlify.
+// The admin panel is deployed as its own separate Netlify site (deliberately
+// on a different, non-guessable domain from the customer site) — its origin
+// must be listed here too, or admin actions (create/delete/update users) will
+// get CORS-blocked. Update this if the admin site's name ever changes.
 const ALLOWED_ORIGINS = [
   'https://thetravelchapter.netlify.app',
+  'https://quietmeridian-4471.netlify.app',
 ];
 
 function corsHeaders(origin: string | null) {

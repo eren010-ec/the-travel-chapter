@@ -1,0 +1,18 @@
+{
+  "id": "/admin-app",
+  "name": "The Travel Chapter — Admin",
+  "short_name": "TC Admin",
+  "description": "Staff admin panel for The Travel Chapter — manage trips, bookings, members, and site content.",
+  "start_url": "./admin-login.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#1a1f2e",
+  "theme_color": "#1a1f2e",
+  "icons": [
+    { "src": "icons/icon-admin-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-admin-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-admin-maskable-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon-admin-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/jpeg" href="the-travel-chapter-logo.jpg">
+<link rel="icon" type="image/png" href="the-travel-chapter-icon.png">
 <title>The Travel Chapter — Curated Journeys for Discerning Travellers</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -36,9 +36,9 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
   transition:box-shadow 0.3s;
 }
 .navbar.scrolled { box-shadow:0 4px 24px rgba(26,31,46,0.08); }
-.nav-logo { display:flex; align-items:center; gap:9px; font-family:'Cormorant Garamond',serif; font-size:1.25rem; font-weight:400; letter-spacing:0.1em; color:var(--navy); text-decoration:none; }
-.nav-logo em { font-style:italic; color:var(--gold); }
-.nav-logo-img { height:34px; width:34px; object-fit:contain; border-radius:6px; flex-shrink:0; }
+.nav-logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
+.nav-logo-img { height:40px; width:auto; object-fit:contain; flex-shrink:0; }
+.nav-logo-text { font-family:'DM Sans',sans-serif; font-size:0.92rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold); }
 .nav-links { display:flex; align-items:center; gap:36px; list-style:none; }
 .nav-links a { font-size:0.82rem; letter-spacing:0.04em; color:var(--smoke); text-decoration:none; transition:color 0.2s; }
 .nav-links a:hover { color:var(--navy); }
@@ -255,8 +255,8 @@ textarea { resize:vertical; min-height:110px; }
 /* ── FOOTER ── */
 footer { background:var(--navy); padding:56px 6% 32px; }
 .footer-grid { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:48px; margin-bottom:48px; }
-.footer-brand { font-family:'Cormorant Garamond',serif; font-size:1.15rem; font-weight:300; letter-spacing:0.12em; color:var(--white); margin-bottom:14px; }
-.footer-brand em { font-style:italic; color:var(--gold2); }
+.footer-brand { display:flex; align-items:center; gap:10px; font-family:'DM Sans',sans-serif; font-size:0.88rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold2); margin-bottom:14px; }
+.footer-brand-img { height:32px; width:auto; object-fit:contain; flex-shrink:0; }
 .footer-desc { font-size:0.8rem; color:rgba(255,255,255,0.35); line-height:1.7; max-width:260px; }
 .footer-col-title { font-size:0.65rem; font-weight:500; letter-spacing:0.18em; text-transform:uppercase; color:rgba(255,255,255,0.35); margin-bottom:16px; }
 .footer-links { list-style:none; display:flex; flex-direction:column; gap:10px; }
@@ -298,7 +298,7 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 
 <!-- ── NAVBAR ── -->
 <nav class="navbar" id="navbar">
-  <a href="#" class="nav-logo" id="nav-logo"><img src="the-travel-chapter-logo.jpg" alt="The Travel Chapter" class="nav-logo-img"><span id="nav-logo-text">The <em>Travel</em> Chapter</span></a>
+  <a href="#" class="nav-logo" id="nav-logo"><img src="the-travel-chapter-icon.png" alt="The Travel Chapter" class="nav-logo-img"><span class="nav-logo-text" id="nav-logo-text">The Travel Chapter</span></a>
   <ul class="nav-links">
     <li><a href="#destinations">Destinations</a></li>
     <li><a href="#trips">Trips</a></li>
@@ -334,7 +334,7 @@ footer { background:var(--navy); padding:56px 6% 32px; }
     </div>
     <div class="hero-visual reveal">
       <div class="hero-card-stack">
-        <div class="hero-card hero-card-main">
+        <div class="hero-card hero-card-main" id="hero-card-main">
           <div class="hero-card-emoji" id="hero-card-emoji">🍁</div>
           <div class="hero-card-title" id="hero-card-title">Kyoto in Autumn</div>
           <div class="hero-card-sub" id="hero-card-sub">Japan · 8 Days</div>
@@ -733,7 +733,7 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 <footer>
   <div class="footer-grid">
     <div>
-      <div class="footer-brand">The <em>Travel</em> Chapter</div>
+      <div class="footer-brand"><img src="the-travel-chapter-icon.png" alt="The Travel Chapter" class="footer-brand-img">The Travel Chapter</div>
       <p class="footer-desc" id="footer-tagline">Curating extraordinary journeys for discerning travellers since 2012. Based in Kuala Lumpur, travelling the world.</p>
     </div>
     <div>
@@ -827,6 +827,14 @@ function applyHero(d) {
     txt('hero-card-title', d.featured_card.title);
     txt('hero-card-sub', d.featured_card.subtitle);
     txt('hero-card-price', d.featured_card.price);
+    const mainCard = document.getElementById('hero-card-main');
+    const emojiEl = document.getElementById('hero-card-emoji');
+    if (mainCard) {
+      mainCard.style.background = d.featured_card.image
+        ? `linear-gradient(to top, rgba(26,31,46,0.75), rgba(26,31,46,0.15) 55%, rgba(26,31,46,0.05)), url('${d.featured_card.image}') center/cover no-repeat`
+        : '';
+    }
+    if (emojiEl) emojiEl.style.display = d.featured_card.image ? 'none' : '';
   }
   txt('hero-floating-badge-text', d.floating_badge);
 }
@@ -837,14 +845,18 @@ function applyDestinations(d) {
   txt('dest-subtext', d.subtext);
   if (d.items) {
     const grid = document.getElementById('dest-grid');
-    if (grid) grid.innerHTML = d.items.map(item => `
+    if (grid) grid.innerHTML = d.items.map(item => {
+      const hasImage = !!item.image;
+      const bgStyle = hasImage ? `background:url('${item.image}') center/cover no-repeat;` : `background:${item.gradient||'var(--navy)'};`;
+      return `
       <div class="dest-card ${item.wide?'dest-card-wide':''} reveal">
-        <div class="dest-card-bg" style="background:${item.gradient||'var(--navy)'};">${item.emoji||'✈️'}</div>
+        <div class="dest-card-bg" style="${bgStyle}">${hasImage?'':(item.emoji||'✈️')}</div>
         <div class="dest-always">
           <div class="dest-name">${item.name||''}</div>
           <div class="dest-country">${item.region||''}</div>
         </div>
-      </div>`).join('');
+      </div>`;
+    }).join('');
   }
 }
 
@@ -988,7 +1000,7 @@ function applyFooter(d) {
 
 function applyNavbar(d) {
   const logo=document.getElementById('nav-logo-text');
-  if(logo&&d.logo) logo.innerHTML='The <em>Travel</em> Chapter';
+  if(logo&&d.logo) logo.textContent='The Travel Chapter';
 }
 
 // ── Navbar scroll effect

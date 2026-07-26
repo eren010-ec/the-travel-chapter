@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/jpeg" href="the-travel-chapter-logo.jpg">
+<link rel="icon" type="image/png" href="the-travel-chapter-icon.png">
 <title>The Travel Chapter — Content Editor</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -20,9 +20,8 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 /* SIDEBAR */
 .sidebar { width:var(--sidebar-w); min-height:100vh; background:var(--navy); display:flex; flex-direction:column; position:fixed; top:0; left:0; bottom:0; z-index:50; }
 .sb-header { padding:22px 20px 18px; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; gap:10px; }
-.sb-header img { width:32px; height:32px; border-radius:7px; object-fit:contain; background:#fff; flex-shrink:0; }
-.sb-brand { font-family:'Cormorant Garamond',serif; font-size:0.95rem; font-weight:300; letter-spacing:0.12em; color:var(--white); }
-.sb-brand em { font-style:italic; color:var(--gold2); }
+.sb-header img { width:40px; height:40px; object-fit:contain; flex-shrink:0; }
+.sb-brand { font-family:'DM Sans',sans-serif; font-size:0.76rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold2); }
 .sb-sub { font-size:0.6rem; letter-spacing:0.2em; text-transform:uppercase; color:rgba(255,255,255,0.3); margin-top:3px; }
 .nav { flex:1; padding:14px 10px; display:flex; flex-direction:column; gap:2px; overflow-y:auto; }
 .nav-section-label { font-size:0.58rem; letter-spacing:0.2em; text-transform:uppercase; color:rgba(255,255,255,0.2); padding:10px 14px 4px; }
@@ -90,6 +89,11 @@ textarea { resize:vertical; min-height:80px; line-height:1.6; }
 .emoji-preview { width:44px; height:44px; border-radius:8px; background:var(--cream2); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:1.4rem; flex-shrink:0; cursor:pointer; }
 .emoji-input { flex:1; }
 
+/* IMAGE UPLOAD */
+.image-upload-field { display:flex; align-items:center; gap:12px; }
+.image-preview-thumb { width:60px; height:60px; border-radius:8px; object-fit:cover; border:1px solid var(--border); flex-shrink:0; background:var(--cream2); }
+.image-upload-field input[type=file] { flex:1; font-size:0.78rem; }
+
 /* GRADIENT PREVIEW */
 .gradient-field { display:flex; align-items:center; gap:10px; }
 .gradient-preview { width:44px; height:44px; border-radius:8px; flex-shrink:0; border:1px solid var(--border); }
@@ -134,9 +138,9 @@ textarea { resize:vertical; min-height:80px; line-height:1.6; }
 <!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="sb-header">
-    <img src="the-travel-chapter-logo.jpg" alt="The Travel Chapter">
+    <img src="the-travel-chapter-icon.png" alt="The Travel Chapter">
     <div>
-      <div class="sb-brand">The <em>Travel</em> Chapter</div>
+      <div class="sb-brand">The Travel Chapter</div>
       <div class="sb-sub">Content Editor</div>
     </div>
   </div>
@@ -226,11 +230,83 @@ async function init() {
   renderEditor('hero');
 }
 
+// ── IMAGE UPLOAD ────────────────────────────────────────────
+async function uploadCmsImage(file, folder) {
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+  const path = `${folder}/${(crypto.randomUUID ? crypto.randomUUID() : Date.now())}.${ext}`;
+  const { error: uploadErr } = await sb.storage.from('trip-images').upload(path, file);
+  if (uploadErr) { showToast('Image upload failed: ' + uploadErr.message, true); return null; }
+  return sb.storage.from('trip-images').getPublicUrl(path).data.publicUrl;
+}
+function handleHeroImageSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showToast('Please choose an image file.', true); return; }
+  if (file.size > 5 * 1024 * 1024) { showToast('Image must be under 5MB.', true); return; }
+  const built = buildContentFromForm('hero');
+  built.featured_card._file = file;
+  built.featured_card._removed = false;
+  cmsData['hero'] = built;
+  renderEditor('hero');
+}
+function removeHeroImage() {
+  const built = buildContentFromForm('hero');
+  built.featured_card._file = null;
+  built.featured_card._removed = true;
+  built.featured_card.image = null;
+  cmsData['hero'] = built;
+  renderEditor('hero');
+}
+function handleDestImageSelect(event, i) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showToast('Please choose an image file.', true); return; }
+  if (file.size > 5 * 1024 * 1024) { showToast('Image must be under 5MB.', true); return; }
+  const built = buildContentFromForm('destinations');
+  built.items[i]._file = file;
+  built.items[i]._removed = false;
+  cmsData['destinations'] = built;
+  renderEditor('destinations');
+}
+function removeDestImage(i) {
+  const built = buildContentFromForm('destinations');
+  built.items[i]._file = null;
+  built.items[i]._removed = true;
+  built.items[i].image = null;
+  cmsData['destinations'] = built;
+  renderEditor('destinations');
+}
+
 // ── SAVE ───────────────────────────────────────────────────
 async function saveSection(section) {
   const btn = document.getElementById('btn-save');
   btn.disabled = true; btn.textContent = 'Saving…';
   const content = buildContentFromForm(section);
+
+  if (section === 'hero' && content.featured_card) {
+    const fc = content.featured_card;
+    if (fc._file) {
+      const url = await uploadCmsImage(fc._file, 'hero');
+      if (url === null) { btn.disabled = false; btn.textContent = 'Save Changes'; return; }
+      fc.image = url;
+    } else if (fc._removed) {
+      fc.image = null;
+    }
+    delete fc._file; delete fc._removed;
+  }
+  if (section === 'destinations' && content.items) {
+    for (const item of content.items) {
+      if (item._file) {
+        const url = await uploadCmsImage(item._file, 'destinations');
+        if (url === null) { btn.disabled = false; btn.textContent = 'Save Changes'; return; }
+        item.image = url;
+      } else if (item._removed) {
+        item.image = null;
+      }
+      delete item._file; delete item._removed;
+    }
+  }
+
   const { error } = await sb.from('cms_content')
     .upsert({ section, content, updated_at: new Date().toISOString() }, { onConflict: 'section' });
   if (error) { showToast('Error saving: ' + error.message, true); }
@@ -339,7 +415,25 @@ function renderHeroForm(d) {
       <div class="field"><label>Price Label</label><input type="text" id="hero_card_price" value="${esc(d.featured_card?.price||'')}"></div>
     </div>
     <div class="field"><label>Floating Badge Text</label><input type="text" id="hero_floating_badge" value="${esc(d.floating_badge||'')}" placeholder="3 new trips this month"></div>
+    <div class="field">
+      <label>Photo (optional — replaces the emoji tile with a real photo)</label>
+      ${imageUploadField(imagePreviewUrl(d.featured_card), 'handleHeroImageSelect(event)', 'removeHeroImage()')}
+    </div>
   </div>`;
+}
+function imagePreviewUrl(obj) {
+  obj = obj || {};
+  if (obj._file) return URL.createObjectURL(obj._file);
+  if (!obj._removed && obj.image) return obj.image;
+  return '';
+}
+function imageUploadField(previewUrl, onChangeCall, removeFnCall) {
+  return `
+    <div class="image-upload-field">
+      ${previewUrl ? `<img src="${previewUrl}" class="image-preview-thumb">` : ''}
+      <input type="file" accept="image/*" onchange="${onChangeCall}">
+      ${previewUrl ? `<button type="button" class="btn-icon" onclick="${removeFnCall}" title="Remove photo">✕</button>` : ''}
+    </div>`;
 }
 
 function renderDestinationsForm(d) {
@@ -376,7 +470,11 @@ function renderDestinationsForm(d) {
             </div>
           </div>
         </div>
-        <div class="field"><label>Background Gradient (CSS)</label><input type="text" id="dest_gradient_${i}" value="${esc(item.gradient||'')}" placeholder="linear-gradient(160deg,#1a3a2a,#2d6a4f)"></div>
+        <div class="field"><label>Background Gradient (CSS, used when no photo is set)</label><input type="text" id="dest_gradient_${i}" value="${esc(item.gradient||'')}" placeholder="linear-gradient(160deg,#1a3a2a,#2d6a4f)"></div>
+        <div class="field">
+          <label>Photo (optional — replaces the emoji tile with a real photo)</label>
+          ${imageUploadField(imagePreviewUrl(item), `handleDestImageSelect(event,${i})`, `removeDestImage(${i})`)}
+        </div>
       </div>`).join('')}
     </div>
     <button class="btn-add-item" onclick="addDestination()">+ Add Destination</button>
@@ -584,14 +682,16 @@ function buildContentFromForm(section) {
         subtext:v('hero_subtext'), cta_primary_label:v('hero_cta_primary_label'),
         cta_primary_href:v('hero_cta_primary_href'), cta_secondary_label:v('hero_cta_secondary_label'),
         cta_secondary_href:v('hero_cta_secondary_href'), stats,
-        featured_card:{ emoji:v('hero_card_emoji'), title:v('hero_card_title'), subtitle:v('hero_card_subtitle'), price:v('hero_card_price') },
+        featured_card:{ emoji:v('hero_card_emoji'), title:v('hero_card_title'), subtitle:v('hero_card_subtitle'), price:v('hero_card_price'),
+          image:d.featured_card?.image, _file:d.featured_card?._file, _removed:d.featured_card?._removed },
         floating_badge:v('hero_floating_badge')
       };
     }
     case 'destinations': {
-      const items = (d.items||[]).map((_,i)=>({
+      const items = (d.items||[]).map((item,i)=>({
         name:v(`dest_name_${i}`), region:v(`dest_region_${i}`),
-        emoji:v(`dest_emoji_${i}`), gradient:v(`dest_gradient_${i}`), wide:c(`dest_wide_${i}`)
+        emoji:v(`dest_emoji_${i}`), gradient:v(`dest_gradient_${i}`), wide:c(`dest_wide_${i}`),
+        image:item.image, _file:item._file, _removed:item._removed
       }));
       return { ...d, eyebrow:v('dest_eyebrow'), heading:v('dest_heading'), heading_italic:v('dest_heading_italic'), subtext:v('dest_subtext'), items };
     }

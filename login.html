@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/jpeg" href="the-travel-chapter-logo.jpg">
+<link rel="icon" type="image/png" href="the-travel-chapter-icon.png">
 <title>The Travel Chapter — Member Portal</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -39,13 +39,15 @@ nav {
   backdrop-filter: blur(12px);
 }
 .nav-logo {
-  display: flex; align-items: center; gap: 9px;
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.2rem; font-weight: 400; letter-spacing: 0.1em;
-  color: var(--navy); text-decoration: none;
+  display: flex; align-items: center; gap: 10px;
+  text-decoration: none;
 }
-.nav-logo em { font-style: italic; color: var(--gold); }
-.nav-logo-img { height: 32px; width: 32px; object-fit: contain; border-radius: 6px; flex-shrink: 0; }
+.nav-logo-img { height: 38px; width: auto; object-fit: contain; flex-shrink: 0; }
+.nav-logo-text {
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase;
+  color: var(--gold);
+}
 .nav-links { display: flex; align-items: center; gap: 32px; list-style: none; }
 .nav-links a { font-size: 0.82rem; letter-spacing: 0.05em; color: var(--smoke); text-decoration: none; transition: color 0.2s; }
 .nav-links a:hover { color: var(--navy); }
@@ -197,11 +199,11 @@ input:focus { border-color: var(--gold); background: var(--white); }
   text-align: center; margin-bottom: 24px;
   padding-bottom: 20px; border-bottom: 1px solid var(--border);
 }
+.card-brand img { height: 40px; width: auto; object-fit: contain; margin: 0 auto 10px; display: block; }
 .card-brand .name {
-  font-family: 'Cormorant Garamond', serif;
-  font-size: 1.1rem; font-weight: 400; letter-spacing: 0.15em; color: var(--navy);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 0.85rem; font-weight: 700; letter-spacing: 0.13em; text-transform: uppercase; color: var(--gold);
 }
-.card-brand .name em { font-style: italic; color: var(--gold); }
 .card-brand .sub { font-size: 0.65rem; letter-spacing: 0.2em; text-transform: uppercase; color: var(--smoke); margin-top: 3px; }
 
 /* ── TOAST ── */
@@ -229,7 +231,7 @@ input:focus { border-color: var(--gold); background: var(--white); }
 
 <!-- NAV -->
 <nav>
-  <a href="index.html" class="nav-logo"><img src="the-travel-chapter-logo.jpg" alt="The Travel Chapter" class="nav-logo-img">The <em>Travel</em> Chapter</a>
+  <a href="index.html" class="nav-logo"><img src="the-travel-chapter-icon.png" alt="The Travel Chapter" class="nav-logo-img"><span class="nav-logo-text">The Travel Chapter</span></a>
   <a href="index.html" class="nav-back">
     <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
     Back to Website
@@ -253,7 +255,8 @@ input:focus { border-color: var(--gold); background: var(--white); }
     <!-- Right: auth card -->
     <div class="auth-card">
       <div class="card-brand">
-        <div class="name">The <em>Travel</em> Chapter</div>
+        <img src="the-travel-chapter-icon.png" alt="The Travel Chapter">
+        <div class="name">The Travel Chapter</div>
         <div class="sub">Member Portal</div>
       </div>
 

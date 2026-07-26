@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link rel="icon" type="image/jpeg" href="the-travel-chapter-logo.jpg">
+<link rel="icon" type="image/png" href="the-travel-chapter-icon.png">
 <title>The Travel Chapter — Admin</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -20,9 +20,8 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 /* ── SIDEBAR ── */
 .sidebar { width:var(--sidebar-w); min-height:100vh; background:var(--navy); display:flex; flex-direction:column; position:fixed; top:0; left:0; bottom:0; z-index:50; }
 .sb-header { padding:26px 22px 20px; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; align-items:center; gap:11px; }
-.sb-header img { width:34px; height:34px; border-radius:7px; object-fit:contain; background:#fff; flex-shrink:0; }
-.sb-brand { font-family:'Cormorant Garamond',serif; font-size:1rem; font-weight:300; letter-spacing:0.15em; color:var(--white); }
-.sb-brand em { font-style:italic; color:var(--gold2); }
+.sb-header img { width:40px; height:40px; object-fit:contain; flex-shrink:0; }
+.sb-brand { font-family:'DM Sans',sans-serif; font-size:0.78rem; font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold2); }
 .sb-sub { font-size:0.62rem; letter-spacing:0.2em; text-transform:uppercase; color:rgba(255,255,255,0.3); margin-top:4px; }
 .nav { flex:1; padding:16px 10px; display:flex; flex-direction:column; gap:3px; }
 .nav-item { display:flex; align-items:center; gap:11px; padding:11px 14px; border-radius:8px; cursor:pointer; color:rgba(255,255,255,0.45); font-size:0.82rem; border:none; background:transparent; width:100%; text-align:left; transition:all 0.2s; }
@@ -170,9 +169,9 @@ textarea { resize:vertical; min-height:70px; }
 <!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="sb-header">
-    <img src="the-travel-chapter-logo.jpg" alt="The Travel Chapter">
+    <img src="the-travel-chapter-icon.png" alt="The Travel Chapter">
     <div>
-      <div class="sb-brand">The <em>Travel</em> Chapter</div>
+      <div class="sb-brand">The Travel Chapter</div>
       <div class="sb-sub">Admin Panel</div>
     </div>
   </div>

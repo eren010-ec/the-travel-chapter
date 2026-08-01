@@ -126,6 +126,53 @@ To make that possible, `admin/` was made **fully self-contained** (no more reach
 
 ---
 
+## Workstream E — Homepage hero/destinations replaced with a book-chapter scroll journey (added 2026-08-01)
+
+User asked for the index page to "move when you scroll," iterated through a few directions (iCAUR-style parallax → travel-journal-with-flying-plane → curvy SVG flight path + real photos), and landed on: **a pinned, book-styled scrollytelling section that tells The Travel Chapter's own founding story**, using the 5 destinations as real narrative milestones rather than a plain showcase grid. Pushed to `main` and live (commit `3f49478`, on top of `f91c6a6` which just added `.netlify` to `.gitignore`).
+
+**What changed structurally:** the old `<section class="hero" id="hero">` and `<section id="destinations">` were deleted entirely and replaced by one new section:
+
+```html
+<section class="journal" id="journal">
+  <div class="journal-sticky">          <!-- position:sticky; height:100vh; pins in viewport -->
+    <div class="journal-stop journal-stop-intro">...</div>      <!-- "Prologue" -->
+    <div id="journal-dest-stops">...5x .journal-stop-dest...</div>  <!-- "Chapters One–Five" -->
+    <div class="journal-stop journal-stop-outro">...</div>      <!-- "Epilogue" -->
+    <div class="journal-tabs" id="journal-tabs">...</div>       <!-- I–V click-to-jump indicator -->
+  </div>
+</section>
+```
+
+- `.journal` is `height: <N-stops>*100vh` (currently 700vh for 7 stops: intro + 5 + outro), computed and set dynamically by `initJournal()` in JS (not hardcoded), so if the destinations count ever changes via CMS the section height keeps up.
+- Each `.journal-stop` is `position:absolute; inset:0; opacity:0` and gets its opacity driven continuously by scroll progress in `updateScrollEffects()` — a crossfade window of `Math.abs(dist)/0.65` (see JS below). **Important gotcha already fixed once:** a window of `/0.5` leaves a one-point gap where two adjacent stops both hit exactly 0 opacity at the midpoint (a visible flash-to-black). Don't shrink that denominator back below ~0.6 without retesting the transition midpoints.
+- Prologue/epilogue are styled as navy "book cover" pages (gold-framed border via `::before`, reusing the site's existing navy/gold palette). The 5 chapter pages are cream "paper" pages: a huge, near-invisible (`opacity:0.045`) roman-numeral watermark (`.chapter-numeral`), a tilted "pasted-in" photo (`.chapter-photo`, alternates rotate direction via `:nth-child(even)`), a dashed "Chapter One/Two/…" badge, and an italic narrative caption.
+- `.journal-tabs` (I–V, right edge) highlight the nearest chapter via `Math.round(progress)` and jump-scroll on click (`window.scrollTo` computed from `journalSection.offsetTop` + stop index — no anchor `id`s per stop, just math).
+- Nav/footer "Destinations" links now point to `#journal` (the old `#destinations` id no longer exists).
+
+**JS entry points to know about** (all near the bottom of `index.html`, in the same `<script>` block as `loadCMS`):
+- `initJournal()` — (re)computes `.journal-stop` list + section height + rebuilds anything scroll-dependent. Called once on page load and again after `applyDestinations()` rebuilds the DOM from CMS.
+- `updateScrollEffects()` — the single rAF-throttled scroll handler doing navbar-shadow, manifesto word-reveal, *and* journal crossfade/tab-highlight together (kept in one handler on purpose, don't split it back out without good reason — that was a deliberate perf choice).
+- `applyDestinations(d)` in the CMS-apply block — rebuilds `#journal-dest-stops` from `cms_content.destinations.items[]`. Field mapping: `item.chapter_title` (falls back to `item.name`), `item.dateline` (falls back to `item.region`), `item.story` (falls back to `item.caption`), `item.image` (falls back to emoji+gradient). The `chapter_title`/`dateline`/`story` fields are **new**, added specifically for the narrative — `name`/`region`/`emoji`/`gradient`/`wide` are the original fields, kept for backward compatibility/fallback, not removed.
+
+**CMS data (live, already updated in Supabase — this is not just local fallback text):** `cms_content` row `section='destinations'` now has, per item, both the original fields and the new `chapter_title`/`dateline`/`story`. Confirmed via `execute_sql` round-trip that apostrophes in the story text (e.g. "Italy's coast", "we're still chasing") saved and render correctly. If editing this in `admin-cms.html` later, note the admin UI almost certainly doesn't have form fields for `chapter_title`/`dateline`/`story` yet (it was never told about this workstream) — **editing destinations there will save whatever fields its form has and could blow away the new ones** unless the admin form is updated to round-trip them too. Worth doing before anyone touches that tab in production.
+
+**Photos are hotlinked from Wikimedia Commons** (`commons.wikimedia.org/wiki/Special:FilePath/<file>?width=1200`), by explicit user choice (asked "own Supabase storage vs. keep hotlinking Wikimedia" — user picked hotlinking). Known tradeoff accepted: no control if Wikimedia renames/deletes a file or rate-limits; verified all 5 URLs resolve with `curl` at the time this was written, but there's no ongoing monitoring for link rot.
+
+**Content authored this session (for reference/editing):**
+| # | Photo (Wikimedia file) | Chapter title | Dateline | 
+|---|---|---|---|
+| I | `Kiyomizu-dera,_Kyoto,_November_2016_-02.jpg` | The Beginning | Kyoto, Japan · 2012 |
+| II | `Positano-Amalfi_Coast-Italy.jpg` | Word Traveled Fast | Amalfi Coast · 2015 |
+| III | `Koutoubia_Mosque_2.jpg` | Learning to Listen | Marrakech, Morocco · 2018 |
+| IV | `Pirogue_and_boat_on_the_Mekong_with_colorful_sky_at_sunset_in_Luang_Prabang_Laos.jpg` | Slowing Down | Luang Prabang, Laos · 2021 |
+| V | `Torres_del_Paine,_Laguna_Azul_09.jpg` | To the Edge of the World | Patagonia · 2024 |
+
+The years (2012/2015/2018/2021/2024) are narrative flavor invented to fit the "12+ years since 2012" fact already established elsewhere on the site (About section, footer tagline) — not sourced from any real company history document. Flag this to the user if accuracy matters — nobody has confirmed these specific years/order against real events.
+
+**Testing note:** this was tested via a local `python -m http.server` against the *real* production Supabase project (same publishable key baked into `index.html` for all environments — see the "Supabase client key" section above), so what was verified live *is* what's now deployed. No separate staging environment exists. Not verified on an actual narrow mobile viewport this session (the browser automation tool's `resize_window` didn't take effect in the sandbox) — the responsive CSS is straightforward (stack photo above text, hide the side tabs, hide nothing load-bearing) but worth a real phone check.
+
+---
+
 ## Task checklist
 
 - [x] Open all 6 pages in a real browser, confirm logo renders correctly (sizing/placement) — done 2026-07-26 at desktop size.
@@ -140,3 +187,6 @@ To make that possible, `admin/` was made **fully self-contained** (no more reach
 - [ ] (Optional) Enable leaked-password protection in Supabase Auth dashboard settings.
 - [ ] (Optional, future) If a real native Android `.apk` is wanted later: wrap with Capacitor — requires installing Java JDK + Android SDK command-line tools on a build machine first.
 - [ ] (Optional, future) If a real iOS app is wanted later: needs a Mac with Xcode (and an Apple Developer account to install on a physical device or ship to the App Store) — cannot be done from this Windows machine.
+- [ ] Update `admin-cms.html`'s Destinations tab form to include `chapter_title` / `dateline` / `story` fields (see Workstream E) — otherwise editing destinations there risks dropping the new book-chapter narrative content.
+- [ ] Verify the new journal section on a real narrow mobile viewport (browser automation's window resize didn't work in this session's sandbox).
+- [ ] Confirm with the user whether the invented years (2012/2015/2018/2021/2024) in the chapter datelines need to match real company history, or are fine as narrative flavor.

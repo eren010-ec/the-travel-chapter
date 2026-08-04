@@ -945,7 +945,7 @@ document.querySelectorAll('.modal-overlay').forEach(o => {
 // ── INIT ───────────────────────────────────────────────────
 async function init() {
   const { data: { session } } = await sb.auth.getSession();
-  if (!session) { window.location.href = 'https://thetravelchapter.netlify.app/login.html'; return; }
+  if (!session) { window.location.href = 'admin-login.html'; return; }
 
   const { data: profile } = await sb.from('profiles').select('is_admin, is_staff').eq('id', session.user.id).single();
   if (!profile?.is_admin && !profile?.is_staff) {

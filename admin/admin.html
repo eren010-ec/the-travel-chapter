@@ -207,6 +207,12 @@ textarea { resize:vertical; min-height:70px; }
     <button class="nav-item" data-page="vouchers">
       <svg viewBox="0 0 24 24"><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6M2 7h20v5H2z"/><path d="M12 22V7M12 7a2.5 2.5 0 1 1-2.5-2.5C11 4.5 12 7 12 7ZM12 7a2.5 2.5 0 1 0 2.5-2.5C13 4.5 12 7 12 7Z"/></svg>Vouchers
     </button>
+    <button class="nav-item" data-page="referrals">
+      <svg viewBox="0 0 24 24"><path d="M17 20h5v-2a4 4 0 0 0-3-3.87M9 20H4v-2a4 4 0 0 1 3-3.87m5-3a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm5 6a4 4 0 0 0-3-3.87m-9 3.87a4 4 0 0 1 3-3.87"/></svg>Referrals
+    </button>
+    <button class="nav-item" data-page="luckydraw">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/><circle cx="9" cy="15" r="1"/><circle cx="15" cy="15" r="1"/><circle cx="12" cy="12" r="1"/></svg>Lucky Draw
+    </button>
     <button class="nav-item" data-page="revenue" id="nav-revenue">
       <svg viewBox="0 0 24 24"><path d="M12 1v22M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>Revenue
     </button>
@@ -386,6 +392,69 @@ textarea { resize:vertical; min-height:70px; }
         <table>
           <thead><tr><th>Code</th><th>Discount</th><th>Assigned To</th><th>Status</th><th>Expires</th><th>Issued By</th><th>Actions</th></tr></thead>
           <tbody id="vouchers-body"><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- REFERRALS -->
+  <div class="page" id="page-referrals">
+    <div class="page-header">
+      <div><h1>Referrals</h1><p>Members share their personal code; reward the referrer once their friend books.</p></div>
+      <button class="btn btn-gold" onclick="openCreateReferralModal()">+ New Referral</button>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">Referral Promotions</div>
+        <button class="btn btn-ghost btn-sm" onclick="openCreatePromotionModal()">+ New Promotion</button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Name</th><th>Referrer Reward</th><th>Referee Discount</th><th>Window</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="promotions-body"><tr><td colspan="6" class="loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="stats-row" id="referral-stats"><div class="loading" style="grid-column:1/-1">Loading…</div></div>
+    <div class="card">
+      <div class="card-header">
+        <div class="toolbar">
+          <div class="search-wrap">
+            <input type="text" id="rf-search" placeholder="Search referrer or referee…" oninput="filterReferrals()">
+            <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          </div>
+          <select class="filter-select" id="rf-status-filter" onchange="filterReferrals()">
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="redeemed">Redeemed</option>
+            <option value="rewarded">Rewarded</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div id="rf-count" style="font-size:0.75rem;color:var(--smoke);"></div>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Referrer</th><th>Code</th><th>Referee</th><th>Promotion</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+          <tbody id="referrals-body"><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- LUCKY DRAW -->
+  <div class="page" id="page-luckydraw">
+    <div class="page-header">
+      <div><h1>Lucky Draw</h1><p>Build an entrant pool from bookings or referrals, then draw random winners.</p></div>
+      <button class="btn btn-gold" onclick="openCreateDrawModal()">+ New Draw</button>
+    </div>
+    <div class="card">
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Name</th><th>Pool Source</th><th>Window</th><th>Entrants</th><th>Winners</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="draws-body"><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -684,6 +753,101 @@ textarea { resize:vertical; min-height:70px; }
 </div>
 
 <!-- ═══════════════════════════════════════════════
+     REFERRAL PROMOTION MODAL
+════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="promotion-modal">
+  <div class="modal" style="max-width:480px;">
+    <h2>New Referral Promotion</h2>
+    <div class="modal-sub">Set the reward given to the referrer and the discount given to their friend.</div>
+    <div class="form-grid">
+      <div class="field full"><label>Name</label><input type="text" id="pm-name" placeholder="e.g. Refer a Friend 2026"></div>
+      <div class="field"><label>Referrer Reward Type</label>
+        <select id="pm-referrer-type"><option value="fixed">Fixed (RM)</option><option value="percent">Percent (%)</option></select>
+      </div>
+      <div class="field"><label>Referrer Reward Value</label><input type="number" id="pm-referrer-value" min="0.01" step="0.01" placeholder="e.g. 100"></div>
+      <div class="field"><label>Referee Discount Type</label>
+        <select id="pm-referee-type"><option value="fixed">Fixed (RM)</option><option value="percent">Percent (%)</option></select>
+      </div>
+      <div class="field"><label>Referee Discount Value</label><input type="number" id="pm-referee-value" min="0.01" step="0.01" placeholder="e.g. 50"></div>
+      <div class="field"><label>Starts On (optional)</label><input type="date" id="pm-starts"></div>
+      <div class="field"><label>Ends On (optional)</label><input type="date" id="pm-ends"></div>
+      <div class="field full" style="flex-direction:row;align-items:center;gap:10px;">
+        <input type="checkbox" id="pm-active" checked style="width:auto;padding:0;accent-color:var(--navy);">
+        <label for="pm-active" style="text-transform:none;letter-spacing:0;font-size:0.82rem;color:var(--text);">Active</label>
+      </div>
+      <div class="field full"><label>Note (optional)</label><input type="text" id="pm-note"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('promotion-modal')">Cancel</button>
+      <button class="btn btn-primary" id="btn-save-promotion" onclick="savePromotion()">Save Promotion</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     CREATE REFERRAL MODAL
+════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="create-referral-modal">
+  <div class="modal" style="max-width:480px;">
+    <h2>New Referral</h2>
+    <div class="modal-sub">Record a referral made by an existing member.</div>
+    <div class="form-grid">
+      <div class="field full"><label>Referrer</label><select id="rfm-referrer"></select></div>
+      <div class="field full"><label>Promotion</label><select id="rfm-promotion"><option value="">No promotion (tracking only)</option></select></div>
+      <div class="field"><label>Referee Name</label><input type="text" id="rfm-referee-name" placeholder="Jane Smith"></div>
+      <div class="field"><label>Referee Email (optional)</label><input type="email" id="rfm-referee-email"></div>
+      <div class="field full"><label>Note (optional)</label><input type="text" id="rfm-note"></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('create-referral-modal')">Cancel</button>
+      <button class="btn btn-primary" id="btn-create-referral" onclick="createReferral()">Create Referral</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     LUCKY DRAW MODAL
+════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="draw-modal">
+  <div class="modal" style="max-width:480px;">
+    <h2>New Lucky Draw</h2>
+    <div class="modal-sub">Choose the pool source and window, then build the pool and draw winners.</div>
+    <div class="form-grid">
+      <div class="field full"><label>Name</label><input type="text" id="dm-name" placeholder="e.g. August Lucky Draw"></div>
+      <div class="field full"><label>Description (optional)</label><textarea id="dm-description"></textarea></div>
+      <div class="field"><label>Pool Source</label>
+        <select id="dm-source" onchange="toggleDrawTripField()">
+          <option value="both">Bookings + Referrals</option>
+          <option value="bookings">Bookings only</option>
+          <option value="referrals">Referrals only</option>
+        </select>
+      </div>
+      <div class="field"><label>Number of Winners</label><input type="number" id="dm-winners" min="1" value="1"></div>
+      <div class="field"><label>From (departure / redeemed date)</label><input type="date" id="dm-from"></div>
+      <div class="field"><label>To</label><input type="date" id="dm-to"></div>
+      <div class="field full" id="dm-trip-field"><label>Trip (optional, bookings only)</label><select id="dm-trip"><option value="">Any trip</option></select></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('draw-modal')">Cancel</button>
+      <button class="btn btn-primary" id="btn-save-draw" onclick="saveDraw()">Create Draw</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     GENERIC LIST MODAL (entrants / winners display)
+════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="list-modal">
+  <div class="modal" style="max-width:460px;">
+    <h2 id="list-modal-title">List</h2>
+    <div id="list-modal-body" style="display:flex;flex-direction:column;gap:8px;max-height:50vh;overflow-y:auto;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('list-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
      CREATE VOUCHER MODAL
 ════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="create-voucher-modal">
@@ -750,6 +914,7 @@ async function callAdminFn(payload) {
 
 // ── STATE ──────────────────────────────────────────────────
 let allBookings=[], allTrips=[], allMembers=[], allRevenue=[], allTripCosts={}, allVouchers=[];
+let allReferralPromotions=[], allReferrals=[], allLuckyDraws=[];
 let currentAdminId = null;
 let currentUserIsAdmin = false, currentUserIsStaff = false;
 let editingMemberId=null, editingMemberTier='explorer';
@@ -800,10 +965,11 @@ async function init() {
     document.getElementById('nav-revenue')?.remove();
   }
   document.getElementById('admin-email').textContent = session.user.email;
-  const loaders = [loadBookings(), loadTrips(), loadMembers(), loadVouchers()];
+  const loaders = [loadBookings(), loadTrips(), loadMembers(), loadVouchers(), loadReferralPromotions(), loadReferrals(), loadLuckyDraws()];
   if (currentUserIsAdmin) loaders.push(loadTripCosts(), loadRevenue());
   await Promise.all(loaders);
   renderDashboard(); renderMembersTable(); renderAdminsTable(); renderBookingsTable(); renderTripsTable(); renderVouchersTable();
+  renderReferralsPage(); renderLuckyDrawsPage();
   if (currentUserIsAdmin) renderRevenuePage();
 }
 
@@ -824,6 +990,18 @@ async function loadRevenue() {
 async function loadVouchers() {
   const { data } = await sb.rpc('get_admin_vouchers').order('created_at', { ascending: false });
   allVouchers = data || [];
+}
+async function loadReferralPromotions() {
+  const { data } = await sb.from('referral_promotions').select('*').order('created_at', { ascending: false });
+  allReferralPromotions = data || [];
+}
+async function loadReferrals() {
+  const { data } = await sb.rpc('get_admin_referrals').order('created_at', { ascending: false });
+  allReferrals = data || [];
+}
+async function loadLuckyDraws() {
+  const { data } = await sb.rpc('get_admin_lucky_draws');
+  allLuckyDraws = data || [];
 }
 async function loadTrips() {
   const { data } = await sb.from('trips').select('*').order('price_usd');
@@ -1511,6 +1689,318 @@ async function createVoucher() {
   await loadVouchers(); renderVouchersTable();
   showToast(`Voucher ${code} created ✓`);
   btn.disabled = false; btn.textContent = 'Create Voucher';
+}
+
+// ── REFERRALS (admin + staff) ────────────────────────────────
+function promotionStatusLabel(p) {
+  const today = new Date().toISOString().slice(0,10);
+  if (!p.is_active) return 'inactive';
+  if (p.starts_at && p.starts_at > today) return 'upcoming';
+  if (p.ends_at && p.ends_at < today) return 'expired';
+  return 'active';
+}
+function currentPromotion() {
+  return allReferralPromotions.find(p => promotionStatusLabel(p) === 'active') || null;
+}
+function rewardLabel(type, value) { return type === 'percent' ? `${Number(value)}%` : `RM ${Number(value).toLocaleString()}`; }
+
+function renderReferralsPage() {
+  const promo = currentPromotion();
+  document.getElementById('referral-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-val">${allReferrals.length}</div><div class="stat-lbl">Total Referrals</div></div>
+    <div class="stat-card"><div class="stat-val">${allReferrals.filter(r=>r.status==='redeemed').length}</div><div class="stat-lbl">Redeemed</div></div>
+    <div class="stat-card"><div class="stat-val">${allReferrals.filter(r=>r.status==='rewarded').length}</div><div class="stat-lbl">Rewarded</div></div>
+    <div class="stat-card"><div class="stat-val">${promo ? rewardLabel(promo.referrer_reward_type, promo.referrer_reward_value) : '—'}</div><div class="stat-lbl">Active Referrer Reward</div></div>`;
+  renderPromotionsTable();
+  filterReferrals();
+}
+function renderPromotionsTable() {
+  const statusPill = { active:'active', upcoming:'pending', expired:'cancelled', inactive:'inactive' };
+  document.getElementById('promotions-body').innerHTML = allReferralPromotions.length
+    ? allReferralPromotions.map(p => {
+        const st = promotionStatusLabel(p);
+        return `<tr>
+          <td><strong>${p.name}</strong>${p.note?`<br><span style="font-size:0.72rem;color:var(--smoke);">${p.note}</span>`:''}</td>
+          <td>${rewardLabel(p.referrer_reward_type, p.referrer_reward_value)}</td>
+          <td>${rewardLabel(p.referee_discount_type, p.referee_discount_value)}</td>
+          <td style="font-size:0.75rem;color:var(--smoke);">${p.starts_at?fmtDate(p.starts_at):'—'} → ${p.ends_at?fmtDate(p.ends_at):'—'}</td>
+          <td><span class="pill pill-${statusPill[st]}">${cap(st)}</span></td>
+          <td><div class="btn-group">
+            <button class="btn btn-ghost btn-sm" onclick="togglePromotionActive('${p.id}',${!p.is_active})">${p.is_active?'Deactivate':'Activate'}</button>
+            <button class="btn btn-danger btn-sm" onclick="deletePromotion('${p.id}','${p.name.replace(/'/g,"\\'")}')">Delete</button>
+          </div></td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="6" class="empty">No promotions yet.</td></tr>';
+}
+function filterReferrals() {
+  const q = document.getElementById('rf-search').value.toLowerCase();
+  const sf = document.getElementById('rf-status-filter').value;
+  const filtered = allReferrals.filter(r => {
+    const text = `${r.referrer_first_name||''} ${r.referrer_last_name||''} ${r.referral_code||''} ${r.referee_name||''} ${r.referee_email||''}`.toLowerCase();
+    if (!text.includes(q)) return false;
+    if (sf && r.status !== sf) return false;
+    return true;
+  });
+  document.getElementById('rf-count').textContent = `${filtered.length} referrals`;
+  renderReferralsRows(filtered);
+}
+function renderReferralsRows(list) {
+  const statusPill = { pending:'pending', redeemed:'active', rewarded:'confirmed', cancelled:'cancelled' };
+  document.getElementById('referrals-body').innerHTML = list.length
+    ? list.map(r => {
+        const referee = r.referee_name || (r.referee_first_name ? `${r.referee_first_name} ${r.referee_last_name||''}` : '—');
+        return `<tr>
+          <td><strong>${r.referrer_first_name||''} ${r.referrer_last_name||''}</strong><br><span style="font-size:0.7rem;color:var(--smoke);">${r.referrer_email||''}</span></td>
+          <td><strong style="font-family:monospace;letter-spacing:0.02em;">${r.referral_code||'—'}</strong></td>
+          <td>${referee}${r.referee_email?`<br><span style="font-size:0.7rem;color:var(--smoke);">${r.referee_email}</span>`:''}</td>
+          <td style="font-size:0.78rem;color:var(--smoke);">${r.promotion_name||'—'}</td>
+          <td><span class="pill pill-${statusPill[r.status]}">${cap(r.status)}</span></td>
+          <td style="font-size:0.75rem;color:var(--smoke);">${fmtDate(r.created_at)}</td>
+          <td><div class="btn-group">
+            ${r.status==='pending'?`<button class="btn btn-success btn-sm" onclick="markReferralRedeemed('${r.id}')">Mark Redeemed</button>`:''}
+            ${r.status==='redeemed'?`<button class="btn btn-gold btn-sm" onclick="issueReferralReward('${r.id}')">Issue Reward</button>`:''}
+            <button class="btn btn-danger btn-sm" onclick="deleteReferral('${r.id}')">Delete</button>
+          </div></td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="7" class="empty">No referrals recorded yet.</td></tr>';
+}
+
+function openCreatePromotionModal() {
+  document.getElementById('pm-name').value='';
+  document.getElementById('pm-referrer-type').value='fixed';
+  document.getElementById('pm-referrer-value').value='';
+  document.getElementById('pm-referee-type').value='fixed';
+  document.getElementById('pm-referee-value').value='';
+  document.getElementById('pm-starts').value='';
+  document.getElementById('pm-ends').value='';
+  document.getElementById('pm-active').checked=true;
+  document.getElementById('pm-note').value='';
+  openModal('promotion-modal');
+}
+async function savePromotion() {
+  const btn = document.getElementById('btn-save-promotion');
+  const name = document.getElementById('pm-name').value.trim();
+  const referrer_reward_type = document.getElementById('pm-referrer-type').value;
+  const referrer_reward_value = parseFloat(document.getElementById('pm-referrer-value').value);
+  const referee_discount_type = document.getElementById('pm-referee-type').value;
+  const referee_discount_value = parseFloat(document.getElementById('pm-referee-value').value);
+  const starts_at = document.getElementById('pm-starts').value || null;
+  const ends_at = document.getElementById('pm-ends').value || null;
+  const is_active = document.getElementById('pm-active').checked;
+  const note = document.getElementById('pm-note').value.trim() || null;
+
+  if (!name) { showToast('Please enter a name.', true); return; }
+  if (!referrer_reward_value || referrer_reward_value <= 0) { showToast('Please enter a referrer reward value.', true); return; }
+  if (!referee_discount_value || referee_discount_value <= 0) { showToast('Please enter a referee discount value.', true); return; }
+  if (referrer_reward_type === 'percent' && referrer_reward_value > 100) { showToast('Percent reward cannot exceed 100.', true); return; }
+  if (referee_discount_type === 'percent' && referee_discount_value > 100) { showToast('Percent discount cannot exceed 100.', true); return; }
+
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const { error } = await sb.from('referral_promotions').insert({
+    name, referrer_reward_type, referrer_reward_value, referee_discount_type, referee_discount_value,
+    starts_at, ends_at, is_active, note, created_by: currentAdminId,
+  });
+  if (error) { showToast('Error: '+error.message, true); btn.disabled = false; btn.textContent = 'Save Promotion'; return; }
+  closeModal('promotion-modal');
+  await loadReferralPromotions(); renderReferralsPage();
+  showToast('Promotion saved ✓');
+  btn.disabled = false; btn.textContent = 'Save Promotion';
+}
+async function togglePromotionActive(id, makeActive) {
+  const { error } = await sb.from('referral_promotions').update({ is_active: makeActive }).eq('id', id);
+  if (error) { showToast('Error: '+error.message, true); return; }
+  await loadReferralPromotions(); renderReferralsPage();
+}
+async function deletePromotion(id, name) {
+  if (!confirm(`Delete promotion "${name}"? Past referrals keep their history but lose this link.`)) return;
+  const { error } = await sb.from('referral_promotions').delete().eq('id', id);
+  if (error) { showToast('Error: '+error.message, true); return; }
+  await loadReferralPromotions(); renderReferralsPage();
+  showToast('Promotion deleted.');
+}
+
+function openCreateReferralModal() {
+  const referrerSelect = document.getElementById('rfm-referrer');
+  const members = allMembers.filter(m=>!m.is_admin&&!m.is_staff).sort((a,b)=>`${a.first_name}`.localeCompare(b.first_name));
+  referrerSelect.innerHTML = members.map(m=>`<option value="${m.id}">${m.first_name||''} ${m.last_name||''} — ${m.email||''}</option>`).join('');
+  const promoSelect = document.getElementById('rfm-promotion');
+  promoSelect.innerHTML = '<option value="">No promotion (tracking only)</option>' +
+    allReferralPromotions.map(p=>`<option value="${p.id}">${p.name}</option>`).join('');
+  const current = currentPromotion();
+  if (current) promoSelect.value = current.id;
+  document.getElementById('rfm-referee-name').value='';
+  document.getElementById('rfm-referee-email').value='';
+  document.getElementById('rfm-note').value='';
+  openModal('create-referral-modal');
+}
+async function createReferral() {
+  const btn = document.getElementById('btn-create-referral');
+  const referrer_id = document.getElementById('rfm-referrer').value;
+  const promotion_id = document.getElementById('rfm-promotion').value || null;
+  const referee_name = document.getElementById('rfm-referee-name').value.trim() || null;
+  const referee_email = document.getElementById('rfm-referee-email').value.trim() || null;
+  const note = document.getElementById('rfm-note').value.trim() || null;
+
+  if (!referrer_id) { showToast('Please select a referrer.', true); return; }
+
+  btn.disabled = true; btn.textContent = 'Creating…';
+  const { error } = await sb.from('referrals').insert({ referrer_id, promotion_id, referee_name, referee_email, note, created_by: currentAdminId });
+  if (error) { showToast('Error: '+error.message, true); btn.disabled = false; btn.textContent = 'Create Referral'; return; }
+  closeModal('create-referral-modal');
+  await loadReferrals(); renderReferralsPage();
+  showToast('Referral recorded ✓');
+  btn.disabled = false; btn.textContent = 'Create Referral';
+}
+async function markReferralRedeemed(id) {
+  if (!confirm('Mark this referral as redeemed? This means the referee has completed a booking.')) return;
+  const { error } = await sb.from('referrals').update({ status:'redeemed', redeemed_at: new Date().toISOString() }).eq('id', id);
+  if (error) { showToast('Error: '+error.message, true); return; }
+  await loadReferrals(); renderReferralsPage();
+  showToast('Referral marked as redeemed ✓');
+}
+async function issueReferralReward(id) {
+  const ref = allReferrals.find(r=>r.id===id);
+  if (!ref) return;
+  const promo = ref.promotion_id ? allReferralPromotions.find(p=>p.id===ref.promotion_id) : null;
+  if (!promo) { showToast('This referral has no promotion attached — nothing to issue.', true); return; }
+  if (!confirm(`Issue a ${rewardLabel(promo.referrer_reward_type, promo.referrer_reward_value)} reward voucher to the referrer?`)) return;
+
+  const code = `REFER-${Math.random().toString(36).slice(2,8).toUpperCase()}`;
+  const { data: voucher, error } = await sb.from('vouchers').insert({
+    code, discount_type: promo.referrer_reward_type, discount_value: promo.referrer_reward_value,
+    member_id: ref.referrer_id, note: `Referral reward — ${promo.name}`, created_by: currentAdminId,
+  }).select().single();
+  if (error) { showToast('Error: '+error.message, true); return; }
+
+  const { error: updateError } = await sb.from('referrals').update({
+    status: 'rewarded', rewarded_at: new Date().toISOString(), reward_voucher_id: voucher.id,
+  }).eq('id', id);
+  if (updateError) { showToast('Error: '+updateError.message, true); return; }
+
+  await loadReferrals(); await loadVouchers(); renderReferralsPage(); renderVouchersTable();
+  showToast(`Reward voucher ${code} issued ✓`);
+}
+async function deleteReferral(id) {
+  if (!confirm('Delete this referral record? This cannot be undone.')) return;
+  const { error } = await sb.from('referrals').delete().eq('id', id);
+  if (error) { showToast('Error: '+error.message, true); return; }
+  await loadReferrals(); renderReferralsPage();
+  showToast('Referral deleted.');
+}
+
+// ── LUCKY DRAW (admin + staff) ───────────────────────────────
+function drawStatusPill(s) { return { draft:'pending', pool_built:'active', drawn:'confirmed' }[s] || 'inactive'; }
+function drawStatusLabel(s) { return s === 'pool_built' ? 'Pool Built' : cap(s); }
+function esc(s) { return String(s).replace(/'/g,"\\'"); }
+
+function renderLuckyDrawsPage() {
+  document.getElementById('draws-body').innerHTML = allLuckyDraws.length
+    ? allLuckyDraws.map(d => {
+        const poolLabel = { bookings:'Bookings', referrals:'Referrals', both:'Bookings + Referrals' }[d.pool_source];
+        const win = `${d.date_from?fmtDate(d.date_from):'—'} → ${d.date_to?fmtDate(d.date_to):'—'}`;
+        const n = esc(d.name);
+        return `<tr>
+          <td><strong>${d.name}</strong>${d.trip_title?`<br><span style="font-size:0.7rem;color:var(--smoke);">${d.trip_title}</span>`:''}</td>
+          <td style="font-size:0.78rem;color:var(--smoke);">${poolLabel}</td>
+          <td style="font-size:0.75rem;color:var(--smoke);">${win}</td>
+          <td>${d.entrant_count||0}${d.unique_entrant_count?` <span style="color:var(--smoke);font-size:0.72rem;">(${d.unique_entrant_count} unique)</span>`:''}</td>
+          <td>${d.num_winners}</td>
+          <td><span class="pill pill-${drawStatusPill(d.status)}">${drawStatusLabel(d.status)}</span></td>
+          <td><div class="btn-group">
+            <button class="btn btn-ghost btn-sm" onclick="buildDrawPool('${d.id}')">Build Pool</button>
+            ${d.entrant_count?`<button class="btn btn-ghost btn-sm" onclick="viewDrawEntrants('${d.id}','${n}')">View Entrants</button>`:''}
+            <button class="btn btn-gold btn-sm" onclick="drawWinners('${d.id}','${n}')" ${d.entrant_count?'':'disabled'}>${d.status==='drawn'?'Redraw':'Draw Winners'}</button>
+            ${d.status==='drawn'?`<button class="btn btn-ghost btn-sm" onclick="viewDrawWinners('${d.id}','${n}')">View Winners</button>`:''}
+            <button class="btn btn-danger btn-sm" onclick="deleteDraw('${d.id}','${n}')">Delete</button>
+          </div></td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="7" class="empty">No lucky draws yet.</td></tr>';
+}
+
+function toggleDrawTripField() {
+  const src = document.getElementById('dm-source').value;
+  document.getElementById('dm-trip-field').style.display = src === 'referrals' ? 'none' : '';
+}
+function openCreateDrawModal() {
+  document.getElementById('dm-name').value='';
+  document.getElementById('dm-description').value='';
+  document.getElementById('dm-source').value='both';
+  document.getElementById('dm-winners').value=1;
+  document.getElementById('dm-from').value='';
+  document.getElementById('dm-to').value='';
+  const tripSelect = document.getElementById('dm-trip');
+  tripSelect.innerHTML = '<option value="">Any trip</option>' + allTrips.map(t=>`<option value="${t.id}">${t.title}</option>`).join('');
+  toggleDrawTripField();
+  openModal('draw-modal');
+}
+async function saveDraw() {
+  const btn = document.getElementById('btn-save-draw');
+  const name = document.getElementById('dm-name').value.trim();
+  const description = document.getElementById('dm-description').value.trim() || null;
+  const pool_source = document.getElementById('dm-source').value;
+  const num_winners = parseInt(document.getElementById('dm-winners').value) || 1;
+  const date_from = document.getElementById('dm-from').value || null;
+  const date_to = document.getElementById('dm-to').value || null;
+  const trip_id = pool_source === 'referrals' ? null : (document.getElementById('dm-trip').value || null);
+
+  if (!name) { showToast('Please enter a name.', true); return; }
+
+  btn.disabled = true; btn.textContent = 'Creating…';
+  const { error } = await sb.from('lucky_draws').insert({
+    name, description, pool_source, num_winners, date_from, date_to, trip_id, created_by: currentAdminId,
+  });
+  if (error) { showToast('Error: '+error.message, true); btn.disabled = false; btn.textContent = 'Create Draw'; return; }
+  closeModal('draw-modal');
+  await loadLuckyDraws(); renderLuckyDrawsPage();
+  showToast('Draw created ✓');
+  btn.disabled = false; btn.textContent = 'Create Draw';
+}
+async function buildDrawPool(id) {
+  const { data, error } = await sb.rpc('build_lucky_draw_pool', { p_draw_id: id });
+  if (error) { showToast('Error: '+error.message, true); return; }
+  await loadLuckyDraws(); renderLuckyDrawsPage();
+  showToast(`Pool built — ${data} entries ✓`);
+}
+async function drawWinners(id, name) {
+  if (!confirm(`Draw winner(s) for "${name}"? This replaces any previous winners for this draw.`)) return;
+  const { error } = await sb.rpc('draw_lucky_winners', { p_draw_id: id });
+  if (error) { showToast('Error: '+error.message, true); return; }
+  await loadLuckyDraws(); renderLuckyDrawsPage();
+  showToast('Winners drawn 🎉');
+  await viewDrawWinners(id, name);
+}
+async function viewDrawWinners(id, name) {
+  const { data, error } = await sb.rpc('get_admin_lucky_draw_winners', { p_draw_id: id });
+  if (error) { showToast('Error: '+error.message, true); return; }
+  const list = (data||[]).sort((a,b)=>a.prize_rank-b.prize_rank);
+  showListModal(`🎉 Winners — ${name}`, list.length
+    ? list.map(w=>`<div class="booking-item"><div class="booking-item-info"><div class="booking-item-title">#${w.prize_rank} — ${w.first_name||''} ${w.last_name||''}</div><div class="booking-item-meta">${w.email||''}</div></div></div>`).join('')
+    : '<div class="empty">No winners yet.</div>');
+}
+async function viewDrawEntrants(id, name) {
+  const { data, error } = await sb.rpc('get_admin_lucky_draw_entrants', { p_draw_id: id });
+  if (error) { showToast('Error: '+error.message, true); return; }
+  const counts = {};
+  (data||[]).forEach(e => { counts[e.member_id] = counts[e.member_id] || { first_name:e.first_name, last_name:e.last_name, email:e.email, n:0 }; counts[e.member_id].n++; });
+  const list = Object.values(counts).sort((a,b)=>b.n-a.n);
+  showListModal(`Entrants — ${name}`, list.length
+    ? list.map(e=>`<div class="booking-item"><div class="booking-item-info"><div class="booking-item-title">${e.first_name||''} ${e.last_name||''}</div><div class="booking-item-meta">${e.email||''}</div></div><span class="pill pill-active">${e.n} ${e.n===1?'entry':'entries'}</span></div>`).join('')
+    : '<div class="empty">No entrants — build the pool first.</div>');
+}
+function showListModal(title, bodyHtml) {
+  document.getElementById('list-modal-title').textContent = title;
+  document.getElementById('list-modal-body').innerHTML = bodyHtml;
+  openModal('list-modal');
+}
+async function deleteDraw(id, name) {
+  if (!confirm(`Delete draw "${name}"? This cannot be undone.`)) return;
+  const { error } = await sb.from('lucky_draws').delete().eq('id', id);
+  if (error) { showToast('Error: '+error.message, true); return; }
+  await loadLuckyDraws(); renderLuckyDrawsPage();
+  showToast('Draw deleted.');
 }
 
 // ── REVENUE (admin only — accrual basis) ────────────────────

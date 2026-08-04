@@ -214,7 +214,11 @@ textarea { resize:vertical; min-height:80px; }
     </button>
     <button class="nav-item" data-page="referrals">
       <svg viewBox="0 0 24 24"><path d="M17 20h5v-2a4 4 0 0 0-3-3.87M9 20H4v-2a4 4 0 0 1 3-3.87m5-3a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm5 6a4 4 0 0 0-3-3.87m-9 3.87a4 4 0 0 1 3-3.87"/></svg>
-      Refer & Earn
+      Referrals
+    </button>
+    <button class="nav-item" data-page="luckydraw">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/><circle cx="9" cy="15" r="1"/><circle cx="15" cy="15" r="1"/><circle cx="12" cy="12" r="1"/></svg>
+      Lucky Draw
     </button>
     <button class="nav-item" data-page="membership">
       <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
@@ -278,10 +282,10 @@ textarea { resize:vertical; min-height:80px; }
     <div class="card"><div class="booking-list" id="bookings-list"><div class="empty-state">Loading…</div></div></div>
   </div>
 
-  <!-- REFER & EARN -->
+  <!-- REFERRALS -->
   <div class="page" id="page-referrals">
     <div class="page-header">
-      <h1>Refer & <em>Earn</em></h1>
+      <h1>My <em>Referrals</em></h1>
       <p>Share your code with friends — you both get rewarded when they book.</p>
     </div>
     <div class="card" id="referral-promo-banner" style="display:none;"></div>
@@ -292,15 +296,21 @@ textarea { resize:vertical; min-height:80px; }
         <button class="btn-ghost" style="flex:none;padding:11px 20px;" id="btn-copy-code">📋 Copy Code</button>
       </div>
     </div>
-    <div class="grid-2">
-      <div class="card">
-        <div class="card-title">My Referrals</div>
-        <div id="ref-list"><div class="empty-state">Loading…</div></div>
-      </div>
-      <div class="card">
-        <div class="card-title">Lucky Draw Wins</div>
-        <div id="ref-wins"><div class="empty-state">Loading…</div></div>
-      </div>
+    <div class="card">
+      <div class="card-title">My Referrals</div>
+      <div id="ref-list"><div class="empty-state">Loading…</div></div>
+    </div>
+  </div>
+
+  <!-- LUCKY DRAW -->
+  <div class="page" id="page-luckydraw">
+    <div class="page-header">
+      <h1>Lucky <em>Draw</em></h1>
+      <p>Every eligible booking or referral is an entry — check back here for results.</p>
+    </div>
+    <div class="card">
+      <div class="card-title">My Wins</div>
+      <div id="ref-wins"><div class="empty-state">Loading…</div></div>
     </div>
   </div>
 

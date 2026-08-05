@@ -12,6 +12,7 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon-customer.png">
 <title>The Travel Chapter — Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="i18n.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -49,6 +50,11 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .sidebar-brand .tagline { font-size:0.62rem; letter-spacing:0.2em; color:rgba(255,255,255,0.35); text-transform:uppercase; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+
+.lang-switch { display:flex; align-items:center; gap:2px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:2px; margin:0 12px 12px; }
+.lang-btn { flex:1; padding:5px 6px; border:none; background:transparent; border-radius:4px; font-family:'DM Sans',sans-serif; font-size:0.66rem; font-weight:500; letter-spacing:0.03em; color:rgba(255,255,255,0.5); cursor:pointer; transition:all 0.2s; }
+.lang-btn:hover { color:rgba(255,255,255,0.85); }
+.lang-btn.active { background:rgba(184,149,90,0.25); color:var(--gold2); }
 
 .nav { flex:1; padding:16px 12px; display:flex; flex-direction:column; gap:3px; }
 .nav-item {
@@ -196,50 +202,55 @@ textarea { resize:vertical; min-height:80px; }
     <img src="the-travel-chapter-icon.png" alt="The Travel Chapter">
     <div>
       <div class="name">The Travel Chapter</div>
-      <div class="tagline">Member Portal</div>
+      <div class="tagline" data-i18n="dash.tagline">Member Portal</div>
     </div>
+  </div>
+  <div class="lang-switch">
+    <button class="lang-btn" data-lang="en">EN</button>
+    <button class="lang-btn" data-lang="zh">中文</button>
+    <button class="lang-btn" data-lang="ms">BM</button>
   </div>
   <nav class="nav" id="sidebar-nav">
     <button class="nav-item active" data-page="overview">
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
-      Overview
+      <span data-i18n="dash.nav_overview">Overview</span>
     </button>
     <button class="nav-item" data-page="trips">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4"/></svg>
-      Browse Trips
+      <span data-i18n="dash.nav_trips">Browse Trips</span>
     </button>
     <button class="nav-item" data-page="bookings">
       <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
-      My Bookings
+      <span data-i18n="dash.nav_bookings">My Bookings</span>
     </button>
     <button class="nav-item" data-page="referrals">
       <svg viewBox="0 0 24 24"><path d="M17 20h5v-2a4 4 0 0 0-3-3.87M9 20H4v-2a4 4 0 0 1 3-3.87m5-3a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm5 6a4 4 0 0 0-3-3.87m-9 3.87a4 4 0 0 1 3-3.87"/></svg>
-      Referrals
+      <span data-i18n="dash.nav_referrals">Referrals</span>
     </button>
     <button class="nav-item" data-page="luckydraw">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/><circle cx="9" cy="15" r="1"/><circle cx="15" cy="15" r="1"/><circle cx="12" cy="12" r="1"/></svg>
-      Lucky Draw
+      <span data-i18n="dash.nav_luckydraw">Lucky Draw</span>
     </button>
     <button class="nav-item" data-page="membership">
       <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-      Membership
+      <span data-i18n="dash.nav_membership">Membership</span>
     </button>
     <button class="nav-item" data-page="profile">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-      My Profile
+      <span data-i18n="dash.nav_profile">My Profile</span>
     </button>
   </nav>
   <div class="sidebar-footer">
     <div class="member-pill">
       <div class="avatar" id="sb-avatar">?</div>
       <div class="member-info">
-        <div class="member-name" id="sb-name">Loading…</div>
+        <div class="member-name" id="sb-name" data-i18n="dash.loading">Loading…</div>
         <div class="member-tier" id="sb-tier">—</div>
       </div>
     </div>
     <button class="nav-item" id="btn-signout">
       <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      Sign Out
+      <span data-i18n="dash.signout">Sign Out</span>
     </button>
   </div>
 </aside>
@@ -250,105 +261,105 @@ textarea { resize:vertical; min-height:80px; }
   <!-- OVERVIEW -->
   <div class="page active" id="page-overview">
     <div class="page-header">
-      <h1>Welcome back, <em id="ov-name">traveller</em></h1>
-      <p>Here's a snapshot of your journey with us.</p>
+      <h1><span data-i18n="dash.overview_welcome">Welcome back,</span> <em id="ov-name">traveller</em></h1>
+      <p data-i18n="dash.overview_subtitle">Here's a snapshot of your journey with us.</p>
     </div>
     <div class="grid-3">
-      <div class="stat-card"><div class="stat-value" id="ov-bookings">—</div><div class="stat-label">Total Bookings</div></div>
-      <div class="stat-card"><div class="stat-value" id="ov-points">—</div><div class="stat-label">Tier Points</div></div>
-      <div class="stat-card"><div class="stat-value" id="ov-tier-val">—</div><div class="stat-label">Membership Tier</div></div>
+      <div class="stat-card"><div class="stat-value" id="ov-bookings">—</div><div class="stat-label" data-i18n="dash.stat_bookings">Total Bookings</div></div>
+      <div class="stat-card"><div class="stat-value" id="ov-points">—</div><div class="stat-label" data-i18n="dash.stat_points">Tier Points</div></div>
+      <div class="stat-card"><div class="stat-value" id="ov-tier-val">—</div><div class="stat-label" data-i18n="dash.stat_tier">Membership Tier</div></div>
     </div>
     <div class="grid-2">
-      <div class="card"><div class="card-title">Recent Bookings</div><div id="ov-recent"></div></div>
-      <div class="card"><div class="card-title">Tier Progress</div><div id="ov-progress"></div></div>
+      <div class="card"><div class="card-title" data-i18n="dash.recent_bookings">Recent Bookings</div><div id="ov-recent"></div></div>
+      <div class="card"><div class="card-title" data-i18n="dash.tier_progress">Tier Progress</div><div id="ov-progress"></div></div>
     </div>
   </div>
 
   <!-- BROWSE TRIPS -->
   <div class="page" id="page-trips">
     <div class="page-header">
-      <h1>Browse <em>Trips</em></h1>
-      <p>Discover curated journeys matched to your membership tier.</p>
+      <h1 data-i18n="dash.browse_heading" data-i18n-html>Browse <em>Trips</em></h1>
+      <p data-i18n="dash.browse_subtitle">Discover curated journeys matched to your membership tier.</p>
     </div>
-    <div class="trips-grid" id="trips-grid"><div class="empty-state">Loading trips…</div></div>
+    <div class="trips-grid" id="trips-grid"><div class="empty-state" data-i18n="dash.loading_trips">Loading trips…</div></div>
   </div>
 
   <!-- MY BOOKINGS -->
   <div class="page" id="page-bookings">
     <div class="page-header">
-      <h1>My <em>Bookings</em></h1>
-      <p>Track all your past and upcoming journeys.</p>
+      <h1 data-i18n="dash.bookings_heading" data-i18n-html>My <em>Bookings</em></h1>
+      <p data-i18n="dash.bookings_subtitle">Track all your past and upcoming journeys.</p>
     </div>
-    <div class="card"><div class="booking-list" id="bookings-list"><div class="empty-state">Loading…</div></div></div>
+    <div class="card"><div class="booking-list" id="bookings-list"><div class="empty-state" data-i18n="dash.loading">Loading…</div></div></div>
   </div>
 
   <!-- REFERRALS -->
   <div class="page" id="page-referrals">
     <div class="page-header">
-      <h1>My <em>Referrals</em></h1>
-      <p>Share your code with friends — you both get rewarded when they book.</p>
+      <h1 data-i18n="dash.referrals_heading" data-i18n-html>My <em>Referrals</em></h1>
+      <p data-i18n="dash.referrals_subtitle">Share your code with friends — you both get rewarded when they book.</p>
     </div>
     <div class="card" id="referral-promo-banner" style="display:none;"></div>
     <div class="card">
-      <div class="card-title">Your Referral Code</div>
+      <div class="card-title" data-i18n="dash.your_code">Your Referral Code</div>
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
         <div style="font-family:'Cormorant Garamond',serif;font-size:2rem;letter-spacing:0.04em;color:var(--navy);background:var(--cream2);border:1px solid var(--border);border-radius:10px;padding:10px 22px;" id="ref-code">—</div>
-        <button class="btn-ghost" style="flex:none;padding:11px 20px;" id="btn-copy-code">📋 Copy Code</button>
+        <button class="btn-ghost" style="flex:none;padding:11px 20px;" id="btn-copy-code" data-i18n="dash.copy_code">📋 Copy Code</button>
       </div>
     </div>
     <div class="card">
-      <div class="card-title">My Referrals</div>
-      <div id="ref-list"><div class="empty-state">Loading…</div></div>
+      <div class="card-title" data-i18n="dash.my_referrals">My Referrals</div>
+      <div id="ref-list"><div class="empty-state" data-i18n="dash.loading">Loading…</div></div>
     </div>
   </div>
 
   <!-- LUCKY DRAW -->
   <div class="page" id="page-luckydraw">
     <div class="page-header">
-      <h1>Lucky <em>Draw</em></h1>
-      <p>Every eligible booking or referral is an entry — check back here for results.</p>
+      <h1 data-i18n="dash.luckydraw_heading" data-i18n-html>Lucky <em>Draw</em></h1>
+      <p data-i18n="dash.luckydraw_subtitle">Every eligible booking or referral is an entry — check back here for results.</p>
     </div>
     <div class="card">
-      <div class="card-title">My Wins</div>
-      <div id="ref-wins"><div class="empty-state">Loading…</div></div>
+      <div class="card-title" data-i18n="dash.my_wins">My Wins</div>
+      <div id="ref-wins"><div class="empty-state" data-i18n="dash.loading">Loading…</div></div>
     </div>
   </div>
 
   <!-- MEMBERSHIP -->
   <div class="page" id="page-membership">
     <div class="page-header">
-      <h1>My <em>Membership</em></h1>
-      <p>Your tier unlocks exclusive trips and privileges.</p>
+      <h1 data-i18n="dash.membership_heading" data-i18n-html>My <em>Membership</em></h1>
+      <p data-i18n="dash.membership_subtitle">Your tier unlocks exclusive trips and privileges.</p>
     </div>
     <div class="card" style="margin-bottom:20px;">
-      <div class="card-title">Current Status</div>
+      <div class="card-title" data-i18n="dash.current_status">Current Status</div>
       <div id="membership-status"></div>
     </div>
     <div class="card">
-      <div class="card-title">Tier Comparison</div>
+      <div class="card-title" data-i18n="dash.tier_comparison">Tier Comparison</div>
       <div class="tier-cards" style="margin-top:8px;">
         <div class="tier-card" id="tier-explorer">
-          <div class="tier-icon">🌿</div><h3>Explorer</h3>
-          <div class="tier-pts">0 – 999 pts</div>
+          <div class="tier-icon">🌿</div><h3 data-i18n="tier.explorer">Explorer</h3>
+          <div class="tier-pts" data-i18n="dash.tier_explorer_pts">0 – 999 pts</div>
           <ul class="tier-perks">
-            <li>Access to all Explorer trips</li><li>1 point per RM spent</li>
-            <li>Email travel updates</li><li>24/7 support chat</li>
+            <li data-i18n="dash.tier_explorer_perk1">Access to all Explorer trips</li><li data-i18n="dash.tier_explorer_perk2">1 point per RM spent</li>
+            <li data-i18n="dash.tier_explorer_perk3">Email travel updates</li><li data-i18n="dash.tier_explorer_perk4">24/7 support chat</li>
           </ul>
         </div>
         <div class="tier-card" id="tier-premier">
-          <div class="tier-icon">✦</div><h3>Premier</h3>
-          <div class="tier-pts">1,000 – 4,999 pts</div>
+          <div class="tier-icon">✦</div><h3 data-i18n="tier.premier">Premier</h3>
+          <div class="tier-pts" data-i18n="dash.tier_premier_pts">1,000 – 4,999 pts</div>
           <ul class="tier-perks">
-            <li>All Explorer benefits</li><li>Access to Premier trips</li>
-            <li>Priority booking windows</li><li>Complimentary travel insurance</li>
+            <li data-i18n="dash.tier_premier_perk1">All Explorer benefits</li><li data-i18n="dash.tier_premier_perk2">Access to Premier trips</li>
+            <li data-i18n="dash.tier_premier_perk3">Priority booking windows</li><li data-i18n="dash.tier_premier_perk4">Complimentary travel insurance</li>
           </ul>
         </div>
         <div class="tier-card" id="tier-elite">
-          <div class="tier-icon">👑</div><h3>Elite</h3>
-          <div class="tier-pts">5,000+ pts</div>
+          <div class="tier-icon">👑</div><h3 data-i18n="tier.elite">Elite</h3>
+          <div class="tier-pts" data-i18n="dash.tier_elite_pts">5,000+ pts</div>
           <ul class="tier-perks">
-            <li>All Premier benefits</li><li>Access to Elite-only trips</li>
-            <li>Dedicated travel concierge</li><li>Airport lounge access</li>
+            <li data-i18n="dash.tier_elite_perk1">All Premier benefits</li><li data-i18n="dash.tier_elite_perk2">Access to Elite-only trips</li>
+            <li data-i18n="dash.tier_elite_perk3">Dedicated travel concierge</li><li data-i18n="dash.tier_elite_perk4">Airport lounge access</li>
           </ul>
         </div>
       </div>
@@ -358,20 +369,20 @@ textarea { resize:vertical; min-height:80px; }
   <!-- MY PROFILE -->
   <div class="page" id="page-profile">
     <div class="page-header">
-      <h1>My <em>Profile</em></h1>
-      <p>Keep your details up to date for a seamless booking experience.</p>
+      <h1 data-i18n="dash.profile_heading" data-i18n-html>My <em>Profile</em></h1>
+      <p data-i18n="dash.profile_subtitle">Keep your details up to date for a seamless booking experience.</p>
     </div>
     <div class="card">
-      <div class="card-title">Personal Information</div>
+      <div class="card-title" data-i18n="dash.personal_info">Personal Information</div>
       <div class="profile-grid">
-        <div class="field"><label>First Name</label><input type="text" id="p-first" placeholder="Jane"></div>
-        <div class="field"><label>Last Name</label><input type="text" id="p-last" placeholder="Smith"></div>
-        <div class="field"><label>Phone Number</label><input type="tel" id="p-phone" placeholder="+60 12 345 6789"></div>
-        <div class="field"><label>Date of Birth</label><input type="date" id="p-dob"></div>
-        <div class="field"><label>Nationality</label><input type="text" id="p-nationality" placeholder="Malaysian"></div>
-        <div class="field"><label>Passport Number</label><input type="text" id="p-passport" placeholder="A12345678"></div>
+        <div class="field"><label data-i18n="dash.first_name">First Name</label><input type="text" id="p-first" placeholder="Jane" data-i18n-placeholder="dash.first_name_ph"></div>
+        <div class="field"><label data-i18n="dash.last_name">Last Name</label><input type="text" id="p-last" placeholder="Smith" data-i18n-placeholder="dash.last_name_ph"></div>
+        <div class="field"><label data-i18n="dash.phone_number">Phone Number</label><input type="tel" id="p-phone" placeholder="+60 12 345 6789" data-i18n-placeholder="dash.phone_ph"></div>
+        <div class="field"><label data-i18n="dash.dob">Date of Birth</label><input type="date" id="p-dob"></div>
+        <div class="field"><label data-i18n="dash.nationality">Nationality</label><input type="text" id="p-nationality" placeholder="Malaysian" data-i18n-placeholder="dash.nationality_ph"></div>
+        <div class="field"><label data-i18n="dash.passport">Passport Number</label><input type="text" id="p-passport" placeholder="A12345678" data-i18n-placeholder="dash.passport_ph"></div>
       </div>
-      <button class="btn-primary" id="btn-save-profile" style="margin-top:20px;">Save Changes</button>
+      <button class="btn-primary" id="btn-save-profile" style="margin-top:20px;" data-i18n="dash.save_changes">Save Changes</button>
     </div>
   </div>
 
@@ -380,16 +391,16 @@ textarea { resize:vertical; min-height:80px; }
 <!-- BOOKING MODAL -->
 <div class="modal-overlay" id="booking-modal">
   <div class="modal">
-    <h2 id="modal-trip-name">Book Trip</h2>
+    <h2 id="modal-trip-name" data-i18n="dash.modal_book_trip">Book Trip</h2>
     <div class="modal-fields">
-      <div class="field"><label>Departure Date</label><select id="modal-date"></select></div>
-      <div class="field"><label>Number of Travellers</label><input type="number" id="modal-pax" value="1" min="1" max="10"></div>
-      <div class="field"><label>Special Requests (optional)</label><textarea id="modal-requests" placeholder="Dietary requirements, accessibility needs…"></textarea></div>
-      <div class="total-box"><div class="lbl">Estimated Total</div><div class="val" id="modal-total">RM 0</div></div>
+      <div class="field"><label data-i18n="dash.departure_date">Departure Date</label><select id="modal-date"></select></div>
+      <div class="field"><label data-i18n="dash.num_travellers">Number of Travellers</label><input type="number" id="modal-pax" value="1" min="1" max="10"></div>
+      <div class="field"><label data-i18n="dash.special_requests">Special Requests (optional)</label><textarea id="modal-requests" placeholder="Dietary requirements, accessibility needs…" data-i18n-placeholder="dash.special_requests_ph"></textarea></div>
+      <div class="total-box"><div class="lbl" data-i18n="dash.estimated_total">Estimated Total</div><div class="val" id="modal-total">RM 0</div></div>
     </div>
     <div class="modal-actions">
-      <button class="btn-ghost" id="btn-close-modal">Cancel</button>
-      <button class="btn-primary" id="btn-confirm-book" style="flex:2;">Confirm Booking</button>
+      <button class="btn-ghost" id="btn-close-modal" data-i18n="dash.cancel">Cancel</button>
+      <button class="btn-primary" id="btn-confirm-book" style="flex:2;" data-i18n="dash.confirm_booking">Confirm Booking</button>
     </div>
   </div>
 </div>
@@ -397,6 +408,8 @@ textarea { resize:vertical; min-height:80px; }
 <div class="toast" id="toast"></div>
 
 <script>
+TC_I18N.applyStatic();
+
 const SUPABASE_URL  = 'https://nkrpkfqibsudqsonljve.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_8mbRk904S5zktFv6UIlRUg_gp1PFAWm';
 const { createClient } = supabase;
@@ -419,6 +432,10 @@ document.getElementById('sidebar-nav').addEventListener('click', function(e) {
 document.getElementById('btn-signout').addEventListener('click', async () => {
   await sb.auth.signOut(); window.location.href = 'index.html';
 });
+document.getElementById('trips-grid').addEventListener('click', function(e) {
+  const btn = e.target.closest('.btn-book[data-tripid]');
+  if (btn) openBookingModal(btn.getAttribute('data-tripid'));
+});
 document.getElementById('btn-save-profile').addEventListener('click', saveProfile);
 document.getElementById('btn-confirm-book').addEventListener('click', confirmBooking);
 document.getElementById('btn-close-modal').addEventListener('click', closeBookingModal);
@@ -428,8 +445,8 @@ document.getElementById('btn-copy-code').addEventListener('click', () => {
   const code = profile?.referral_code;
   if (!code) return;
   navigator.clipboard.writeText(code).then(
-    () => showToast(`Code ${code} copied ✓`),
-    () => showToast('Could not copy — copy it manually.', true)
+    () => showToast(TC_I18N.t('dash.code_copied', { code })),
+    () => showToast(TC_I18N.t('dash.copy_failed'), true)
   );
 });
 
@@ -480,8 +497,10 @@ function renderSidebar() {
   const name = profile ? `${profile.first_name||''} ${profile.last_name||''}`.trim() || currentUser.phone || currentUser.email : (currentUser.phone || currentUser.email);
   const initials = name.split(' ').filter(Boolean).map(w=>w[0]).join('').substring(0,2).toUpperCase()||'?';
   document.getElementById('sb-avatar').textContent = initials;
-  document.getElementById('sb-name').textContent = name;
-  document.getElementById('sb-tier').textContent = cap(profile?.tier||'explorer');
+  const nameEl = document.getElementById('sb-name');
+  nameEl.textContent = name;
+  nameEl.removeAttribute('data-i18n'); // it's the member's real name now, not the "Loading…" placeholder — don't let a later applyStatic() call overwrite it
+  document.getElementById('sb-tier').textContent = TC_I18N.t('tier.'+(profile?.tier||'explorer'));
 }
 
 // ── RENDER OVERVIEW ──────────────────────────────────────────
@@ -489,29 +508,30 @@ function renderOverview() {
   document.getElementById('ov-name').textContent = profile?.first_name || 'traveller';
   document.getElementById('ov-bookings').textContent = bookings.length;
   document.getElementById('ov-points').textContent = (profile?.tier_points||0).toLocaleString();
-  document.getElementById('ov-tier-val').textContent = cap(profile?.tier||'explorer');
+  document.getElementById('ov-tier-val').textContent = TC_I18N.t('tier.'+(profile?.tier||'explorer'));
 
   const recent = bookings.slice(0,3);
   document.getElementById('ov-recent').innerHTML = recent.length
     ? recent.map(b => `<div style="padding:10px 0;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;">
         <div><div style="font-size:0.85rem;color:var(--navy);font-weight:500;">${b.trips?.title||'—'}</div>
         <div style="font-size:0.72rem;color:var(--smoke);margin-top:2px;">${fmtDate(b.departure_date)}</div></div>
-        <span class="status-pill status-${b.status}">${b.status}</span></div>`).join('')
-    : '<div class="empty-state"><div class="icon">🗺️</div><p>No bookings yet.<br>Browse trips to get started!</p></div>';
+        <span class="status-pill status-${b.status}">${TC_I18N.t('status.'+b.status)}</span></div>`).join('')
+    : `<div class="empty-state"><div class="icon">🗺️</div><p>${TC_I18N.t('dash.no_bookings_overview')}</p></div>`;
 
   const pts=profile?.tier_points||0, tier=profile?.tier||'explorer';
   let pct=100, nextLabel='';
-  if (tier==='explorer') { pct=Math.min(100,Math.round(pts/1000*100)); nextLabel=`${(1000-Math.min(pts,1000)).toLocaleString()} pts to Premier`; }
-  else if (tier==='premier') { pct=Math.min(100,Math.round((pts-1000)/4000*100)); nextLabel=`${(5000-Math.min(pts,5000)).toLocaleString()} pts to Elite`; }
-  else { nextLabel='Maximum tier reached 👑'; }
+  if (tier==='explorer') { pct=Math.min(100,Math.round(pts/1000*100)); nextLabel=TC_I18N.t('dash.pts_to_premier',{n:(1000-Math.min(pts,1000)).toLocaleString()}); }
+  else if (tier==='premier') { pct=Math.min(100,Math.round((pts-1000)/4000*100)); nextLabel=TC_I18N.t('dash.pts_to_elite',{n:(5000-Math.min(pts,5000)).toLocaleString()}); }
+  else { nextLabel=TC_I18N.t('dash.max_tier'); }
 
+  const tierLabel = TC_I18N.t('tier.'+tier);
   document.getElementById('ov-progress').innerHTML = `
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <span class="tier-badge ${tier}">${cap(tier)}</span>
-      <span style="font-size:0.78rem;color:var(--smoke);">${pts.toLocaleString()} pts</span>
+      <span class="tier-badge ${tier}">${tierLabel}</span>
+      <span style="font-size:0.78rem;color:var(--smoke);">${pts.toLocaleString()} ${TC_I18N.t('dash.pts_suffix')}</span>
     </div>
     <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
-    <div class="progress-labels"><span>${cap(tier)}</span><span>${nextLabel}</span></div>`;
+    <div class="progress-labels"><span>${tierLabel}</span><span>${nextLabel}</span></div>`;
 }
 
 // ── RENDER TRIPS ─────────────────────────────────────────────
@@ -521,7 +541,7 @@ const tierRank   = { explorer:0, premier:1, elite:2 };
 
 function renderTrips() {
   const grid = document.getElementById('trips-grid');
-  if (!trips.length) { grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1;"><div class="icon">✈️</div><p>No trips available right now.</p></div>'; return; }
+  if (!trips.length) { grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="icon">✈️</div><p>${TC_I18N.t('dash.no_trips')}</p></div>`; return; }
   const myRank = tierRank[profile?.tier||'explorer'];
   grid.innerHTML = trips.map((t,i) => {
     const locked = myRank < (tierRank[t.min_tier]||0);
@@ -530,39 +550,35 @@ function renderTrips() {
     const dates  = (t.departure_dates||[]).slice(0,2).map(d=>fmtDate(d)).join(' · ');
     const hasImage = !!t.cover_image;
     const thumbStyle = hasImage ? `background:url('${t.cover_image}') center/cover no-repeat;` : `background:${grad};`;
+    const tierLabel = TC_I18N.t('tier.'+t.min_tier);
     return `<div class="trip-card">
       <div class="trip-thumb" style="${thumbStyle}">${hasImage?'':emoji}</div>
       <div class="trip-body">
         <div class="trip-name">${t.title}</div>
         <div class="trip-desc">${t.summary||''}</div>
         <div class="trip-tags">
-          <span class="trip-tag">📅 ${t.duration_days} days</span>
-          <span class="trip-tag">👥 Max ${t.max_pax}</span>
-          <span class="trip-tag">${cap(t.min_tier)}+</span>
+          <span class="trip-tag">📅 ${t.duration_days} ${TC_I18N.t('dash.days_label')}</span>
+          <span class="trip-tag">👥 ${TC_I18N.t('dash.max_label')} ${t.max_pax}</span>
+          <span class="trip-tag">${tierLabel}+</span>
         </div>
         ${dates?`<div style="font-size:0.7rem;color:var(--smoke);margin-top:8px;">🗓 ${dates}</div>`:''}
         <div class="trip-footer">
-          <div class="trip-price">RM ${Number(t.price_usd).toLocaleString()} <span>/ person</span></div>
-          ${locked?`<div class="locked-badge">🔒 ${cap(t.min_tier)}+ only</div>`:`<button class="btn-book" data-tripid="${t.id}">Book Now</button>`}
+          <div class="trip-price">RM ${Number(t.price_usd).toLocaleString()} <span>${TC_I18N.t('dash.per_person')}</span></div>
+          ${locked?`<div class="locked-badge">🔒 ${tierLabel}+ ${TC_I18N.t('dash.locked_suffix')}</div>`:`<button class="btn-book" data-tripid="${t.id}">${TC_I18N.t('dash.book_now')}</button>`}
         </div>
       </div></div>`;
   }).join('');
-
-  grid.addEventListener('click', function(e) {
-    const btn = e.target.closest('.btn-book[data-tripid]');
-    if (btn) openBookingModal(btn.getAttribute('data-tripid'));
-  }, { once: true });
 }
 
 // ── RENDER BOOKINGS ──────────────────────────────────────────
 function renderBookings() {
   const list = document.getElementById('bookings-list');
-  if (!bookings.length) { list.innerHTML = '<div class="empty-state"><div class="icon">📋</div><p>No bookings yet.<br>Head to Browse Trips to plan your first journey!</p></div>'; return; }
+  if (!bookings.length) { list.innerHTML = `<div class="empty-state"><div class="icon">📋</div><p>${TC_I18N.t('dash.no_bookings')}</p></div>`; return; }
   list.innerHTML = bookings.map(b => `<div class="booking-row">
     <div><div class="booking-trip">${b.trips?.title||'—'}</div>
-    <div class="booking-meta">${fmtDate(b.departure_date)} · ${b.num_travellers} traveller${b.num_travellers>1?'s':''} · ${b.trips?.duration_days||'?'} days</div></div>
+    <div class="booking-meta">${fmtDate(b.departure_date)} · ${b.num_travellers} ${TC_I18N.t(b.num_travellers>1?'dash.traveller_plural':'dash.traveller_singular')} · ${b.trips?.duration_days||'?'} ${TC_I18N.t('dash.days_label')}</div></div>
     <div class="booking-price">RM ${Number(b.total_usd).toLocaleString()}</div>
-    <span class="status-pill status-${b.status}">${b.status}</span>
+    <span class="status-pill status-${b.status}">${TC_I18N.t('status.'+b.status)}</span>
   </div>`).join('');
 }
 
@@ -573,16 +589,16 @@ function renderMembership() {
     const card = document.getElementById('tier-'+t);
     card.classList.toggle('current', t===tier);
     const ex = card.querySelector('.current-label'); if (ex) ex.remove();
-    if (t===tier) { const lbl=document.createElement('div'); lbl.className='current-label'; lbl.textContent='Your Tier'; card.prepend(lbl); }
+    if (t===tier) { const lbl=document.createElement('div'); lbl.className='current-label'; lbl.textContent=TC_I18N.t('dash.your_tier'); card.prepend(lbl); }
   });
   let nextInfo = '';
-  if (tier==='explorer')     nextInfo=`<span style="font-size:0.8rem;color:var(--smoke);">Earn ${(1000-pts).toLocaleString()} more points to reach Premier</span>`;
-  else if (tier==='premier') nextInfo=`<span style="font-size:0.8rem;color:var(--smoke);">Earn ${(5000-pts).toLocaleString()} more points to reach Elite</span>`;
-  else                       nextInfo=`<span style="font-size:0.8rem;color:var(--gold);">You've reached our highest tier 👑</span>`;
+  if (tier==='explorer')     nextInfo=`<span style="font-size:0.8rem;color:var(--smoke);">${TC_I18N.t('dash.earn_more_premier',{n:(1000-pts).toLocaleString()})}</span>`;
+  else if (tier==='premier') nextInfo=`<span style="font-size:0.8rem;color:var(--smoke);">${TC_I18N.t('dash.earn_more_elite',{n:(5000-pts).toLocaleString()})}</span>`;
+  else                       nextInfo=`<span style="font-size:0.8rem;color:var(--gold);">${TC_I18N.t('dash.highest_tier')}</span>`;
   document.getElementById('membership-status').innerHTML = `
     <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-      <span class="tier-badge ${tier}" style="font-size:0.76rem;padding:6px 16px;">${cap(tier)} Member</span>
-      <span style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--gold);">${pts.toLocaleString()} pts</span>
+      <span class="tier-badge ${tier}" style="font-size:0.76rem;padding:6px 16px;">${TC_I18N.t('tier.'+tier)} ${TC_I18N.t('dash.member_suffix')}</span>
+      <span style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--gold);">${pts.toLocaleString()} ${TC_I18N.t('dash.pts_suffix')}</span>
       ${nextInfo}
     </div>`;
 }
@@ -599,27 +615,27 @@ function renderReferralsPage() {
   const banner = document.getElementById('referral-promo-banner');
   if (promo) {
     banner.style.display='';
-    banner.innerHTML = `<div class="card-title">Current Promotion</div>
-      <p style="font-size:0.95rem;color:var(--navy);">Share your code — you earn <strong style="color:var(--gold);">${rewardLabel(promo.referrer_reward_type, promo.referrer_reward_value)}</strong>, your friend gets <strong style="color:var(--gold);">${rewardLabel(promo.referee_discount_type, promo.referee_discount_value)}</strong> off their first trip.</p>`;
+    banner.innerHTML = `<div class="card-title">${TC_I18N.t('dash.current_promotion')}</div>
+      <p style="font-size:0.95rem;color:var(--navy);">${TC_I18N.t('dash.promo_text',{referrer:rewardLabel(promo.referrer_reward_type, promo.referrer_reward_value),referee:rewardLabel(promo.referee_discount_type, promo.referee_discount_value)})}</p>`;
   } else {
     banner.style.display='none';
   }
 
   document.getElementById('ref-list').innerHTML = myReferrals.length
     ? myReferrals.map(r=>`<div class="booking-row" style="grid-template-columns:1fr auto;">
-        <div><div class="booking-trip">${r.referee_name||r.referee_email||'Pending friend'}</div>
+        <div><div class="booking-trip">${r.referee_name||r.referee_email||TC_I18N.t('dash.pending_friend')}</div>
         <div class="booking-meta">${r.referral_promotions?.name||'—'} · ${fmtDate(r.created_at)}</div></div>
-        <span class="status-pill status-${referralStatusPill[r.status]||'pending'}">${cap(r.status)}</span>
+        <span class="status-pill status-${referralStatusPill[r.status]||'pending'}">${TC_I18N.t('status.'+r.status)}</span>
       </div>`).join('')
-    : '<div class="empty-state"><div class="icon">🤝</div><p>No referrals yet.<br>Share your code to get started!</p></div>';
+    : `<div class="empty-state"><div class="icon">🤝</div><p>${TC_I18N.t('dash.no_referrals')}</p></div>`;
 
   document.getElementById('ref-wins').innerHTML = myDrawWins.length
     ? myDrawWins.map(w=>`<div class="booking-row" style="grid-template-columns:1fr auto;">
-        <div><div class="booking-trip">${w.lucky_draws?.name||'Lucky Draw'}</div>
+        <div><div class="booking-trip">${w.lucky_draws?.name||TC_I18N.t('dash.lucky_draw_fallback_name')}</div>
         <div class="booking-meta">${fmtDate(w.drawn_at)}</div></div>
         <span class="status-pill status-confirmed">🎉 #${w.prize_rank}</span>
       </div>`).join('')
-    : '<div class="empty-state"><div class="icon">🎁</div><p>No wins yet — stay tuned!</p></div>';
+    : `<div class="empty-state"><div class="icon">🎁</div><p>${TC_I18N.t('dash.no_wins')}</p></div>`;
 }
 
 // ── PROFILE ──────────────────────────────────────────────────
@@ -635,7 +651,7 @@ function prefillProfile() {
 
 async function saveProfile() {
   const btn = document.getElementById('btn-save-profile');
-  btn.disabled=true; btn.textContent='Saving…';
+  btn.disabled=true; btn.textContent=TC_I18N.t('dash.saving');
   const updates = {
     first_name:    document.getElementById('p-first').value.trim(),
     last_name:     document.getElementById('p-last').value.trim(),
@@ -645,9 +661,9 @@ async function saveProfile() {
     passport_no:   document.getElementById('p-passport').value.trim(),
   };
   const { error } = await sb.from('profiles').update(updates).eq('id', currentUser.id);
-  if (error) showToast('Error: '+error.message, true);
-  else { Object.assign(profile, updates); renderSidebar(); showToast('Profile saved ✓'); }
-  btn.disabled=false; btn.textContent='Save Changes';
+  if (error) showToast(TC_I18N.t('dash.error_prefix')+error.message, true);
+  else { Object.assign(profile, updates); renderSidebar(); showToast(TC_I18N.t('dash.profile_saved')); }
+  btn.disabled=false; btn.textContent=TC_I18N.t('dash.save_changes');
 }
 
 // ── BOOKING MODAL ────────────────────────────────────────────
@@ -658,7 +674,7 @@ function openBookingModal(tripId) {
   const dates = bookingTrip.departure_dates||[];
   document.getElementById('modal-date').innerHTML = dates.length
     ? dates.map(d=>`<option value="${d}">${fmtDate(d)}</option>`).join('')
-    : '<option value="">No dates available</option>';
+    : `<option value="">${TC_I18N.t('dash.no_dates')}</option>`;
   document.getElementById('modal-pax').value=1;
   document.getElementById('modal-requests').value='';
   updateTotal();
@@ -673,20 +689,20 @@ function updateTotal() {
 async function confirmBooking() {
   if (!bookingTrip) return;
   const btn=document.getElementById('btn-confirm-book');
-  btn.disabled=true; btn.textContent='Confirming…';
+  btn.disabled=true; btn.textContent=TC_I18N.t('dash.confirming');
   const pax=parseInt(document.getElementById('modal-pax').value)||1;
   const date=document.getElementById('modal-date').value;
   const reqs=document.getElementById('modal-requests').value.trim();
-  if (!date) { showToast('Please select a departure date.', true); btn.disabled=false; btn.textContent='Confirm Booking'; return; }
+  if (!date) { showToast(TC_I18N.t('dash.select_departure_err'), true); btn.disabled=false; btn.textContent=TC_I18N.t('dash.confirm_booking'); return; }
   const { error } = await sb.from('bookings').insert({ member_id:currentUser.id, trip_id:bookingTrip.id, departure_date:date, num_travellers:pax, total_usd:pax*Number(bookingTrip.price_usd), special_requests:reqs||null, status:'pending' });
-  if (error) showToast('Booking failed: '+error.message, true);
-  else { closeBookingModal(); await loadBookings(); renderBookings(); renderOverview(); showToast('Booking request sent! We\'ll confirm shortly ✈️'); }
-  btn.disabled=false; btn.textContent='Confirm Booking';
+  if (error) showToast(TC_I18N.t('dash.booking_failed')+error.message, true);
+  else { closeBookingModal(); await loadBookings(); renderBookings(); renderOverview(); showToast(TC_I18N.t('dash.booking_sent')); }
+  btn.disabled=false; btn.textContent=TC_I18N.t('dash.confirm_booking');
 }
 
 // ── HELPERS ──────────────────────────────────────────────────
-function cap(s) { return s ? s.charAt(0).toUpperCase()+s.slice(1) : ''; }
-function fmtDate(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'}); }
+const DATE_LOCALES = { en: 'en-GB', zh: 'zh-CN', ms: 'ms-MY' };
+function fmtDate(d) { if (!d) return '—'; return new Date(d).toLocaleDateString(DATE_LOCALES[TC_I18N.lang]||'en-GB',{day:'numeric',month:'short',year:'numeric'}); }
 let toastTimer;
 function showToast(msg, err) {
   const t=document.getElementById('toast');
@@ -699,6 +715,13 @@ function showToast(msg, err) {
   toastTimer=setTimeout(()=>t.classList.remove('show'),3500);
 }
 init();
+
+// Re-render dynamic (JS-templated) content when the member switches language.
+// Static labels are handled by TC_I18N.applyStatic() itself via [data-i18n].
+TC_I18N.onChange(() => {
+  if (!currentUser) return;
+  renderSidebar(); renderOverview(); renderTrips(); renderBookings(); renderMembership(); renderReferralsPage();
+});
 
 // ── PWA: service worker registration
 if ('serviceWorker' in navigator) {

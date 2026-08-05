@@ -12,6 +12,7 @@
 <link rel="apple-touch-icon" href="icons/apple-touch-icon-customer.png">
 <title>The Travel Chapter — Curated Journeys for Discerning Travellers</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="i18n.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -53,6 +54,10 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 .btn-nav-ghost:hover { border-color:var(--navy); color:var(--navy); }
 .btn-nav-primary { padding:9px 20px; border:none; border-radius:6px; background:var(--navy); color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.8rem; font-weight:500; letter-spacing:0.05em; text-decoration:none; transition:all 0.2s; }
 .btn-nav-primary:hover { background:var(--navy2); box-shadow:0 4px 14px rgba(26,31,46,0.2); }
+.lang-switch { display:flex; align-items:center; gap:2px; background:var(--cream2); border:1px solid var(--border); border-radius:6px; padding:2px; }
+.lang-btn { padding:5px 9px; border:none; background:transparent; border-radius:4px; font-family:'DM Sans',sans-serif; font-size:0.68rem; font-weight:500; letter-spacing:0.03em; color:var(--smoke); cursor:pointer; transition:all 0.2s; }
+.lang-btn:hover { color:var(--navy); }
+.lang-btn.active { background:var(--navy); color:var(--white); }
 
 /* ── JOURNAL (pinned scroll journey — book-chapter style, merges hero + destinations) ── */
 .journal { position:relative; height:700vh; background:var(--navy); padding:0; }
@@ -313,14 +318,19 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 <nav class="navbar" id="navbar">
   <a href="#" class="nav-logo" id="nav-logo"><img src="the-travel-chapter-icon.png" alt="The Travel Chapter" class="nav-logo-img"><span class="nav-logo-text" id="nav-logo-text">The Travel Chapter</span></a>
   <ul class="nav-links">
-    <li><a href="#journal">Destinations</a></li>
-    <li><a href="#trips">Trips</a></li>
-    <li><a href="#membership">Membership</a></li>
-    <li><a href="#about">About</a></li>
-    <li><a href="#contact">Contact</a></li>
+    <li><a href="#journal" data-i18n="nav.destinations">Destinations</a></li>
+    <li><a href="#trips" data-i18n="nav.trips">Trips</a></li>
+    <li><a href="#membership" data-i18n="nav.membership">Membership</a></li>
+    <li><a href="#about" data-i18n="nav.about">About</a></li>
+    <li><a href="#contact" data-i18n="nav.contact">Contact</a></li>
   </ul>
   <div class="nav-cta">
-    <a href="login.html" class="btn-nav-primary">Sign In</a>
+    <div class="lang-switch">
+      <button class="lang-btn" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="zh">中文</button>
+      <button class="lang-btn" data-lang="ms">BM</button>
+    </div>
+    <a href="login.html" class="btn-nav-primary" data-i18n="nav.signin">Sign In</a>
   </div>
 </nav>
 
@@ -330,15 +340,15 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 
     <div class="journal-stop journal-stop-intro">
       <div class="journal-stop-content">
-        <div class="hero-eyebrow" id="hero-eyebrow">Curated Journeys</div>
-        <h1 class="journal-heading" id="hero-heading">Travel Beyond<br>the <em>Ordinary</em></h1>
-        <p class="journal-sub" id="hero-subtext">The Travel Chapter curates extraordinary journeys for discerning travellers — from intimate ryokans in Kyoto to private yacht charters along the Amalfi Coast.</p>
+        <div class="hero-eyebrow" id="hero-eyebrow" data-i18n="hero.eyebrow">Curated Journeys</div>
+        <h1 class="journal-heading" id="hero-heading" data-i18n="hero.heading" data-i18n-html>Travel Beyond<br>the <em>Ordinary</em></h1>
+        <p class="journal-sub" id="hero-subtext" data-i18n="hero.subtext">The Travel Chapter curates extraordinary journeys for discerning travellers — from intimate ryokans in Kyoto to private yacht charters along the Amalfi Coast.</p>
         <div class="journal-toc" id="dest-eyebrow-wrap">
-          <div class="journal-toc-item"><span>I</span> The Beginning — Kyoto</div>
-          <div class="journal-toc-item"><span>II</span> Word Traveled Fast — Amalfi</div>
-          <div class="journal-toc-item"><span>III</span> Learning to Listen — Marrakech</div>
-          <div class="journal-toc-item"><span>IV</span> Slowing Down — Luang Prabang</div>
-          <div class="journal-toc-item"><span>V</span> To the Edge of the World — Patagonia</div>
+          <div class="journal-toc-item"><span>I</span> <span data-i18n="journal.toc1">The Beginning — Kyoto</span></div>
+          <div class="journal-toc-item"><span>II</span> <span data-i18n="journal.toc2">Word Traveled Fast — Amalfi</span></div>
+          <div class="journal-toc-item"><span>III</span> <span data-i18n="journal.toc3">Learning to Listen — Marrakech</span></div>
+          <div class="journal-toc-item"><span>IV</span> <span data-i18n="journal.toc4">Slowing Down — Luang Prabang</span></div>
+          <div class="journal-toc-item"><span>V</span> <span data-i18n="journal.toc5">To the Edge of the World — Patagonia</span></div>
         </div>
       </div>
     </div>
@@ -350,10 +360,10 @@ footer { background:var(--navy); padding:56px 6% 32px; }
           <div class="chapter-content">
             <div class="chapter-photo-wrap"><img class="chapter-photo" src="https://commons.wikimedia.org/wiki/Special:FilePath/Kiyomizu-dera,_Kyoto,_November_2016_-02.jpg?width=1200" alt="Kyoto, Japan"></div>
             <div class="chapter-text">
-              <div class="chapter-badge">Chapter One</div>
-              <div class="journal-dest-name">The Beginning</div>
-              <div class="journal-dest-region">Kyoto, Japan · 2012</div>
-              <p class="chapter-caption">It started with one traveller, a single notebook, and a solo trip to Kyoto that changed everything — and a promise to never plan an ordinary itinerary again.</p>
+              <div class="chapter-badge" data-i18n="journal.ch1.badge">Chapter One</div>
+              <div class="journal-dest-name" data-i18n="journal.ch1.name">The Beginning</div>
+              <div class="journal-dest-region" data-i18n="journal.ch1.region">Kyoto, Japan · 2012</div>
+              <p class="chapter-caption" data-i18n="journal.ch1.caption">It started with one traveller, a single notebook, and a solo trip to Kyoto that changed everything — and a promise to never plan an ordinary itinerary again.</p>
             </div>
           </div>
         </div>
@@ -364,10 +374,10 @@ footer { background:var(--navy); padding:56px 6% 32px; }
           <div class="chapter-content">
             <div class="chapter-photo-wrap"><img class="chapter-photo" src="https://commons.wikimedia.org/wiki/Special:FilePath/Positano-Amalfi_Coast-Italy.jpg?width=1200" alt="Amalfi Coast"></div>
             <div class="chapter-text">
-              <div class="chapter-badge">Chapter Two</div>
-              <div class="journal-dest-name">Word Traveled Fast</div>
-              <div class="journal-dest-region">Amalfi Coast · 2015</div>
-              <p class="chapter-caption">Friends who'd heard about that first trip began asking for help planning their own. By the time we were chartering yachts along Italy's coast, trust had quietly become our business.</p>
+              <div class="chapter-badge" data-i18n="journal.ch2.badge">Chapter Two</div>
+              <div class="journal-dest-name" data-i18n="journal.ch2.name">Word Traveled Fast</div>
+              <div class="journal-dest-region" data-i18n="journal.ch2.region">Amalfi Coast · 2015</div>
+              <p class="chapter-caption" data-i18n="journal.ch2.caption">Friends who'd heard about that first trip began asking for help planning their own. By the time we were chartering yachts along Italy's coast, trust had quietly become our business.</p>
             </div>
           </div>
         </div>
@@ -378,10 +388,10 @@ footer { background:var(--navy); padding:56px 6% 32px; }
           <div class="chapter-content">
             <div class="chapter-photo-wrap"><img class="chapter-photo" src="https://commons.wikimedia.org/wiki/Special:FilePath/Koutoubia_Mosque_2.jpg?width=1200" alt="Marrakech"></div>
             <div class="chapter-text">
-              <div class="chapter-badge">Chapter Three</div>
-              <div class="journal-dest-name">Learning to Listen</div>
-              <div class="journal-dest-region">Marrakech, Morocco · 2018</div>
-              <p class="chapter-caption">We learned our best itineraries were never written from a desk — they came from local guides who knew which alley led to the Marrakech no guidebook could show us.</p>
+              <div class="chapter-badge" data-i18n="journal.ch3.badge">Chapter Three</div>
+              <div class="journal-dest-name" data-i18n="journal.ch3.name">Learning to Listen</div>
+              <div class="journal-dest-region" data-i18n="journal.ch3.region">Marrakech, Morocco · 2018</div>
+              <p class="chapter-caption" data-i18n="journal.ch3.caption">We learned our best itineraries were never written from a desk — they came from local guides who knew which alley led to the Marrakech no guidebook could show us.</p>
             </div>
           </div>
         </div>
@@ -392,10 +402,10 @@ footer { background:var(--navy); padding:56px 6% 32px; }
           <div class="chapter-content">
             <div class="chapter-photo-wrap"><img class="chapter-photo" src="https://commons.wikimedia.org/wiki/Special:FilePath/Pirogue_and_boat_on_the_Mekong_with_colorful_sky_at_sunset_in_Luang_Prabang_Laos.jpg?width=1200" alt="Luang Prabang"></div>
             <div class="chapter-text">
-              <div class="chapter-badge">Chapter Four</div>
-              <div class="journal-dest-name">Slowing Down</div>
-              <div class="journal-dest-region">Luang Prabang, Laos · 2021</div>
-              <p class="chapter-caption">Somewhere along the Mekong at dawn, we understood what travel was really for — not ticking boxes, but standing still long enough to feel something.</p>
+              <div class="chapter-badge" data-i18n="journal.ch4.badge">Chapter Four</div>
+              <div class="journal-dest-name" data-i18n="journal.ch4.name">Slowing Down</div>
+              <div class="journal-dest-region" data-i18n="journal.ch4.region">Luang Prabang, Laos · 2021</div>
+              <p class="chapter-caption" data-i18n="journal.ch4.caption">Somewhere along the Mekong at dawn, we understood what travel was really for — not ticking boxes, but standing still long enough to feel something.</p>
             </div>
           </div>
         </div>
@@ -406,10 +416,10 @@ footer { background:var(--navy); padding:56px 6% 32px; }
           <div class="chapter-content">
             <div class="chapter-photo-wrap"><img class="chapter-photo" src="https://commons.wikimedia.org/wiki/Special:FilePath/Torres_del_Paine,_Laguna_Azul_09.jpg?width=1200" alt="Patagonia"></div>
             <div class="chapter-text">
-              <div class="chapter-badge">Chapter Five</div>
-              <div class="journal-dest-name">To the Edge of the World</div>
-              <div class="journal-dest-region">Patagonia · 2024</div>
-              <p class="chapter-caption">That same restless curiosity has since carried our travellers to Patagonia's glaciers and beyond — proof that a decade on, we're still chasing that first Kyoto feeling.</p>
+              <div class="chapter-badge" data-i18n="journal.ch5.badge">Chapter Five</div>
+              <div class="journal-dest-name" data-i18n="journal.ch5.name">To the Edge of the World</div>
+              <div class="journal-dest-region" data-i18n="journal.ch5.region">Patagonia · 2024</div>
+              <p class="chapter-caption" data-i18n="journal.ch5.caption">That same restless curiosity has since carried our travellers to Patagonia's glaciers and beyond — proof that a decade on, we're still chasing that first Kyoto feeling.</p>
             </div>
           </div>
         </div>
@@ -418,15 +428,15 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 
     <div class="journal-stop journal-stop-outro">
       <div class="journal-stop-content">
-        <div class="journal-epilogue-eyebrow">Epilogue</div>
-        <div class="journal-epilogue-heading">Your chapter starts here</div>
+        <div class="journal-epilogue-eyebrow" data-i18n="journal.epilogue_eyebrow">Epilogue</div>
+        <div class="journal-epilogue-heading" data-i18n="journal.epilogue_heading">Your chapter starts here</div>
         <div class="hero-stats" id="hero-stats">
-          <div><span class="hero-stat-val">48+</span><span class="hero-stat-lbl">Destinations</span></div>
-          <div><span class="hero-stat-val">1,200+</span><span class="hero-stat-lbl">Happy Travellers</span></div>
-          <div><span class="hero-stat-val">12yr</span><span class="hero-stat-lbl">Experience</span></div>
+          <div><span class="hero-stat-val">48+</span><span class="hero-stat-lbl" data-i18n="journal.stat1_lbl">Destinations</span></div>
+          <div><span class="hero-stat-val">1,200+</span><span class="hero-stat-lbl" data-i18n="journal.stat2_lbl">Happy Travellers</span></div>
+          <div><span class="hero-stat-val">12yr</span><span class="hero-stat-lbl" data-i18n="journal.stat3_lbl">Experience</span></div>
         </div>
         <div class="hero-actions">
-          <a href="#trips" class="btn-hero-primary" id="hero-cta-primary">Explore Trips</a>
+          <a href="#trips" class="btn-hero-primary" id="hero-cta-primary" data-i18n="hero.cta_primary">Explore Trips</a>
         </div>
       </div>
     </div>
@@ -444,7 +454,7 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 <!-- ── MANIFESTO ── -->
 <section class="manifesto" id="manifesto">
   <div class="manifesto-sticky">
-    <p class="manifesto-text" id="manifesto-text">We believe travel should move you, not just take you somewhere. Every chapter we craft turns distance into memory — and memory into the story you carry home.</p>
+    <p class="manifesto-text" id="manifesto-text" data-i18n="manifesto.text">We believe travel should move you, not just take you somewhere. Every chapter we craft turns distance into memory — and memory into the story you carry home.</p>
   </div>
 </section>
 
@@ -452,117 +462,117 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 <section id="trips">
   <div class="section-header-split reveal">
     <div>
-      <div class="section-eyebrow" id="ft-eyebrow">Our Journeys</div>
-      <h2 class="section-title" id="ft-heading">Featured <em>Trips</em></h2>
+      <div class="section-eyebrow" id="ft-eyebrow" data-i18n="trips.eyebrow">Our Journeys</div>
+      <h2 class="section-title" id="ft-heading" data-i18n="trips.heading" data-i18n-html>Featured <em>Trips</em></h2>
     </div>
-    <p class="section-sub" id="ft-subtext">Each journey is crafted with intention — expert guides, intimate group sizes and access to experiences no ordinary tourist agency can offer.</p>
+    <p class="section-sub" id="ft-subtext" data-i18n="trips.subtext">Each journey is crafted with intention — expert guides, intimate group sizes and access to experiences no ordinary tourist agency can offer.</p>
   </div>
   <div class="trips-grid" id="trips-grid">
     <div class="trip-card reveal">
       <div class="trip-thumb" style="background:linear-gradient(160deg,#1a3a2a,#2d6a4f);">
-        🍁 <span class="trip-tier-badge tier-explorer">Explorer</span>
+        🍁 <span class="trip-tier-badge tier-explorer" data-i18n="tier.explorer">Explorer</span>
       </div>
       <div class="trip-body">
-        <div class="trip-name">Kyoto in Autumn</div>
-        <div class="trip-desc">Chase the crimson maple leaves through Kyoto's finest temples and hidden gardens.</div>
+        <div class="trip-name" data-i18n="trips.card1.name">Kyoto in Autumn</div>
+        <div class="trip-desc" data-i18n="trips.card1.desc">Chase the crimson maple leaves through Kyoto's finest temples and hidden gardens.</div>
         <div class="trip-meta">
-          <span class="trip-tag">📅 8 days</span>
-          <span class="trip-tag">👥 Max 10</span>
-          <span class="trip-tag">✈️ Oct – Nov</span>
+          <span class="trip-tag">📅 <span data-i18n="trips.card1.duration">8 days</span></span>
+          <span class="trip-tag">👥 <span data-i18n="trips.card1.pax">Max 10</span></span>
+          <span class="trip-tag">✈️ <span data-i18n="trips.card1.window">Oct – Nov</span></span>
         </div>
         <div class="trip-footer">
-          <div class="trip-price">RM 3,200 <span>/ person</span></div>
-          <a href="index.html" class="btn-trip">Book Now</a>
+          <div class="trip-price">RM 3,200 <span data-i18n="trips.per_person">/ person</span></div>
+          <a href="index.html" class="btn-trip" data-i18n="trips.book_now">Book Now</a>
         </div>
       </div>
     </div>
     <div class="trip-card reveal">
       <div class="trip-thumb" style="background:linear-gradient(160deg,#1a2a3a,#1e6091);">
-        ⛵ <span class="trip-tier-badge tier-premier">Premier</span>
+        ⛵ <span class="trip-tier-badge tier-premier" data-i18n="tier.premier">Premier</span>
       </div>
       <div class="trip-body">
-        <div class="trip-name">Amalfi by Yacht</div>
-        <div class="trip-desc">A private yacht journey along the Amalfi Coast — secluded coves, fresh seafood and golden sunsets.</div>
+        <div class="trip-name" data-i18n="trips.card2.name">Amalfi by Yacht</div>
+        <div class="trip-desc" data-i18n="trips.card2.desc">A private yacht journey along the Amalfi Coast — secluded coves, fresh seafood and golden sunsets.</div>
         <div class="trip-meta">
-          <span class="trip-tag">📅 6 days</span>
-          <span class="trip-tag">👥 Max 8</span>
-          <span class="trip-tag">✈️ Jun – Jul</span>
+          <span class="trip-tag">📅 <span data-i18n="trips.card2.duration">6 days</span></span>
+          <span class="trip-tag">👥 <span data-i18n="trips.card2.pax">Max 8</span></span>
+          <span class="trip-tag">✈️ <span data-i18n="trips.card2.window">Jun – Jul</span></span>
         </div>
         <div class="trip-footer">
-          <div class="trip-price">RM 6,800 <span>/ person</span></div>
-          <a href="index.html" class="btn-trip">Book Now</a>
+          <div class="trip-price">RM 6,800 <span data-i18n="trips.per_person">/ person</span></div>
+          <a href="index.html" class="btn-trip" data-i18n="trips.book_now">Book Now</a>
         </div>
       </div>
     </div>
     <div class="trip-card reveal">
       <div class="trip-thumb" style="background:linear-gradient(160deg,#3a1a1a,#7a3520);">
-        🐪 <span class="trip-tier-badge tier-explorer">Explorer</span>
+        🐪 <span class="trip-tier-badge tier-explorer" data-i18n="tier.explorer">Explorer</span>
       </div>
       <div class="trip-body">
-        <div class="trip-name">Marrakech & Beyond</div>
-        <div class="trip-desc">Imperial cities, Sahara desert camps and Atlas mountain villages — Morocco in full depth.</div>
+        <div class="trip-name" data-i18n="trips.card3.name">Marrakech & Beyond</div>
+        <div class="trip-desc" data-i18n="trips.card3.desc">Imperial cities, Sahara desert camps and Atlas mountain villages — Morocco in full depth.</div>
         <div class="trip-meta">
-          <span class="trip-tag">📅 9 days</span>
-          <span class="trip-tag">👥 Max 14</span>
-          <span class="trip-tag">✈️ Sep – Oct</span>
+          <span class="trip-tag">📅 <span data-i18n="trips.card3.duration">9 days</span></span>
+          <span class="trip-tag">👥 <span data-i18n="trips.card3.pax">Max 14</span></span>
+          <span class="trip-tag">✈️ <span data-i18n="trips.card3.window">Sep – Oct</span></span>
         </div>
         <div class="trip-footer">
-          <div class="trip-price">RM 3,900 <span>/ person</span></div>
-          <a href="index.html" class="btn-trip">Book Now</a>
+          <div class="trip-price">RM 3,900 <span data-i18n="trips.per_person">/ person</span></div>
+          <a href="index.html" class="btn-trip" data-i18n="trips.book_now">Book Now</a>
         </div>
       </div>
     </div>
     <div class="trip-card reveal">
       <div class="trip-thumb" style="background:linear-gradient(160deg,#1a2a3a,#2d3561);">
-        🛶 <span class="trip-tier-badge tier-explorer">Explorer</span>
+        🛶 <span class="trip-tier-badge tier-explorer" data-i18n="tier.explorer">Explorer</span>
       </div>
       <div class="trip-body">
-        <div class="trip-name">Mekong River Journey</div>
-        <div class="trip-desc">Slow travel through Laos on a restored river cruiser — monasteries, markets and misty mornings.</div>
+        <div class="trip-name" data-i18n="trips.card4.name">Mekong River Journey</div>
+        <div class="trip-desc" data-i18n="trips.card4.desc">Slow travel through Laos on a restored river cruiser — monasteries, markets and misty mornings.</div>
         <div class="trip-meta">
-          <span class="trip-tag">📅 10 days</span>
-          <span class="trip-tag">👥 Max 12</span>
-          <span class="trip-tag">✈️ Nov – Jan</span>
+          <span class="trip-tag">📅 <span data-i18n="trips.card4.duration">10 days</span></span>
+          <span class="trip-tag">👥 <span data-i18n="trips.card4.pax">Max 12</span></span>
+          <span class="trip-tag">✈️ <span data-i18n="trips.card4.window">Nov – Jan</span></span>
         </div>
         <div class="trip-footer">
-          <div class="trip-price">RM 4,100 <span>/ person</span></div>
-          <a href="index.html" class="btn-trip">Book Now</a>
+          <div class="trip-price">RM 4,100 <span data-i18n="trips.per_person">/ person</span></div>
+          <a href="index.html" class="btn-trip" data-i18n="trips.book_now">Book Now</a>
         </div>
       </div>
     </div>
     <div class="trip-card reveal">
       <div class="trip-thumb" style="background:linear-gradient(160deg,#2a1a3a,#4a2f6a);">
-        🏔️ <span class="trip-tier-badge tier-premier">Premier</span>
+        🏔️ <span class="trip-tier-badge tier-premier" data-i18n="tier.premier">Premier</span>
       </div>
       <div class="trip-body">
-        <div class="trip-name">Patagonia Wilderness</div>
-        <div class="trip-desc">Trek the W Circuit with expert mountain guides — glaciers, granite towers and the end of the world.</div>
+        <div class="trip-name" data-i18n="trips.card5.name">Patagonia Wilderness</div>
+        <div class="trip-desc" data-i18n="trips.card5.desc">Trek the W Circuit with expert mountain guides — glaciers, granite towers and the end of the world.</div>
         <div class="trip-meta">
-          <span class="trip-tag">📅 12 days</span>
-          <span class="trip-tag">👥 Max 8</span>
-          <span class="trip-tag">✈️ Dec – Feb</span>
+          <span class="trip-tag">📅 <span data-i18n="trips.card5.duration">12 days</span></span>
+          <span class="trip-tag">👥 <span data-i18n="trips.card5.pax">Max 8</span></span>
+          <span class="trip-tag">✈️ <span data-i18n="trips.card5.window">Dec – Feb</span></span>
         </div>
         <div class="trip-footer">
-          <div class="trip-price">RM 5,500 <span>/ person</span></div>
-          <a href="index.html" class="btn-trip">Book Now</a>
+          <div class="trip-price">RM 5,500 <span data-i18n="trips.per_person">/ person</span></div>
+          <a href="index.html" class="btn-trip" data-i18n="trips.book_now">Book Now</a>
         </div>
       </div>
     </div>
     <div class="trip-card reveal">
       <div class="trip-thumb" style="background:linear-gradient(160deg,#1a1a3a,#2d3561);">
-        🏯 <span class="trip-tier-badge tier-elite">Elite</span>
+        🏯 <span class="trip-tier-badge tier-elite" data-i18n="tier.elite">Elite</span>
       </div>
       <div class="trip-body">
-        <div class="trip-name">Elite Japan Immersion</div>
-        <div class="trip-desc">Private geisha dinners, bullet-train journeys and exclusive onsen retreats — Japan at its most intimate.</div>
+        <div class="trip-name" data-i18n="trips.card6.name">Elite Japan Immersion</div>
+        <div class="trip-desc" data-i18n="trips.card6.desc">Private geisha dinners, bullet-train journeys and exclusive onsen retreats — Japan at its most intimate.</div>
         <div class="trip-meta">
-          <span class="trip-tag">📅 14 days</span>
-          <span class="trip-tag">👥 Max 6</span>
-          <span class="trip-tag">✈️ Oct · Mar</span>
+          <span class="trip-tag">📅 <span data-i18n="trips.card6.duration">14 days</span></span>
+          <span class="trip-tag">👥 <span data-i18n="trips.card6.pax">Max 6</span></span>
+          <span class="trip-tag">✈️ <span data-i18n="trips.card6.window">Oct · Mar</span></span>
         </div>
         <div class="trip-footer">
-          <div class="trip-price">RM 12,000 <span>/ person</span></div>
-          <a href="index.html" class="btn-trip">Book Now</a>
+          <div class="trip-price">RM 12,000 <span data-i18n="trips.per_person">/ person</span></div>
+          <a href="index.html" class="btn-trip" data-i18n="trips.book_now">Book Now</a>
         </div>
       </div>
     </div>
@@ -572,48 +582,48 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 <!-- ── MEMBERSHIP TIERS ── -->
 <section id="membership">
   <div class="section-header" style="text-align:center;">
-    <div class="section-eyebrow" style="justify-content:center;" id="mem-eyebrow">Membership</div>
-    <h2 class="section-title reveal" id="mem-heading">Choose Your <em>Chapter</em></h2>
-    <p class="section-sub reveal" style="margin:0 auto;" id="mem-subtext">Every member starts as an Explorer and earns points with every journey — unlocking richer experiences as you travel more.</p>
+    <div class="section-eyebrow" style="justify-content:center;" id="mem-eyebrow" data-i18n="membership.eyebrow">Membership</div>
+    <h2 class="section-title reveal" id="mem-heading" data-i18n="membership.heading" data-i18n-html>Choose Your <em>Chapter</em></h2>
+    <p class="section-sub reveal" style="margin:0 auto;" id="mem-subtext" data-i18n="membership.subtext">Every member starts as an Explorer and earns points with every journey — unlocking richer experiences as you travel more.</p>
   </div>
   <div class="tiers-grid" id="tiers-grid">
     <div class="tier-card reveal">
       <div class="tier-icon">🌿</div>
-      <div class="tier-name">Explorer</div>
-      <div class="tier-pts">0 – 999 Points</div>
+      <div class="tier-name" data-i18n="tier.explorer">Explorer</div>
+      <div class="tier-pts" data-i18n="membership.explorer.pts">0 – 999 Points</div>
       <div class="tier-divider"></div>
       <ul class="tier-perks">
-        <li>Access to all Explorer trips</li>
-        <li>1 point per RM spent</li>
-        <li>Email travel updates</li>
-        <li>24/7 member support</li>
+        <li data-i18n="membership.explorer.perk1">Access to all Explorer trips</li>
+        <li data-i18n="membership.explorer.perk2">1 point per RM spent</li>
+        <li data-i18n="membership.explorer.perk3">Email travel updates</li>
+        <li data-i18n="membership.explorer.perk4">24/7 member support</li>
       </ul>
     </div>
     <div class="tier-card featured reveal">
-      <div class="tier-featured-label">Most Popular</div>
+      <div class="tier-featured-label" data-i18n="membership.most_popular">Most Popular</div>
       <div class="tier-icon">✦</div>
-      <div class="tier-name">Premier</div>
-      <div class="tier-pts">1,000 – 4,999 Points</div>
+      <div class="tier-name" data-i18n="tier.premier">Premier</div>
+      <div class="tier-pts" data-i18n="membership.premier.pts">1,000 – 4,999 Points</div>
       <div class="tier-divider"></div>
       <ul class="tier-perks">
-        <li>All Explorer benefits</li>
-        <li>Access to Premier trips</li>
-        <li>Priority booking windows</li>
-        <li>Complimentary travel insurance</li>
-        <li>Exclusive member events</li>
+        <li data-i18n="membership.premier.perk1">All Explorer benefits</li>
+        <li data-i18n="membership.premier.perk2">Access to Premier trips</li>
+        <li data-i18n="membership.premier.perk3">Priority booking windows</li>
+        <li data-i18n="membership.premier.perk4">Complimentary travel insurance</li>
+        <li data-i18n="membership.premier.perk5">Exclusive member events</li>
       </ul>
     </div>
     <div class="tier-card reveal">
       <div class="tier-icon">👑</div>
-      <div class="tier-name">Elite</div>
-      <div class="tier-pts">5,000+ Points</div>
+      <div class="tier-name" data-i18n="tier.elite">Elite</div>
+      <div class="tier-pts" data-i18n="membership.elite.pts">5,000+ Points</div>
       <div class="tier-divider"></div>
       <ul class="tier-perks">
-        <li>All Premier benefits</li>
-        <li>Access to Elite-only trips</li>
-        <li>Dedicated travel concierge</li>
-        <li>Airport lounge access</li>
-        <li>Annual gift & surprises</li>
+        <li data-i18n="membership.elite.perk1">All Premier benefits</li>
+        <li data-i18n="membership.elite.perk2">Access to Elite-only trips</li>
+        <li data-i18n="membership.elite.perk3">Dedicated travel concierge</li>
+        <li data-i18n="membership.elite.perk4">Airport lounge access</li>
+        <li data-i18n="membership.elite.perk5">Annual gift & surprises</li>
       </ul>
     </div>
   </div>
@@ -627,39 +637,39 @@ footer { background:var(--navy); padding:56px 6% 32px; }
         <div class="about-img-main">🌍</div>
         <div class="about-img-secondary">✈️</div>
         <div class="about-badge">
-          <div class="about-badge-val" id="about-badge-val">12+</div>
-          <div class="about-badge-lbl" id="about-badge-lbl">Years curating<br>journeys</div>
+          <div class="about-badge-val" id="about-badge-val" data-i18n="about.badge_val">12+</div>
+          <div class="about-badge-lbl" id="about-badge-lbl" data-i18n="about.badge_lbl" data-i18n-html>Years curating<br>journeys</div>
         </div>
       </div>
     </div>
     <div class="about-text reveal">
-      <div class="section-eyebrow" id="about-eyebrow">Our Story</div>
-      <h2 class="section-title" id="about-heading">Travel with<br><em>Purpose</em></h2>
+      <div class="section-eyebrow" id="about-eyebrow" data-i18n="about.eyebrow">Our Story</div>
+      <h2 class="section-title" id="about-heading" data-i18n="about.heading" data-i18n-html>Travel with<br><em>Purpose</em></h2>
       <div id="about-paragraphs">
-        <p>The Travel Chapter was born from a simple belief — that travel should be more than a checklist. It should leave you changed, connected and hungry for more.</p>
-        <p>We are a team of passionate travellers who have spent over a decade building relationships with local guides, boutique properties and cultural experts across the world.</p>
-        <p>Every itinerary we craft is a chapter in your story — carefully written, beautifully paced and impossible to forget.</p>
+        <p data-i18n="about.p1">The Travel Chapter was born from a simple belief — that travel should be more than a checklist. It should leave you changed, connected and hungry for more.</p>
+        <p data-i18n="about.p2">We are a team of passionate travellers who have spent over a decade building relationships with local guides, boutique properties and cultural experts across the world.</p>
+        <p data-i18n="about.p3">Every itinerary we craft is a chapter in your story — carefully written, beautifully paced and impossible to forget.</p>
       </div>
       <div class="about-values" id="about-values">
         <div class="about-value">
           <div class="about-value-icon">🤝</div>
-          <div class="about-value-title">Local First</div>
-          <div class="about-value-desc">We work with local guides and communities at every destination.</div>
+          <div class="about-value-title" data-i18n="about.value1.title">Local First</div>
+          <div class="about-value-desc" data-i18n="about.value1.desc">We work with local guides and communities at every destination.</div>
         </div>
         <div class="about-value">
           <div class="about-value-icon">✨</div>
-          <div class="about-value-title">Curated Quality</div>
-          <div class="about-value-desc">Every hotel, guide and experience is personally vetted by our team.</div>
+          <div class="about-value-title" data-i18n="about.value2.title">Curated Quality</div>
+          <div class="about-value-desc" data-i18n="about.value2.desc">Every hotel, guide and experience is personally vetted by our team.</div>
         </div>
         <div class="about-value">
           <div class="about-value-icon">🌱</div>
-          <div class="about-value-title">Responsible</div>
-          <div class="about-value-desc">We travel with care — for people, culture and the environment.</div>
+          <div class="about-value-title" data-i18n="about.value3.title">Responsible</div>
+          <div class="about-value-desc" data-i18n="about.value3.desc">We travel with care — for people, culture and the environment.</div>
         </div>
         <div class="about-value">
           <div class="about-value-icon">💬</div>
-          <div class="about-value-title">Always There</div>
-          <div class="about-value-desc">From booking to return, our team is with you every step of the way.</div>
+          <div class="about-value-title" data-i18n="about.value4.title">Always There</div>
+          <div class="about-value-desc" data-i18n="about.value4.desc">From booking to return, our team is with you every step of the way.</div>
         </div>
       </div>
     </div>
@@ -669,40 +679,40 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 <!-- ── TESTIMONIALS ── -->
 <section id="testimonials">
   <div class="section-header" style="text-align:center;">
-    <div class="section-eyebrow" style="justify-content:center;" id="test-eyebrow">Traveller Stories</div>
-    <h2 class="section-title reveal" id="test-heading">What Our Members <em>Say</em></h2>
+    <div class="section-eyebrow" style="justify-content:center;" id="test-eyebrow" data-i18n="testimonials.eyebrow">Traveller Stories</div>
+    <h2 class="section-title reveal" id="test-heading" data-i18n="testimonials.heading" data-i18n-html>What Our Members <em>Say</em></h2>
   </div>
   <div class="testimonials-grid" id="test-grid">
     <div class="testimonial-card reveal">
       <div class="testimonial-stars">★★★★★</div>
-      <div class="testimonial-text">"Kyoto in autumn was everything I imagined and more. The access to private temples at dawn was something I could never have arranged on my own."</div>
+      <div class="testimonial-text" data-i18n="testimonials.card1.text">"Kyoto in autumn was everything I imagined and more. The access to private temples at dawn was something I could never have arranged on my own."</div>
       <div class="testimonial-author">
         <div class="testimonial-avatar">SA</div>
         <div>
           <div class="testimonial-name">Sarah A.</div>
-          <div class="testimonial-trip">Kyoto in Autumn · Premier Member</div>
+          <div class="testimonial-trip" data-i18n="testimonials.card1.trip">Kyoto in Autumn · Premier Member</div>
         </div>
       </div>
     </div>
     <div class="testimonial-card reveal">
       <div class="testimonial-stars">★★★★★</div>
-      <div class="testimonial-text">"The Amalfi yacht trip was beyond anything I expected. Waking up in a secluded cove every morning — absolute perfection. Already booked my next trip."</div>
+      <div class="testimonial-text" data-i18n="testimonials.card2.text">"The Amalfi yacht trip was beyond anything I expected. Waking up in a secluded cove every morning — absolute perfection. Already booked my next trip."</div>
       <div class="testimonial-author">
         <div class="testimonial-avatar">MR</div>
         <div>
           <div class="testimonial-name">Marcus R.</div>
-          <div class="testimonial-trip">Amalfi by Yacht · Elite Member</div>
+          <div class="testimonial-trip" data-i18n="testimonials.card2.trip">Amalfi by Yacht · Elite Member</div>
         </div>
       </div>
     </div>
     <div class="testimonial-card reveal">
       <div class="testimonial-stars">★★★★★</div>
-      <div class="testimonial-text">"The Travel Chapter doesn't just plan trips — they craft experiences. My Mekong River journey felt like a dream I didn't want to wake up from."</div>
+      <div class="testimonial-text" data-i18n="testimonials.card3.text">"The Travel Chapter doesn't just plan trips — they craft experiences. My Mekong River journey felt like a dream I didn't want to wake up from."</div>
       <div class="testimonial-author">
         <div class="testimonial-avatar">LN</div>
         <div>
           <div class="testimonial-name">Liana N.</div>
-          <div class="testimonial-trip">Mekong River Journey · Explorer Member</div>
+          <div class="testimonial-trip" data-i18n="testimonials.card3.trip">Mekong River Journey · Explorer Member</div>
         </div>
       </div>
     </div>
@@ -711,10 +721,10 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 
 <!-- ── CTA BANNER ── -->
 <div class="cta-banner">
-  <h2 class="reveal" id="cta-heading">Ready to Begin Your <em>Chapter</em>?</h2>
-  <p class="reveal" id="cta-subtext">Join thousands of discerning travellers who have trusted us with their most precious journeys.</p>
+  <h2 class="reveal" id="cta-heading" data-i18n="cta.heading" data-i18n-html>Ready to Begin Your <em>Chapter</em>?</h2>
+  <p class="reveal" id="cta-subtext" data-i18n="cta.subtext">Join thousands of discerning travellers who have trusted us with their most precious journeys.</p>
   <div class="cta-actions reveal">
-    <a href="#contact" class="btn-hero-primary" id="cta-primary">Talk to Us</a>
+    <a href="#contact" class="btn-hero-primary" id="cta-primary" data-i18n="cta.primary">Talk to Us</a>
   </div>
 </div>
 
@@ -722,28 +732,28 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 <section id="contact">
   <div class="contact-grid">
     <div class="reveal">
-      <div class="section-eyebrow" id="con-eyebrow">Get in Touch</div>
-      <h2 class="section-title" id="con-heading">Let's Plan Your<br><em>Journey</em></h2>
-      <p style="font-size:0.9rem;color:var(--smoke);line-height:1.8;margin-top:8px;" id="con-subtext">Have a destination in mind? Want to know more about our membership? Our team is happy to help you find the perfect trip.</p>
+      <div class="section-eyebrow" id="con-eyebrow" data-i18n="contact.eyebrow">Get in Touch</div>
+      <h2 class="section-title" id="con-heading" data-i18n="contact.heading" data-i18n-html>Let's Plan Your<br><em>Journey</em></h2>
+      <p style="font-size:0.9rem;color:var(--smoke);line-height:1.8;margin-top:8px;" id="con-subtext" data-i18n="contact.subtext">Have a destination in mind? Want to know more about our membership? Our team is happy to help you find the perfect trip.</p>
       <div class="contact-info">
         <div class="contact-item">
           <div class="contact-icon">📧</div>
           <div>
-            <div class="contact-label">Email Us</div>
+            <div class="contact-label" data-i18n="contact.email_label">Email Us</div>
             <div class="contact-value" id="con-email">hello@thetravelchapter.com</div>
           </div>
         </div>
         <div class="contact-item">
           <div class="contact-icon">📞</div>
           <div>
-            <div class="contact-label">Call Us</div>
+            <div class="contact-label" data-i18n="contact.phone_label">Call Us</div>
             <div class="contact-value" id="con-phone">+60 3 1234 5678</div>
           </div>
         </div>
         <div class="contact-item">
           <div class="contact-icon">📍</div>
           <div>
-            <div class="contact-label">Visit Us</div>
+            <div class="contact-label" data-i18n="contact.address_label">Visit Us</div>
             <div class="contact-value" id="con-address">Kuala Lumpur, Malaysia</div>
           </div>
         </div>
@@ -752,24 +762,24 @@ footer { background:var(--navy); padding:56px 6% 32px; }
     <div class="reveal">
       <div class="contact-form">
         <div class="form-row">
-          <div class="field"><label>First Name</label><input type="text" placeholder="Jane"></div>
-          <div class="field"><label>Last Name</label><input type="text" placeholder="Smith"></div>
+          <div class="field"><label data-i18n="contact.form.first_name">First Name</label><input type="text" placeholder="Jane" data-i18n-placeholder="contact.form.first_name_ph"></div>
+          <div class="field"><label data-i18n="contact.form.last_name">Last Name</label><input type="text" placeholder="Smith" data-i18n-placeholder="contact.form.last_name_ph"></div>
         </div>
-        <div class="field full"><label>Email Address</label><input type="email" placeholder="jane@example.com"></div>
-        <div class="field full"><label>Interested In</label>
+        <div class="field full"><label data-i18n="contact.form.email">Email Address</label><input type="email" placeholder="jane@example.com" data-i18n-placeholder="contact.form.email_ph"></div>
+        <div class="field full"><label data-i18n="contact.form.interested">Interested In</label>
           <select id="con-trip-select">
-            <option value="" id="con-trip-select">Select a destination or trip…</option>
-            <option>Kyoto in Autumn</option>
-            <option>Amalfi by Yacht</option>
-            <option>Marrakech & Beyond</option>
-            <option>Mekong River Journey</option>
-            <option>Patagonia Wilderness</option>
-            <option>Elite Japan Immersion</option>
-            <option>Custom / Other</option>
+            <option value="" data-i18n="contact.form.select_placeholder">Select a destination or trip…</option>
+            <option data-i18n="trips.card1.name">Kyoto in Autumn</option>
+            <option data-i18n="trips.card2.name">Amalfi by Yacht</option>
+            <option data-i18n="trips.card3.name">Marrakech & Beyond</option>
+            <option data-i18n="trips.card4.name">Mekong River Journey</option>
+            <option data-i18n="trips.card5.name">Patagonia Wilderness</option>
+            <option data-i18n="trips.card6.name">Elite Japan Immersion</option>
+            <option data-i18n="contact.form.custom_option">Custom / Other</option>
           </select>
         </div>
-        <div class="field full"><label>Your Message</label><textarea placeholder="Tell us about your dream trip…"></textarea></div>
-        <button class="btn-submit-contact" onclick="handleContact()">Send Message</button>
+        <div class="field full"><label data-i18n="contact.form.message">Your Message</label><textarea placeholder="Tell us about your dream trip…" data-i18n-placeholder="contact.form.message_placeholder"></textarea></div>
+        <button class="btn-submit-contact" onclick="handleContact()" data-i18n="contact.form.submit">Send Message</button>
       </div>
     </div>
   </div>
@@ -780,36 +790,36 @@ footer { background:var(--navy); padding:56px 6% 32px; }
   <div class="footer-grid">
     <div>
       <div class="footer-brand"><img src="the-travel-chapter-icon.png" alt="The Travel Chapter" class="footer-brand-img">The Travel Chapter</div>
-      <p class="footer-desc" id="footer-tagline">Curating extraordinary journeys for discerning travellers since 2012. Based in Kuala Lumpur, travelling the world.</p>
+      <p class="footer-desc" id="footer-tagline" data-i18n="footer.tagline">Curating extraordinary journeys for discerning travellers since 2012. Based in Kuala Lumpur, travelling the world.</p>
     </div>
     <div>
-      <div class="footer-col-title">Explore</div>
+      <div class="footer-col-title" data-i18n="footer.explore_title">Explore</div>
       <ul class="footer-links">
-        <li><a href="#journal">Destinations</a></li>
-        <li><a href="#trips">Featured Trips</a></li>
-        <li><a href="#membership">Membership</a></li>
-        <li><a href="#about">Our Story</a></li>
+        <li><a href="#journal" data-i18n="footer.link_destinations">Destinations</a></li>
+        <li><a href="#trips" data-i18n="footer.link_trips">Featured Trips</a></li>
+        <li><a href="#membership" data-i18n="footer.link_membership">Membership</a></li>
+        <li><a href="#about" data-i18n="footer.link_about">Our Story</a></li>
       </ul>
     </div>
     <div>
-      <div class="footer-col-title">Members</div>
+      <div class="footer-col-title" data-i18n="footer.members_title">Members</div>
       <ul class="footer-links">
-        <li><a href="login.html">Sign In</a></li>
-        <li><a href="dashboard.html">Dashboard</a></li>
+        <li><a href="login.html" data-i18n="footer.link_signin">Sign In</a></li>
+        <li><a href="dashboard.html" data-i18n="footer.link_dashboard">Dashboard</a></li>
       </ul>
     </div>
     <div>
-      <div class="footer-col-title">Contact</div>
+      <div class="footer-col-title" data-i18n="footer.contact_title">Contact</div>
       <ul class="footer-links">
         <li><a href="mailto:hello@thetravelchapter.com">hello@thetravelchapter.com</a></li>
         <li><a href="tel:+60312345678">+60 3 1234 5678</a></li>
-        <li><a href="#contact">Send a Message</a></li>
+        <li><a href="#contact" data-i18n="footer.link_message">Send a Message</a></li>
       </ul>
     </div>
   </div>
   <div class="footer-bottom">
-    <span id="footer-copyright">© 2026 The Travel Chapter. All rights reserved.</span>
-    <span id="footer-location">Crafted with care in Kuala Lumpur 🇲🇾</span>
+    <span id="footer-copyright" data-i18n="footer.copyright">© 2026 The Travel Chapter. All rights reserved.</span>
+    <span id="footer-location" data-i18n="footer.location">Crafted with care in Kuala Lumpur 🇲🇾</span>
   </div>
 </footer>
 
@@ -817,16 +827,19 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 
 <div class="install-banner" id="install-banner">
   <div class="install-banner-text">
-    <strong>Install The Travel Chapter</strong>
-    <span id="install-banner-sub">Add to your home screen for quick, full-screen access.</span>
+    <strong data-i18n="install.title">Install The Travel Chapter</strong>
+    <span id="install-banner-sub" data-i18n="install.subtext">Add to your home screen for quick, full-screen access.</span>
   </div>
   <div class="install-banner-actions">
-    <button class="btn-install" id="install-app-btn" style="display:none;">Install</button>
-    <button class="btn-install-dismiss" id="install-dismiss-btn" aria-label="Dismiss">✕</button>
+    <button class="btn-install" id="install-app-btn" style="display:none;" data-i18n="install.button">Install</button>
+    <button class="btn-install-dismiss" id="install-dismiss-btn" aria-label="Dismiss" data-i18n-aria-label="install.dismiss_aria">✕</button>
   </div>
 </div>
 
 <script>
+// Apply translations before anything below (e.g. the manifesto word-split) reads DOM text.
+TC_I18N.applyStatic();
+
 // ── CONFIG ──────────────────────────────────────────────────
 const SUPABASE_URL  = 'https://nkrpkfqibsudqsonljve.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_8mbRk904S5zktFv6UIlRUg_gp1PFAWm';
@@ -855,6 +868,14 @@ async function loadCMS() {
   // Trip cards live in the `trips` table, not cms_content
   await loadTrips();
 
+  // CMS rows are authored in whatever language the admin typed them in (currently English)
+  // and several apply* calls above set textContent directly on elements that also carry a
+  // data-i18n label attribute (eyebrow/heading/subtext) — re-assert the current site language
+  // over those specific labels now that CMS has finished writing to the DOM. This does NOT
+  // touch freeform CMS content (addresses, perks, testimonials, paragraphs), since those
+  // elements were never given a data-i18n attribute in the first place.
+  TC_I18N.applyStatic();
+
   // Re-run scroll reveal after DOM updates
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 }
@@ -880,10 +901,11 @@ function applyHero(d) {
 }
 
 const ROMAN = ['I','II','III','IV','V','VI','VII','VIII','IX','X'];
-const CHAPTER_WORD = ['One','Two','Three','Four','Five','Six','Seven','Eight','Nine','Ten'];
 
+let lastCmsDestinations = null;
 function applyDestinations(d) {
   if (d.items) {
+    lastCmsDestinations = d;
     const stops = document.getElementById('journal-dest-stops');
     if (stops) {
       stops.innerHTML = d.items.map((item, i) => {
@@ -892,7 +914,7 @@ function applyDestinations(d) {
           ? `<img class="chapter-photo" src="${item.image}" alt="${item.name||''}">`
           : `<div class="chapter-photo chapter-photo-emoji">${item.emoji||'✈️'}</div>`;
         const numeral = ROMAN[i] || (i+1);
-        const word = CHAPTER_WORD[i] || (i+1);
+        const word = TC_I18N.t('journal.chapter_word'+((i%10)+1));
         return `
         <div class="journal-stop journal-stop-dest">
           <div class="chapter-numeral">${numeral}</div>
@@ -900,7 +922,7 @@ function applyDestinations(d) {
             <div class="chapter-content">
               <div class="chapter-photo-wrap">${photo}</div>
               <div class="chapter-text">
-                <div class="chapter-badge">Chapter ${word}</div>
+                <div class="chapter-badge">${TC_I18N.t('journal.chapter_label',{word})}</div>
                 <div class="journal-dest-name">${item.chapter_title||item.name||''}</div>
                 <div class="journal-dest-region">${item.dateline||item.region||''}</div>
                 ${(item.story||item.caption)?`<p class="chapter-caption">${item.story||item.caption}</p>`:''}
@@ -913,6 +935,7 @@ function applyDestinations(d) {
     initJournal();
   }
 }
+TC_I18N.onChange(() => { if (lastCmsDestinations) applyDestinations(lastCmsDestinations); });
 
 function applyFeaturedTrips(d) {
   txt('ft-eyebrow', d.eyebrow);
@@ -936,9 +959,14 @@ function departureWindow(dates) {
   return [...new Set(months)].slice(0,2).join(' – ');
 }
 
+let lastDbTrips = null;
 async function loadTrips() {
   const { data, error } = await sb.from('trips').select('*').eq('is_active', true).order('created_at');
   if (error || !data || !data.length) return; // keep static fallback cards
+  lastDbTrips = data;
+  renderDbTrips(data);
+}
+function renderDbTrips(data) {
   const grid = document.getElementById('trips-grid');
   if (!grid) return;
   grid.innerHTML = data.map((t, i) => {
@@ -949,42 +977,51 @@ async function loadTrips() {
     return `
       <div class="trip-card reveal">
         <div class="trip-thumb" style="${thumbStyle}">
-          ${hasImage?'':thumb.emoji} <span class="trip-tier-badge tier-${t.min_tier}">${cap(t.min_tier)}</span>
+          ${hasImage?'':thumb.emoji} <span class="trip-tier-badge tier-${t.min_tier}">${TC_I18N.t('tier.'+t.min_tier)}</span>
         </div>
         <div class="trip-body">
           <div class="trip-name">${t.title||''}</div>
           <div class="trip-desc">${t.summary||''}</div>
           <div class="trip-meta">
-            <span class="trip-tag">📅 ${t.duration_days} days</span>
-            <span class="trip-tag">👥 Max ${t.max_pax}</span>
+            <span class="trip-tag">📅 ${t.duration_days} ${TC_I18N.t('trips.days')}</span>
+            <span class="trip-tag">👥 ${TC_I18N.t('trips.max')} ${t.max_pax}</span>
             ${window?`<span class="trip-tag">✈️ ${window}</span>`:''}
           </div>
           <div class="trip-footer">
-            <div class="trip-price">RM ${Number(t.price_usd).toLocaleString()} <span>/ person</span></div>
-            <a href="index.html" class="btn-trip">Book Now</a>
+            <div class="trip-price">RM ${Number(t.price_usd).toLocaleString()} <span>${TC_I18N.t('trips.per_person')}</span></div>
+            <a href="index.html" class="btn-trip">${TC_I18N.t('trips.book_now')}</a>
           </div>
         </div>
       </div>`;
   }).join('');
 }
+TC_I18N.onChange(() => { if (lastDbTrips) renderDbTrips(lastDbTrips); });
 
+let lastCmsMembership = null;
 function applyMembership(d) {
+  lastCmsMembership = d;
   txt('mem-eyebrow', d.eyebrow);
   html('mem-heading', italicHeading(d.heading, d.heading_italic));
   txt('mem-subtext', d.subtext);
-  if (d.tiers) {
-    const grid = document.getElementById('tiers-grid');
-    if (grid) grid.innerHTML = d.tiers.map(t => `
-      <div class="tier-card ${t.featured?'featured':''} reveal">
-        ${t.featured?'<div class="tier-featured-label">Most Popular</div>':''}
-        <div class="tier-icon">${t.icon||''}</div>
-        <div class="tier-name">${t.name||''}</div>
-        <div class="tier-pts">${t.points||''}</div>
-        <div class="tier-divider"></div>
-        <ul class="tier-perks">${(t.perks||[]).map(p=>`<li>${p}</li>`).join('')}</ul>
-      </div>`).join('');
-  }
+  renderTiersGrid(d);
 }
+// Only the tiers grid needs to redraw on a language switch (it embeds the fixed
+// "Most Popular" badge text) — re-running the eyebrow/heading/subtext txt()/html()
+// calls above would stomp the translation applyStatic() just applied to them.
+function renderTiersGrid(d) {
+  if (!d.tiers) return;
+  const grid = document.getElementById('tiers-grid');
+  if (grid) grid.innerHTML = d.tiers.map(t => `
+    <div class="tier-card ${t.featured?'featured':''} reveal">
+      ${t.featured?`<div class="tier-featured-label">${TC_I18N.t('membership.most_popular')}</div>`:''}
+      <div class="tier-icon">${t.icon||''}</div>
+      <div class="tier-name">${t.name||''}</div>
+      <div class="tier-pts">${t.points||''}</div>
+      <div class="tier-divider"></div>
+      <ul class="tier-perks">${(t.perks||[]).map(p=>`<li>${p}</li>`).join('')}</ul>
+    </div>`).join('');
+}
+TC_I18N.onChange(() => { if (lastCmsMembership) renderTiersGrid(lastCmsMembership); });
 
 function applyAbout(d) {
   txt('about-eyebrow', d.eyebrow);
@@ -1034,17 +1071,24 @@ function applyCta(d) {
   if(p2){p2.textContent=d.cta_secondary_label||'';p2.href=d.cta_secondary_href||'#';}
 }
 
+let lastCmsContact = null;
 function applyContact(d) {
+  lastCmsContact = d;
   txt('con-eyebrow', d.eyebrow);
   html('con-heading', italicHeading(d.heading, d.heading_italic));
   txt('con-subtext', d.subtext);
   txt('con-email', d.email); txt('con-phone', d.phone); txt('con-address', d.address);
   if(d.email) { const el=document.getElementById('con-email'); if(el) el.href='mailto:'+d.email; }
-  if(d.trip_options) {
-    const sel=document.getElementById('con-trip-select');
-    if(sel) sel.innerHTML='<option value="">Select a destination or trip…</option>'+d.trip_options.map(o=>`<option>${o}</option>`).join('');
-  }
+  renderTripOptions(d);
 }
+// Only the select's placeholder option needs to redraw on a language switch — re-running
+// the eyebrow/heading/subtext txt()/html() calls above would stomp applyStatic()'s translation.
+function renderTripOptions(d) {
+  if (!d.trip_options) return;
+  const sel=document.getElementById('con-trip-select');
+  if(sel) sel.innerHTML=`<option value="">${TC_I18N.t('contact.form.select_placeholder')}</option>`+d.trip_options.map(o=>`<option>${o}</option>`).join('');
+}
+TC_I18N.onChange(() => { if (lastCmsContact) renderTripOptions(lastCmsContact); });
 
 function applyFooter(d) {
   txt('footer-tagline', d.tagline);
@@ -1145,7 +1189,7 @@ initJournal();
 
 // ── Contact form
 function handleContact() {
-  showToast('Message sent! We\'ll be in touch within 24 hours ✓');
+  showToast(TC_I18N.t('toast.contact_sent'));
 }
 
 // ── Load CMS content from Supabase
@@ -1228,7 +1272,7 @@ if ('serviceWorker' in navigator) {
 
   if (isIOS()) {
     installBtn.style.display = 'none';
-    subText.textContent = 'Tap Share, then "Add to Home Screen" for quick, full-screen access.';
+    subText.textContent = TC_I18N.t('install.ios_subtext');
     showBanner();
   }
 })();

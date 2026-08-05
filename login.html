@@ -271,13 +271,18 @@ input:focus { border-color: var(--gold); background: var(--white); }
         <div class="sub">Member Portal</div>
       </div>
 
+      <div class="tabs" id="auth-tabs">
+        <button class="tab-btn active" id="tab-login" onclick="showForm('login')">Sign In</button>
+        <button class="tab-btn" id="tab-register" onclick="showForm('register')">Join Us</button>
+      </div>
+
       <!-- LOGIN -->
       <div class="form" id="form-login">
         <div class="field">
-          <label>Email Address</label>
+          <label>Phone Number</label>
           <div class="input-wrap">
-            <input type="email" id="login-email" placeholder="you@example.com" autocomplete="email">
-            <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg>
+            <input type="tel" id="login-phone" placeholder="+65 9123 4567" autocomplete="tel">
+            <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
           </div>
         </div>
         <div class="field">
@@ -288,8 +293,106 @@ input:focus { border-color: var(--gold); background: var(--white); }
           </div>
           <span class="err-msg" id="login-err"></span>
         </div>
-        <div class="forgot"><a onclick="handleForgotPassword()">Forgot password?</a></div>
+        <div class="forgot"><a onclick="startForgotPassword()">Forgot password?</a></div>
         <button class="btn-submit" id="btn-login" onclick="handleLogin()">Sign In</button>
+        <p class="form-footer">New here? <a onclick="showForm('register')">Create an account</a></p>
+      </div>
+
+      <!-- REGISTER -->
+      <div class="form hidden" id="form-register">
+        <div class="field-row">
+          <div class="field">
+            <label>First Name</label>
+            <div class="input-wrap">
+              <input type="text" id="reg-first" placeholder="Jane" autocomplete="given-name">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            </div>
+          </div>
+          <div class="field">
+            <label>Last Name</label>
+            <div class="input-wrap">
+              <input type="text" id="reg-last" placeholder="Smith" autocomplete="family-name">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Phone Number</label>
+          <div class="input-wrap">
+            <input type="tel" id="reg-phone" placeholder="+65 9123 4567" autocomplete="tel">
+            <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          </div>
+          <span class="err-msg" id="reg-phone-err"></span>
+        </div>
+        <div class="field">
+          <label>Password</label>
+          <div class="input-wrap">
+            <input type="password" id="reg-pw" placeholder="Min. 8 characters" oninput="checkStrength(this.value, 'bar')">
+            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <div class="pw-strength">
+            <div class="pw-bar" id="bar1"></div><div class="pw-bar" id="bar2"></div>
+            <div class="pw-bar" id="bar3"></div><div class="pw-bar" id="bar4"></div>
+          </div>
+          <span class="err-msg" id="reg-err"></span>
+        </div>
+        <button class="btn-submit" id="btn-register" onclick="handleRegister()">Create Account</button>
+        <p class="form-footer">Already a member? <a onclick="showForm('login')">Sign in</a></p>
+      </div>
+
+      <!-- VERIFY PHONE (post-registration WhatsApp OTP) -->
+      <div class="form hidden" id="form-verify">
+        <p class="form-footer" id="verify-label" style="text-align:left;">We sent a WhatsApp code to your phone.</p>
+        <div class="field">
+          <label>Verification Code</label>
+          <div class="input-wrap">
+            <input type="text" inputmode="numeric" id="verify-code" placeholder="6-digit code" autocomplete="one-time-code">
+            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <span class="err-msg" id="verify-err"></span>
+        </div>
+        <button class="btn-submit" id="btn-verify" onclick="handleVerify()">Verify &amp; Continue</button>
+        <p class="form-footer"><a onclick="resendCode()" id="resend-link">Resend code</a> · <a onclick="showForm('register')">Wrong number?</a></p>
+      </div>
+
+      <!-- FORGOT PASSWORD: request code -->
+      <div class="form hidden" id="form-forgot-request">
+        <div class="field">
+          <label>Phone Number</label>
+          <div class="input-wrap">
+            <input type="tel" id="forgot-phone" placeholder="+65 9123 4567" autocomplete="tel">
+            <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+          </div>
+          <span class="err-msg" id="forgot-err"></span>
+        </div>
+        <button class="btn-submit" id="btn-forgot-send" onclick="handleForgotSend()">Send WhatsApp Code</button>
+        <p class="form-footer"><a onclick="showForm('login')">Back to sign in</a></p>
+      </div>
+
+      <!-- FORGOT PASSWORD: verify code + set new password -->
+      <div class="form hidden" id="form-forgot-verify">
+        <p class="form-footer" id="forgot-verify-label" style="text-align:left;">Enter the code we sent to your WhatsApp.</p>
+        <div class="field">
+          <label>Verification Code</label>
+          <div class="input-wrap">
+            <input type="text" inputmode="numeric" id="forgot-code" placeholder="6-digit code" autocomplete="one-time-code">
+            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+        </div>
+        <div class="field">
+          <label>New Password</label>
+          <div class="input-wrap">
+            <input type="password" id="forgot-new-pw" placeholder="Min. 8 characters" oninput="checkStrength(this.value, 'fbar')">
+            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <div class="pw-strength">
+            <div class="pw-bar" id="fbar1"></div><div class="pw-bar" id="fbar2"></div>
+            <div class="pw-bar" id="fbar3"></div><div class="pw-bar" id="fbar4"></div>
+          </div>
+          <span class="err-msg" id="forgot-verify-err"></span>
+        </div>
+        <button class="btn-submit" id="btn-forgot-reset" onclick="handleForgotReset()">Reset Password</button>
+        <p class="form-footer"><a onclick="resendForgotCode()">Resend code</a> · <a onclick="showForm('login')">Back to sign in</a></p>
       </div>
     </div>
   </div>
@@ -316,8 +419,18 @@ async function routeSession(session) {
 }
 
 // Redirect if already logged in
+let suppressAutoRedirect = false;
 sb.auth.getSession().then(({ data: { session } }) => routeSession(session));
-sb.auth.onAuthStateChange((event, session) => routeSession(session));
+sb.auth.onAuthStateChange((event, session) => { if (!suppressAutoRedirect) routeSession(session); });
+
+const ALL_FORMS = ['login', 'register', 'verify', 'forgot-request', 'forgot-verify'];
+function showForm(name) {
+  ALL_FORMS.forEach(f => document.getElementById('form-' + f).classList.toggle('hidden', f !== name));
+  document.getElementById('auth-tabs').style.display = (name === 'login' || name === 'register') ? 'flex' : 'none';
+  document.getElementById('tab-login').classList.toggle('active', name === 'login');
+  document.getElementById('tab-register').classList.toggle('active', name === 'register');
+  clearErrors();
+}
 
 function clearErrors() {
   document.querySelectorAll('.err-msg').forEach(e => { e.textContent = ''; e.classList.remove('visible'); });
@@ -328,23 +441,154 @@ function showErr(id, msg) {
   el.textContent = msg; el.classList.add('visible');
 }
 
+function checkStrength(pw, prefix) {
+  prefix = prefix || 'bar';
+  const bars = [1,2,3,4].map(i => document.getElementById(prefix + i));
+  bars.forEach(b => b.className = 'pw-bar');
+  if (!pw) return;
+  let score = 0;
+  if (pw.length >= 8) score++;
+  if (/[A-Z]/.test(pw)) score++;
+  if (/[0-9]/.test(pw)) score++;
+  if (/[^A-Za-z0-9]/.test(pw)) score++;
+  const cls = score <= 1 ? 'weak' : score <= 2 ? 'medium' : 'strong';
+  for (let i = 0; i < score; i++) bars[i].classList.add(cls);
+}
+
+// Keep a leading "+" and strip everything else non-numeric, e.g. "+65 9123 4567" -> "+6591234567"
+function normalizePhone(v) {
+  v = (v || '').trim();
+  const plus = v.startsWith('+') ? '+' : '';
+  return plus + v.replace(/[^\d]/g, '');
+}
+function isValidPhone(v) {
+  return /^\+[1-9]\d{7,14}$/.test(v);
+}
+
+let pendingPhone = '';
+let resendCooldownTimer = null;
+
 async function handleLogin() {
   clearErrors();
-  const email = document.getElementById('login-email').value.trim();
+  const phone = normalizePhone(document.getElementById('login-phone').value);
   const pw    = document.getElementById('login-pw').value;
-  if (!email || !pw) { showErr('login-err', 'Please fill in all fields.'); return; }
+  if (!phone || !pw) { showErr('login-err', 'Please fill in all fields.'); return; }
+  if (!isValidPhone(phone)) { showErr('login-err', 'Enter your phone number with country code, e.g. +6591234567.'); return; }
   const btn = document.getElementById('btn-login');
   btn.disabled = true; btn.textContent = 'Signing in…';
-  const { error } = await sb.auth.signInWithPassword({ email, password: pw });
+  const { error } = await sb.auth.signInWithPassword({ phone, password: pw });
   if (error) { showErr('login-err', error.message); btn.disabled = false; btn.textContent = 'Sign In'; }
 }
 
-async function handleForgotPassword() {
-  const email = document.getElementById('login-email').value.trim();
-  if (!email) { showErr('login-err', 'Enter your email above first.'); return; }
-  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: window.location.origin + '/dashboard.html' });
-  if (error) showErr('login-err', error.message);
-  else showToast('Password reset link sent to ' + email);
+async function handleRegister() {
+  clearErrors();
+  const first = document.getElementById('reg-first').value.trim();
+  const last  = document.getElementById('reg-last').value.trim();
+  const phone = normalizePhone(document.getElementById('reg-phone').value);
+  const pw    = document.getElementById('reg-pw').value;
+  if (!first || !phone || !pw) { showErr('reg-err', 'Please fill in all required fields.'); return; }
+  if (!isValidPhone(phone)) { showErr('reg-phone-err', 'Enter your phone number with country code, e.g. +6591234567.'); return; }
+  if (pw.length < 8) { showErr('reg-err', 'Password must be at least 8 characters.'); return; }
+  const btn = document.getElementById('btn-register');
+  btn.disabled = true; btn.textContent = 'Creating account…';
+  // All new members start as explorer (lowest tier) — no tier selection
+  const { error } = await sb.auth.signUp({
+    phone, password: pw,
+    options: { data: { first_name: first, last_name: last, tier: 'explorer' }, channel: 'whatsapp' }
+  });
+  btn.disabled = false; btn.textContent = 'Create Account';
+  if (error) { showErr('reg-err', error.message); return; }
+  pendingPhone = phone;
+  document.getElementById('verify-label').textContent = `We sent a WhatsApp code to ${phone}.`;
+  showForm('verify');
+  startResendCooldown();
+}
+
+async function handleVerify() {
+  clearErrors();
+  const code = document.getElementById('verify-code').value.trim();
+  if (!code) { showErr('verify-err', 'Enter the code sent to your WhatsApp.'); return; }
+  const btn = document.getElementById('btn-verify');
+  btn.disabled = true; btn.textContent = 'Verifying…';
+  const { error } = await sb.auth.verifyOtp({ phone: pendingPhone, token: code, type: 'sms' });
+  if (error) { showErr('verify-err', error.message); btn.disabled = false; btn.textContent = 'Verify & Continue'; return; }
+  showToast('Welcome to The Travel Chapter!');
+  // onAuthStateChange fires from the new session and redirects to dashboard.html
+}
+
+async function resendCode() {
+  if (!pendingPhone) return;
+  const { error } = await sb.auth.resend({ type: 'sms', phone: pendingPhone, options: { channel: 'whatsapp' } });
+  if (error) showErr('verify-err', error.message);
+  else { showToast('Code resent via WhatsApp.'); startResendCooldown(); }
+}
+
+function startResendCooldown() {
+  const link = document.getElementById('resend-link');
+  let secs = 30;
+  link.style.pointerEvents = 'none'; link.style.opacity = '0.5';
+  const label = () => link.textContent = `Resend code (${secs}s)`;
+  label();
+  clearInterval(resendCooldownTimer);
+  resendCooldownTimer = setInterval(() => {
+    secs--;
+    if (secs <= 0) {
+      clearInterval(resendCooldownTimer);
+      link.textContent = 'Resend code';
+      link.style.pointerEvents = 'auto'; link.style.opacity = '1';
+    } else label();
+  }, 1000);
+}
+
+function startForgotPassword() {
+  clearErrors();
+  const loginPhone = normalizePhone(document.getElementById('login-phone').value);
+  document.getElementById('forgot-phone').value = isValidPhone(loginPhone) ? loginPhone : '';
+  showForm('forgot-request');
+}
+
+async function handleForgotSend() {
+  clearErrors();
+  const phone = normalizePhone(document.getElementById('forgot-phone').value);
+  if (!isValidPhone(phone)) { showErr('forgot-err', 'Enter your phone number with country code, e.g. +6591234567.'); return; }
+  const btn = document.getElementById('btn-forgot-send');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  const { error } = await sb.auth.signInWithOtp({ phone, options: { channel: 'whatsapp', shouldCreateUser: false } });
+  btn.disabled = false; btn.textContent = 'Send WhatsApp Code';
+  if (error) { showErr('forgot-err', error.message); return; }
+  pendingPhone = phone;
+  document.getElementById('forgot-verify-label').textContent = `Enter the code we sent to ${phone} on WhatsApp.`;
+  showForm('forgot-verify');
+}
+
+async function resendForgotCode() {
+  if (!pendingPhone) return;
+  const { error } = await sb.auth.signInWithOtp({ phone: pendingPhone, options: { channel: 'whatsapp', shouldCreateUser: false } });
+  if (error) showErr('forgot-verify-err', error.message);
+  else showToast('Code resent via WhatsApp.');
+}
+
+async function handleForgotReset() {
+  clearErrors();
+  const code  = document.getElementById('forgot-code').value.trim();
+  const newPw = document.getElementById('forgot-new-pw').value;
+  if (!code || !newPw) { showErr('forgot-verify-err', 'Enter the code and your new password.'); return; }
+  if (newPw.length < 8) { showErr('forgot-verify-err', 'Password must be at least 8 characters.'); return; }
+  const btn = document.getElementById('btn-forgot-reset');
+  btn.disabled = true; btn.textContent = 'Resetting…';
+  // Suppress the auto-redirect listener until the new password is actually saved —
+  // verifyOtp already creates a session, and a redirect firing before updateUser()
+  // finishes would leave the account stuck on the old password.
+  suppressAutoRedirect = true;
+  const { error: verifyError } = await sb.auth.verifyOtp({ phone: pendingPhone, token: code, type: 'sms' });
+  if (verifyError) { suppressAutoRedirect = false; showErr('forgot-verify-err', verifyError.message); btn.disabled = false; btn.textContent = 'Reset Password'; return; }
+  const { error: updateError } = await sb.auth.updateUser({ password: newPw });
+  suppressAutoRedirect = false;
+  btn.disabled = false; btn.textContent = 'Reset Password';
+  if (updateError) { showErr('forgot-verify-err', updateError.message); return; }
+  showToast('Password updated — signing you in…');
+  const { data: { session } } = await sb.auth.getSession();
+  routeSession(session);
 }
 
 let toastTimer;

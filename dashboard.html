@@ -477,7 +477,7 @@ async function loadReferralData() {
 
 // ── RENDER SIDEBAR ───────────────────────────────────────────
 function renderSidebar() {
-  const name = profile ? `${profile.first_name||''} ${profile.last_name||''}`.trim() || currentUser.email : currentUser.email;
+  const name = profile ? `${profile.first_name||''} ${profile.last_name||''}`.trim() || currentUser.phone || currentUser.email : (currentUser.phone || currentUser.email);
   const initials = name.split(' ').filter(Boolean).map(w=>w[0]).join('').substring(0,2).toUpperCase()||'?';
   document.getElementById('sb-avatar').textContent = initials;
   document.getElementById('sb-name').textContent = name;

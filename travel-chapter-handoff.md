@@ -204,6 +204,22 @@ All 4 tables (`referral_promotions`, `referrals`, `lucky_draws`, `lucky_draw_ent
 
 ---
 
+## Workstream G — Reverted homepage hero/destinations back to pre-journal, kept i18n (added 2026-08-06)
+
+User asked to revert `index.html`'s hero + destinations back to "the first version" — i.e. undo Workstream E's pinned book-chapter scroll journey (and its companion Manifesto section), restoring the plain hero section + destinations grid that existed before commit `3f49478`. Confirmed with the user up front exactly which version ("pre-journal", not the very first upload) and how to handle the conflict with the EN/ZH/MS language support added afterward (Workstream, commit `8a8142d`) — user chose to **keep i18n working on the restored sections**, not do a byte-for-byte revert.
+
+**What changed:** `index.html`'s `<section class="journal" id="journal">` (pinned scroll: intro → 5 chapter stops → outro/epilogue) and the standalone `<section class="manifesto">` were both deleted and replaced with the original `<section class="hero" id="hero">` (card-stack visual, stats bar, single primary CTA) + `<section id="destinations">` (3-col grid, wide cards for 1st/5th item). All of the associated CSS (`.journal-*`, `.chapter-*`, `.manifesto-*`) was removed and the old `.hero-*`/`.dest-*` rules restored; the scroll-linked JS (`initJournal()`, journal tab click-to-jump, manifesto word-lighting, crossfade opacity math) was deleted down to just the navbar-shadow-on-scroll handler. `applyHero()` and `applyDestinations()` (the CMS-apply functions) were restored to their pre-journal bodies — notably `applyHero()` once again populates the hero card stack's `featured_card` (emoji/title/subtitle/price/image) and floating badge, which the journal-era `applyHero()` had silently dropped even though `admin-cms.html`'s hero form still has (and always had) fields for these. Nav and footer "Destinations" links point back to `#destinations` instead of `#journal`.
+
+**i18n handling:** `hero.eyebrow` / `hero.heading` / `hero.subtext` / `hero.cta_primary` translation keys already existed (used by the journal intro) and needed no changes — same element IDs, so they just work. New keys `destinations.eyebrow` / `destinations.heading` / `destinations.subtext` (EN/ZH/MS) were added to `i18n.js` for the destinations section chrome, which had no equivalent in the journal version (destinations copy was folded into the journal's table-of-contents). Destination *card* content (names/regions) is still CMS-authored and intentionally not translated, matching the pre-existing documented limitation for all CMS content site-wide.
+
+**Verified:** local `python -m http.server`, live against production Supabase (same publishable key baked into `index.html` for all environments). Hero and destinations render pixel-for-pixel like the pre-journal design; CMS content (real destination photos) loads correctly into the restored grid; language switcher correctly re-translates the restored hero/destinations chrome to Chinese (spot-checked, didn't re-check Malay). No console errors.
+
+**Committed and pushed:** `c2b3d0d` on `main` (`index.html` + `i18n.js` only — `supabase/.temp/` stayed untracked). This is the customer-facing site (`thetravelchapter`, git-linked), so the push triggers Netlify's auto-deploy within ~30s — not separately re-verified live on Netlify this session, only locally.
+
+**Note for anyone touching this later:** the journal/manifesto code is gone from `index.html`, not just hidden — if the book-chapter narrative is wanted back, it needs to be re-built from scratch or cherry-picked from commit `3f49478`/`064d2a5`, not un-commented. The `journal.*` and `manifesto.text` translation keys were deliberately left in `i18n.js` (harmless dead weight, low risk to remove blindly) rather than pruned.
+
+---
+
 ## Task checklist
 
 - [x] Open all 6 pages in a real browser, confirm logo renders correctly (sizing/placement) — done 2026-07-26 at desktop size.
@@ -218,9 +234,7 @@ All 4 tables (`referral_promotions`, `referrals`, `lucky_draws`, `lucky_draw_ent
 - [ ] (Optional) Enable leaked-password protection in Supabase Auth dashboard settings.
 - [ ] (Optional, future) If a real native Android `.apk` is wanted later: wrap with Capacitor — requires installing Java JDK + Android SDK command-line tools on a build machine first.
 - [ ] (Optional, future) If a real iOS app is wanted later: needs a Mac with Xcode (and an Apple Developer account to install on a physical device or ship to the App Store) — cannot be done from this Windows machine.
-- [ ] Update `admin-cms.html`'s Destinations tab form to include `chapter_title` / `dateline` / `story` fields (see Workstream E) — otherwise editing destinations there risks dropping the new book-chapter narrative content.
-- [ ] Verify the new journal section on a real narrow mobile viewport (browser automation's window resize didn't work in this session's sandbox).
-- [ ] Confirm with the user whether the invented years (2012/2015/2018/2021/2024) in the chapter datelines need to match real company history, or are fine as narrative flavor.
+- [x] ~~Update `admin-cms.html`'s Destinations tab form to include `chapter_title` / `dateline` / `story` fields~~ — moot, Workstream G (2026-08-06) reverted the destinations grid back to plain `name`/`region`/`image`/`emoji`/`gradient` fields, which the CMS form already supports.
 - [ ] Referral checkout flow is still manual/admin-recorded — there's no customer-facing "enter a referral code at booking" field (matches the existing vouchers pattern, which also has no checkout-time redemption UI). If that's wanted, it needs a new field in `dashboard.html`'s booking modal plus admin-side matching logic.
 - [ ] Netlify CLI is now logged in on this machine (state persists in `%APPDATA%\netlify`) — future sessions may not need `netlify login` again, but if `netlify status` shows logged out, re-run it (retry once if the first attempt times out waiting for browser approval).
 - [ ] If admin.html/admin-cms.html/admin-login.html change again, remember the deploy command is `netlify deploy --prod --dir=admin --site c5f73ef7-2043-4f04-8611-702f5a4e773b` — a plain `git push` will not update the live admin site (see Workstream F).

@@ -59,66 +59,73 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 .lang-btn:hover { color:var(--navy); }
 .lang-btn.active { background:var(--navy); color:var(--white); }
 
-/* ── JOURNAL (pinned scroll journey — book-chapter style, merges hero + destinations) ── */
-.journal { position:relative; height:700vh; background:var(--navy); padding:0; }
-.journal-sticky { position:sticky; top:0; height:100vh; overflow:hidden; }
-
-.journal-stop { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; opacity:0; }
-.journal-stop-content { position:relative; z-index:2; max-width:640px; text-align:center; padding:0 6%; }
-.journal-stop-intro, .journal-stop-outro { background:linear-gradient(135deg, var(--navy) 0%, #1e2a3a 50%, #141820 100%); }
-.journal-stop-intro::before, .journal-stop-outro::before { content:''; position:absolute; inset:22px; border:1px solid rgba(184,149,90,0.25); pointer-events:none; }
-.journal-stop-intro .journal-stop-content { text-align:left; max-width:560px; margin-right:auto; margin-left:8%; }
-
+/* ── HERO ── */
+.hero {
+  min-height:100vh; position:relative; overflow:hidden;
+  display:flex; align-items:center;
+  background: linear-gradient(135deg, var(--navy) 0%, #1e2a3a 50%, #141820 100%);
+}
+.hero-bg {
+  position:absolute; inset:0;
+  background:
+    radial-gradient(ellipse 60% 70% at 70% 40%, rgba(184,149,90,0.15) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 50% at 10% 80%, rgba(184,149,90,0.08) 0%, transparent 50%);
+}
+.hero-grid {
+  position:absolute; inset:0;
+  background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);
+  background-size:60px 60px;
+}
+.hero-inner {
+  position:relative; z-index:1; width:90%; max-width:1200px;
+  margin:0 auto; padding:120px 0 80px;
+  display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:center;
+}
 .hero-eyebrow { font-size:0.7rem; letter-spacing:0.35em; text-transform:uppercase; color:var(--gold2); margin-bottom:22px; display:flex; align-items:center; gap:10px; }
 .hero-eyebrow::before { content:''; width:30px; height:1px; background:var(--gold2); }
-.journal-heading { font-family:'Cormorant Garamond',serif; font-size:3.6rem; font-weight:300; line-height:1.1; color:var(--white); margin-bottom:22px; }
-.journal-heading em { font-style:italic; color:var(--gold2); }
-.journal-sub { font-size:0.95rem; color:rgba(255,255,255,0.55); line-height:1.8; max-width:420px; }
-.hero-actions { display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
-.journal-stop-intro .hero-actions { justify-content:flex-start; }
+.hero-text h1 { font-family:'Cormorant Garamond',serif; font-size:4rem; font-weight:300; line-height:1.1; color:var(--white); margin-bottom:22px; }
+.hero-text h1 em { font-style:italic; color:var(--gold2); }
+.hero-text p { font-size:0.95rem; color:rgba(255,255,255,0.55); line-height:1.8; max-width:420px; margin-bottom:36px; }
+.hero-actions { display:flex; gap:14px; flex-wrap:wrap; }
 .btn-hero-primary { padding:14px 30px; border-radius:6px; border:none; background:linear-gradient(135deg,var(--gold),#8a6a38); color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.84rem; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; text-decoration:none; display:inline-block; transition:all 0.25s; box-shadow:0 4px 20px rgba(184,149,90,0.35); }
 .btn-hero-primary:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(184,149,90,0.45); }
-.hero-stats { display:flex; gap:36px; justify-content:center; margin-top:0; padding-top:0; border-top:none; }
-.hero-stat-val { font-family:'Cormorant Garamond',serif; font-size:2.2rem; font-weight:300; color:var(--white); display:block; }
+.btn-hero-ghost { padding:14px 30px; border-radius:6px; border:1px solid rgba(255,255,255,0.2); color:rgba(255,255,255,0.8); font-family:'DM Sans',sans-serif; font-size:0.84rem; font-weight:400; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; text-decoration:none; display:inline-block; transition:all 0.25s; background:transparent; }
+.btn-hero-ghost:hover { background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.4); }
+.hero-stats { display:flex; gap:36px; margin-top:48px; padding-top:36px; border-top:1px solid rgba(255,255,255,0.08); }
+.hero-stat-val { font-family:'Cormorant Garamond',serif; font-size:2rem; font-weight:300; color:var(--white); display:block; }
 .hero-stat-lbl { font-size:0.7rem; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.35); margin-top:2px; }
-.journal-stop-outro .hero-actions { margin-top:32px; }
-.journal-epilogue-eyebrow { font-size:0.68rem; letter-spacing:0.3em; text-transform:uppercase; color:var(--gold2); margin-bottom:14px; }
-.journal-epilogue-heading { font-family:'Cormorant Garamond',serif; font-size:2.2rem; font-style:italic; font-weight:300; color:var(--white); margin-bottom:40px; }
 
-/* Table of contents (prologue) */
-.journal-toc { margin-top:40px; display:flex; flex-direction:column; gap:10px; }
-.journal-toc-item { font-size:0.8rem; color:rgba(255,255,255,0.45); display:flex; align-items:baseline; gap:14px; }
-.journal-toc-item span { font-family:'Cormorant Garamond',serif; font-style:italic; color:var(--gold2); font-size:0.95rem; width:20px; display:inline-block; }
-
-/* Chapter pages (destinations) */
-.journal-stop-dest { background:var(--cream); }
-.journal-stop-dest .journal-stop-content { max-width:920px; }
-.chapter-numeral { position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); font-family:'Cormorant Garamond',serif; font-weight:300; font-size:min(26rem,32vw); line-height:1; color:var(--navy); opacity:0.045; z-index:0; user-select:none; pointer-events:none; white-space:nowrap; }
-.chapter-content { position:relative; z-index:2; display:flex; align-items:center; gap:64px; text-align:left; }
-.journal-stop-dest:nth-child(even) .chapter-content { flex-direction:row-reverse; }
-.chapter-photo-wrap { flex:0 0 320px; }
-.chapter-photo { width:100%; height:400px; object-fit:cover; display:block; border:8px solid var(--white); box-shadow:0 24px 60px rgba(26,31,46,0.22); transform:rotate(-2.5deg); }
-.journal-stop-dest:nth-child(even) .chapter-photo { transform:rotate(2.5deg); }
-.chapter-photo-emoji { display:flex; align-items:center; justify-content:center; font-size:5rem; background:linear-gradient(160deg,var(--cream2),var(--cream3)); }
-.chapter-badge { display:inline-flex; align-items:center; gap:8px; padding:6px 16px; border:1px dashed var(--gold); border-radius:50px; color:var(--gold); font-size:0.68rem; font-weight:600; letter-spacing:0.2em; text-transform:uppercase; transform:rotate(-2deg); margin-bottom:20px; }
-.chapter-text { flex:1; min-width:0; }
-.journal-dest-name { font-family:'Cormorant Garamond',serif; font-size:2.6rem; font-weight:300; color:var(--navy); }
-.journal-dest-region { font-size:0.72rem; letter-spacing:0.16em; text-transform:uppercase; color:var(--smoke); margin-top:8px; }
-.chapter-caption { font-family:'Cormorant Garamond',serif; font-style:italic; font-size:1.1rem; color:var(--smoke); line-height:1.8; margin-top:20px; max-width:420px; }
-
-/* Chapter tabs (progress indicator on the right edge) */
-.journal-tabs { position:absolute; right:28px; top:50%; transform:translateY(-50%); display:flex; flex-direction:column; gap:12px; z-index:6; }
-.journal-tab { width:32px; height:32px; border-radius:50%; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-family:'Cormorant Garamond',serif; font-style:italic; font-size:0.82rem; color:var(--smoke); background:var(--white); cursor:pointer; transition:all 0.3s ease; box-shadow:0 4px 14px rgba(26,31,46,0.15); }
-.journal-tab:hover { border-color:var(--gold); color:var(--gold); }
-.journal-tab.active { background:var(--navy); border-color:var(--navy); color:var(--white); transform:scale(1.15); }
-
-/* ── MANIFESTO (pinned scroll-reveal) ── */
-.manifesto { position:relative; height:250vh; background:var(--cream); }
-.manifesto-sticky { position:sticky; top:0; height:100vh; display:flex; align-items:center; justify-content:center; padding:0 8%; }
-.manifesto-text { max-width:900px; text-align:center; font-family:'Cormorant Garamond',serif; font-weight:300; font-size:clamp(1.7rem,4vw,3.1rem); line-height:1.5; }
-.manifesto-text .word { color:var(--border); transition:color 0.4s ease; }
-.manifesto-text .word.lit { color:var(--navy); }
-.manifesto-text .word.lit.accent { color:var(--gold); }
+/* Hero visual */
+.hero-visual { position:relative; }
+.hero-card-stack { position:relative; height:460px; }
+.hero-card {
+  position:absolute; border-radius:16px; overflow:hidden;
+  box-shadow:0 24px 60px rgba(0,0,0,0.4);
+  transition:transform 0.4s ease;
+}
+.hero-card-main {
+  width:300px; height:360px; top:20px; left:40px;
+  background:linear-gradient(160deg,#1a3a2a,#2d6a4f);
+  display:flex; flex-direction:column; justify-content:flex-end; padding:24px;
+}
+.hero-card-secondary {
+  width:200px; height:240px; top:160px; left:200px;
+  background:linear-gradient(160deg,#1a2a3a,#1e6091);
+  display:flex; flex-direction:column; justify-content:flex-end; padding:18px;
+  z-index:2;
+}
+.hero-card-emoji { font-size:3rem; margin-bottom:12px; }
+.hero-card-title { font-family:'Cormorant Garamond',serif; font-size:1.1rem; font-weight:300; color:var(--white); }
+.hero-card-sub { font-size:0.7rem; color:rgba(255,255,255,0.5); margin-top:4px; }
+.hero-card-price { font-size:0.9rem; color:var(--gold2); font-weight:500; margin-top:8px; }
+.hero-floating-badge {
+  position:absolute; top:0; right:0;
+  background:var(--white); border-radius:12px; padding:14px 18px;
+  box-shadow:0 12px 40px rgba(0,0,0,0.2);
+  font-size:0.78rem; color:var(--navy); font-weight:500;
+  display:flex; align-items:center; gap:8px;
+}
+.hero-floating-badge .dot { width:8px; height:8px; border-radius:50%; background:#27ae60; flex-shrink:0; }
 
 /* ── SECTION COMMONS ── */
 section { padding:100px 6%; }
@@ -129,6 +136,26 @@ section { padding:100px 6%; }
 .section-sub { font-size:0.9rem; color:var(--smoke); line-height:1.8; max-width:520px; }
 .section-header { margin-bottom:56px; }
 .section-header-split { display:flex; align-items:flex-end; justify-content:space-between; gap:32px; margin-bottom:56px; flex-wrap:wrap; }
+
+/* ── DESTINATIONS ── */
+#destinations { background:var(--white); }
+.destinations-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
+.dest-card {
+  border-radius:14px; overflow:hidden; position:relative;
+  height:320px; cursor:pointer; transition:transform 0.3s;
+}
+.dest-card:hover { transform:translateY(-4px); }
+.dest-card:hover .dest-overlay { opacity:1; }
+.dest-card-bg { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:5rem; }
+.dest-overlay {
+  position:absolute; inset:0; opacity:0; transition:opacity 0.3s;
+  background:linear-gradient(to top, rgba(26,31,46,0.9) 0%, rgba(26,31,46,0.3) 60%, transparent 100%);
+  display:flex; flex-direction:column; justify-content:flex-end; padding:24px;
+}
+.dest-always { position:absolute; bottom:0; left:0; right:0; padding:24px; background:linear-gradient(to top, rgba(26,31,46,0.85) 0%, transparent 100%); }
+.dest-name { font-family:'Cormorant Garamond',serif; font-size:1.4rem; font-weight:300; color:var(--white); }
+.dest-country { font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.6); margin-top:3px; }
+.dest-card-wide { grid-column:span 2; }
 
 /* ── FEATURED TRIPS ── */
 #trips { background:var(--cream); }
@@ -281,7 +308,9 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 
 /* ── RESPONSIVE ── */
 @media(max-width:1024px) {
-  .journal-heading { font-size:3rem; }
+  .hero-inner { grid-template-columns:1fr; gap:48px; }
+  .hero-visual { display:none; }
+  .hero-text h1 { font-size:3rem; }
   .about-grid,.contact-grid { grid-template-columns:1fr; gap:48px; }
   .about-visual { display:none; }
   .footer-grid { grid-template-columns:1fr 1fr; }
@@ -289,20 +318,12 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 @media(max-width:768px) {
   section { padding:70px 5%; }
   .section-title { font-size:2.2rem; }
-  .trips-grid,.tiers-grid,.testimonials-grid { grid-template-columns:1fr; }
+  .destinations-grid,.trips-grid,.tiers-grid,.testimonials-grid { grid-template-columns:1fr; }
+  .dest-card-wide { grid-column:span 1; }
   .nav-links { display:none; }
-  .journal-heading { font-size:2.4rem; }
-  .journal-stop-intro .journal-stop-content { text-align:center; margin:0 auto; }
-  .journal-stop-intro .hero-actions { justify-content:center; }
-  .journal-dest-name { font-size:2.1rem; }
-  .chapter-content, .journal-stop-dest:nth-child(even) .chapter-content { flex-direction:column; gap:28px; text-align:center; }
-  .chapter-photo-wrap { flex:0 0 auto; width:220px; }
-  .chapter-photo { height:240px; }
-  .chapter-numeral { font-size:9rem; }
-  .journal-tabs { display:none; }
+  .hero-text h1 { font-size:2.4rem; }
   .footer-grid { grid-template-columns:1fr; gap:32px; }
   .form-row { grid-template-columns:1fr; }
-  .manifesto { height:180vh; }
 }
 @media(max-width:400px) {
   .navbar { padding:0 4%; }
@@ -318,7 +339,7 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 <nav class="navbar" id="navbar">
   <a href="#" class="nav-logo" id="nav-logo"><img src="the-travel-chapter-icon.png" alt="The Travel Chapter" class="nav-logo-img"><span class="nav-logo-text" id="nav-logo-text">The Travel Chapter</span></a>
   <ul class="nav-links">
-    <li><a href="#journal" data-i18n="nav.destinations">Destinations</a></li>
+    <li><a href="#destinations" data-i18n="nav.destinations">Destinations</a></li>
     <li><a href="#trips" data-i18n="nav.trips">Trips</a></li>
     <li><a href="#membership" data-i18n="nav.membership">Membership</a></li>
     <li><a href="#about" data-i18n="nav.about">About</a></li>
@@ -334,127 +355,91 @@ footer { background:var(--navy); padding:56px 6% 32px; }
   </div>
 </nav>
 
-<!-- ── JOURNAL (pinned scroll journey: intro → destinations → outro) ── -->
-<section class="journal" id="journal">
-  <div class="journal-sticky">
-
-    <div class="journal-stop journal-stop-intro">
-      <div class="journal-stop-content">
-        <div class="hero-eyebrow" id="hero-eyebrow" data-i18n="hero.eyebrow">Curated Journeys</div>
-        <h1 class="journal-heading" id="hero-heading" data-i18n="hero.heading" data-i18n-html>Travel Beyond<br>the <em>Ordinary</em></h1>
-        <p class="journal-sub" id="hero-subtext" data-i18n="hero.subtext">The Travel Chapter curates extraordinary journeys for discerning travellers — from intimate ryokans in Kyoto to private yacht charters along the Amalfi Coast.</p>
-        <div class="journal-toc" id="dest-eyebrow-wrap">
-          <div class="journal-toc-item"><span>I</span> <span data-i18n="journal.toc1">The Beginning — Kyoto</span></div>
-          <div class="journal-toc-item"><span>II</span> <span data-i18n="journal.toc2">Word Traveled Fast — Amalfi</span></div>
-          <div class="journal-toc-item"><span>III</span> <span data-i18n="journal.toc3">Learning to Listen — Marrakech</span></div>
-          <div class="journal-toc-item"><span>IV</span> <span data-i18n="journal.toc4">Slowing Down — Luang Prabang</span></div>
-          <div class="journal-toc-item"><span>V</span> <span data-i18n="journal.toc5">To the Edge of the World — Patagonia</span></div>
-        </div>
+<!-- ── HERO ── -->
+<section class="hero" id="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-inner">
+    <div class="hero-text reveal">
+      <div class="hero-eyebrow" id="hero-eyebrow" data-i18n="hero.eyebrow">Curated Journeys</div>
+      <h1 id="hero-heading" data-i18n="hero.heading" data-i18n-html>Travel Beyond<br>the <em>Ordinary</em></h1>
+      <p id="hero-subtext" data-i18n="hero.subtext">The Travel Chapter curates extraordinary journeys for discerning travellers — from intimate ryokans in Kyoto to private yacht charters along the Amalfi Coast.</p>
+      <div class="hero-actions">
+        <a href="#trips" class="btn-hero-primary" id="hero-cta-primary" data-i18n="hero.cta_primary">Explore Trips</a>
+      </div>
+      <div class="hero-stats" id="hero-stats">
+        <div><span class="hero-stat-val">48+</span><span class="hero-stat-lbl">Destinations</span></div>
+        <div><span class="hero-stat-val">1,200+</span><span class="hero-stat-lbl">Happy Travellers</span></div>
+        <div><span class="hero-stat-val">12yr</span><span class="hero-stat-lbl">Experience</span></div>
       </div>
     </div>
-
-    <div id="journal-dest-stops">
-      <div class="journal-stop journal-stop-dest">
-        <div class="chapter-numeral">I</div>
-        <div class="journal-stop-content">
-          <div class="chapter-content">
-            <div class="chapter-photo-wrap"><img class="chapter-photo" src="https://commons.wikimedia.org/wiki/Special:FilePath/Kiyomizu-dera,_Kyoto,_November_2016_-02.jpg?width=1200" alt="Kyoto, Japan"></div>
-            <div class="chapter-text">
-              <div class="chapter-badge" data-i18n="journal.ch1.badge">Chapter One</div>
-              <div class="journal-dest-name" data-i18n="journal.ch1.name">The Beginning</div>
-              <div class="journal-dest-region" data-i18n="journal.ch1.region">Kyoto, Japan · 2012</div>
-              <p class="chapter-caption" data-i18n="journal.ch1.caption">It started with one traveller, a single notebook, and a solo trip to Kyoto that changed everything — and a promise to never plan an ordinary itinerary again.</p>
-            </div>
-          </div>
+    <div class="hero-visual reveal">
+      <div class="hero-card-stack">
+        <div class="hero-card hero-card-main" id="hero-card-main">
+          <div class="hero-card-emoji" id="hero-card-emoji">🍁</div>
+          <div class="hero-card-title" id="hero-card-title">Kyoto in Autumn</div>
+          <div class="hero-card-sub" id="hero-card-sub">Japan · 8 Days</div>
+          <div class="hero-card-price" id="hero-card-price">From RM 3,200</div>
+        </div>
+        <div class="hero-card hero-card-secondary">
+          <div class="hero-card-emoji" style="font-size:2rem;">⛵</div>
+          <div class="hero-card-title" style="font-size:0.9rem;">Amalfi by Yacht</div>
+          <div class="hero-card-sub">Italy · 6 Days</div>
+        </div>
+        <div class="hero-floating-badge">
+          <div class="dot"></div>
+          <span id="hero-floating-badge-text">3 new trips this month</span>
         </div>
       </div>
-      <div class="journal-stop journal-stop-dest">
-        <div class="chapter-numeral">II</div>
-        <div class="journal-stop-content">
-          <div class="chapter-content">
-            <div class="chapter-photo-wrap"><img class="chapter-photo" src="https://commons.wikimedia.org/wiki/Special:FilePath/Positano-Amalfi_Coast-Italy.jpg?width=1200" alt="Amalfi Coast"></div>
-            <div class="chapter-text">
-              <div class="chapter-badge" data-i18n="journal.ch2.badge">Chapter Two</div>
-              <div class="journal-dest-name" data-i18n="journal.ch2.name">Word Traveled Fast</div>
-              <div class="journal-dest-region" data-i18n="journal.ch2.region">Amalfi Coast · 2015</div>
-              <p class="chapter-caption" data-i18n="journal.ch2.caption">Friends who'd heard about that first trip began asking for help planning their own. By the time we were chartering yachts along Italy's coast, trust had quietly become our business.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="journal-stop journal-stop-dest">
-        <div class="chapter-numeral">III</div>
-        <div class="journal-stop-content">
-          <div class="chapter-content">
-            <div class="chapter-photo-wrap"><img class="chapter-photo" src="https://commons.wikimedia.org/wiki/Special:FilePath/Koutoubia_Mosque_2.jpg?width=1200" alt="Marrakech"></div>
-            <div class="chapter-text">
-              <div class="chapter-badge" data-i18n="journal.ch3.badge">Chapter Three</div>
-              <div class="journal-dest-name" data-i18n="journal.ch3.name">Learning to Listen</div>
-              <div class="journal-dest-region" data-i18n="journal.ch3.region">Marrakech, Morocco · 2018</div>
-              <p class="chapter-caption" data-i18n="journal.ch3.caption">We learned our best itineraries were never written from a desk — they came from local guides who knew which alley led to the Marrakech no guidebook could show us.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="journal-stop journal-stop-dest">
-        <div class="chapter-numeral">IV</div>
-        <div class="journal-stop-content">
-          <div class="chapter-content">
-            <div class="chapter-photo-wrap"><img class="chapter-photo" src="https://commons.wikimedia.org/wiki/Special:FilePath/Pirogue_and_boat_on_the_Mekong_with_colorful_sky_at_sunset_in_Luang_Prabang_Laos.jpg?width=1200" alt="Luang Prabang"></div>
-            <div class="chapter-text">
-              <div class="chapter-badge" data-i18n="journal.ch4.badge">Chapter Four</div>
-              <div class="journal-dest-name" data-i18n="journal.ch4.name">Slowing Down</div>
-              <div class="journal-dest-region" data-i18n="journal.ch4.region">Luang Prabang, Laos · 2021</div>
-              <p class="chapter-caption" data-i18n="journal.ch4.caption">Somewhere along the Mekong at dawn, we understood what travel was really for — not ticking boxes, but standing still long enough to feel something.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div class="journal-stop journal-stop-dest">
-        <div class="chapter-numeral">V</div>
-        <div class="journal-stop-content">
-          <div class="chapter-content">
-            <div class="chapter-photo-wrap"><img class="chapter-photo" src="https://commons.wikimedia.org/wiki/Special:FilePath/Torres_del_Paine,_Laguna_Azul_09.jpg?width=1200" alt="Patagonia"></div>
-            <div class="chapter-text">
-              <div class="chapter-badge" data-i18n="journal.ch5.badge">Chapter Five</div>
-              <div class="journal-dest-name" data-i18n="journal.ch5.name">To the Edge of the World</div>
-              <div class="journal-dest-region" data-i18n="journal.ch5.region">Patagonia · 2024</div>
-              <p class="chapter-caption" data-i18n="journal.ch5.caption">That same restless curiosity has since carried our travellers to Patagonia's glaciers and beyond — proof that a decade on, we're still chasing that first Kyoto feeling.</p>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="journal-stop journal-stop-outro">
-      <div class="journal-stop-content">
-        <div class="journal-epilogue-eyebrow" data-i18n="journal.epilogue_eyebrow">Epilogue</div>
-        <div class="journal-epilogue-heading" data-i18n="journal.epilogue_heading">Your chapter starts here</div>
-        <div class="hero-stats" id="hero-stats">
-          <div><span class="hero-stat-val">48+</span><span class="hero-stat-lbl" data-i18n="journal.stat1_lbl">Destinations</span></div>
-          <div><span class="hero-stat-val">1,200+</span><span class="hero-stat-lbl" data-i18n="journal.stat2_lbl">Happy Travellers</span></div>
-          <div><span class="hero-stat-val">12yr</span><span class="hero-stat-lbl" data-i18n="journal.stat3_lbl">Experience</span></div>
-        </div>
-        <div class="hero-actions">
-          <a href="#trips" class="btn-hero-primary" id="hero-cta-primary" data-i18n="hero.cta_primary">Explore Trips</a>
-        </div>
-      </div>
-    </div>
-
-    <div class="journal-tabs" id="journal-tabs">
-      <div class="journal-tab" data-stop="1">I</div>
-      <div class="journal-tab" data-stop="2">II</div>
-      <div class="journal-tab" data-stop="3">III</div>
-      <div class="journal-tab" data-stop="4">IV</div>
-      <div class="journal-tab" data-stop="5">V</div>
     </div>
   </div>
 </section>
 
-<!-- ── MANIFESTO ── -->
-<section class="manifesto" id="manifesto">
-  <div class="manifesto-sticky">
-    <p class="manifesto-text" id="manifesto-text" data-i18n="manifesto.text">We believe travel should move you, not just take you somewhere. Every chapter we craft turns distance into memory — and memory into the story you carry home.</p>
+<!-- ── DESTINATIONS ── -->
+<section id="destinations">
+  <div class="section-header-split reveal">
+    <div>
+      <div class="section-eyebrow" id="dest-eyebrow" data-i18n="destinations.eyebrow">Where We Go</div>
+      <h2 class="section-title" id="dest-heading" data-i18n="destinations.heading" data-i18n-html>Handpicked<br><em>Destinations</em></h2>
+    </div>
+    <p class="section-sub" id="dest-subtext" data-i18n="destinations.subtext">Every destination is personally vetted by our travel curators — chosen for their cultural depth, natural beauty and rare experiences.</p>
+  </div>
+  <div class="destinations-grid" id="dest-grid">
+    <div class="dest-card dest-card-wide reveal">
+      <div class="dest-card-bg" style="background:linear-gradient(160deg,#1a3a2a,#2d6a4f);">🍁</div>
+      <div class="dest-always">
+        <div class="dest-name">Kyoto, Japan</div>
+        <div class="dest-country">East Asia</div>
+      </div>
+    </div>
+    <div class="dest-card reveal">
+      <div class="dest-card-bg" style="background:linear-gradient(160deg,#1a2a3a,#1e6091);">⛵</div>
+      <div class="dest-always">
+        <div class="dest-name">Amalfi Coast</div>
+        <div class="dest-country">Mediterranean</div>
+      </div>
+    </div>
+    <div class="dest-card reveal">
+      <div class="dest-card-bg" style="background:linear-gradient(160deg,#3a2a1a,#6b4a1a);">🐪</div>
+      <div class="dest-always">
+        <div class="dest-name">Marrakech</div>
+        <div class="dest-country">North Africa</div>
+      </div>
+    </div>
+    <div class="dest-card reveal">
+      <div class="dest-card-bg" style="background:linear-gradient(160deg,#1a2a3a,#2d3561);">🛶</div>
+      <div class="dest-always">
+        <div class="dest-name">Luang Prabang</div>
+        <div class="dest-country">Southeast Asia</div>
+      </div>
+    </div>
+    <div class="dest-card dest-card-wide reveal">
+      <div class="dest-card-bg" style="background:linear-gradient(160deg,#2a1a3a,#4a2f6a);">🏔️</div>
+      <div class="dest-always">
+        <div class="dest-name">Patagonia</div>
+        <div class="dest-country">South America</div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -795,7 +780,7 @@ footer { background:var(--navy); padding:56px 6% 32px; }
     <div>
       <div class="footer-col-title" data-i18n="footer.explore_title">Explore</div>
       <ul class="footer-links">
-        <li><a href="#journal" data-i18n="footer.link_destinations">Destinations</a></li>
+        <li><a href="#destinations" data-i18n="footer.link_destinations">Destinations</a></li>
         <li><a href="#trips" data-i18n="footer.link_trips">Featured Trips</a></li>
         <li><a href="#membership" data-i18n="footer.link_membership">Membership</a></li>
         <li><a href="#about" data-i18n="footer.link_about">Our Story</a></li>
@@ -837,7 +822,7 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 </div>
 
 <script>
-// Apply translations before anything below (e.g. the manifesto word-split) reads DOM text.
+// Apply translations before anything below reads DOM text.
 TC_I18N.applyStatic();
 
 // ── CONFIG ──────────────────────────────────────────────────
@@ -898,44 +883,43 @@ function applyHero(d) {
     const el = document.getElementById('hero-stats');
     if(el) el.innerHTML = d.stats.map(s=>`<div><span class="hero-stat-val">${s.value}</span><span class="hero-stat-lbl">${s.label}</span></div>`).join('');
   }
+  if(d.featured_card) {
+    txt('hero-card-emoji', d.featured_card.emoji);
+    txt('hero-card-title', d.featured_card.title);
+    txt('hero-card-sub', d.featured_card.subtitle);
+    txt('hero-card-price', d.featured_card.price);
+    const mainCard = document.getElementById('hero-card-main');
+    const emojiEl = document.getElementById('hero-card-emoji');
+    if (mainCard) {
+      mainCard.style.background = d.featured_card.image
+        ? `linear-gradient(to top, rgba(26,31,46,0.75), rgba(26,31,46,0.15) 55%, rgba(26,31,46,0.05)), url('${d.featured_card.image}') center/cover no-repeat`
+        : '';
+    }
+    if (emojiEl) emojiEl.style.display = d.featured_card.image ? 'none' : '';
+  }
+  txt('hero-floating-badge-text', d.floating_badge);
 }
 
-const ROMAN = ['I','II','III','IV','V','VI','VII','VIII','IX','X'];
-
-let lastCmsDestinations = null;
 function applyDestinations(d) {
+  txt('dest-eyebrow', d.eyebrow);
+  html('dest-heading', italicHeading(d.heading, d.heading_italic));
+  txt('dest-subtext', d.subtext);
   if (d.items) {
-    lastCmsDestinations = d;
-    const stops = document.getElementById('journal-dest-stops');
-    if (stops) {
-      stops.innerHTML = d.items.map((item, i) => {
-        const hasImage = !!item.image;
-        const photo = hasImage
-          ? `<img class="chapter-photo" src="${item.image}" alt="${item.name||''}">`
-          : `<div class="chapter-photo chapter-photo-emoji">${item.emoji||'✈️'}</div>`;
-        const numeral = ROMAN[i] || (i+1);
-        const word = TC_I18N.t('journal.chapter_word'+((i%10)+1));
-        return `
-        <div class="journal-stop journal-stop-dest">
-          <div class="chapter-numeral">${numeral}</div>
-          <div class="journal-stop-content">
-            <div class="chapter-content">
-              <div class="chapter-photo-wrap">${photo}</div>
-              <div class="chapter-text">
-                <div class="chapter-badge">${TC_I18N.t('journal.chapter_label',{word})}</div>
-                <div class="journal-dest-name">${item.chapter_title||item.name||''}</div>
-                <div class="journal-dest-region">${item.dateline||item.region||''}</div>
-                ${(item.story||item.caption)?`<p class="chapter-caption">${item.story||item.caption}</p>`:''}
-              </div>
-            </div>
-          </div>
-        </div>`;
-      }).join('');
-    }
-    initJournal();
+    const grid = document.getElementById('dest-grid');
+    if (grid) grid.innerHTML = d.items.map(item => {
+      const hasImage = !!item.image;
+      const bgStyle = hasImage ? `background:url('${item.image}') center/cover no-repeat;` : `background:${item.gradient||'var(--navy)'};`;
+      return `
+      <div class="dest-card ${item.wide?'dest-card-wide':''} reveal">
+        <div class="dest-card-bg" style="${bgStyle}">${hasImage?'':(item.emoji||'✈️')}</div>
+        <div class="dest-always">
+          <div class="dest-name">${item.name||''}</div>
+          <div class="dest-country">${item.region||''}</div>
+        </div>
+      </div>`;
+    }).join('');
   }
 }
-TC_I18N.onChange(() => { if (lastCmsDestinations) applyDestinations(lastCmsDestinations); });
 
 function applyFeaturedTrips(d) {
   txt('ft-eyebrow', d.eyebrow);
@@ -1107,74 +1091,11 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.12 });
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-// ── Manifesto: split into word spans, last word gets the gold accent
-const manifestoEl = document.getElementById('manifesto-text');
-if (manifestoEl) {
-  const words = manifestoEl.textContent.trim().split(/\s+/);
-  manifestoEl.innerHTML = words.map((w, i) =>
-    `<span class="word${i === words.length - 1 ? ' accent' : ''}">${w}</span>`
-  ).join(' ');
-}
-
-// ── Scroll-linked effects: navbar shadow, manifesto word reveal, journal journey
-const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+// ── Scroll-linked effects: navbar shadow
 const navbarEl = document.getElementById('navbar');
-const manifestoSection = document.getElementById('manifesto');
-const journalSection = document.getElementById('journal');
-const journalTabs = Array.from(document.querySelectorAll('.journal-tab'));
-let journalStops = [];
-
-function initJournal() {
-  if (!journalSection) return;
-  journalStops = Array.from(journalSection.querySelectorAll('.journal-stop'));
-  journalSection.style.height = (journalStops.length * 100) + 'vh';
-  updateScrollEffects();
-}
-
-journalTabs.forEach(tab => {
-  tab.addEventListener('click', () => {
-    if (!journalSection || !journalStops.length) return;
-    const stopIndex = Number(tab.dataset.stop);
-    const total = journalStops.length * window.innerHeight - window.innerHeight;
-    const targetY = journalSection.offsetTop + (stopIndex / (journalStops.length - 1)) * total;
-    window.scrollTo({ top: targetY, behavior: 'smooth' });
-  });
-});
 
 function updateScrollEffects() {
-  const y = window.scrollY;
-  navbarEl.classList.toggle('scrolled', y > 40);
-
-  if (manifestoSection) {
-    const words = manifestoSection.querySelectorAll('.word');
-    if (reducedMotion) {
-      words.forEach(w => w.classList.add('lit'));
-    } else {
-      const rect = manifestoSection.getBoundingClientRect();
-      const total = rect.height - window.innerHeight;
-      const progress = total > 0 ? Math.min(1, Math.max(0, -rect.top / total)) : 0;
-      const lit = Math.round(progress * words.length);
-      words.forEach((w, i) => w.classList.toggle('lit', i < lit));
-    }
-  }
-
-  if (journalSection && journalStops.length) {
-    const rect = journalSection.getBoundingClientRect();
-    const total = rect.height - window.innerHeight;
-    const raw = total > 0 ? Math.min(1, Math.max(0, -rect.top / total)) : 0;
-    const progress = raw * (journalStops.length - 1);
-
-    journalStops.forEach((stopEl, i) => {
-      const dist = progress - i;
-      const op = reducedMotion ? (i === Math.round(progress) ? 1 : 0) : Math.max(0, 1 - Math.abs(dist) / 0.65);
-      stopEl.style.opacity = op;
-    });
-
-    if (journalTabs.length) {
-      const nearest = Math.round(progress);
-      journalTabs.forEach(tab => tab.classList.toggle('active', Number(tab.dataset.stop) === nearest));
-    }
-  }
+  navbarEl.classList.toggle('scrolled', window.scrollY > 40);
 }
 
 let scrollTicking = false;
@@ -1184,8 +1105,6 @@ window.addEventListener('scroll', () => {
     scrollTicking = true;
   }
 }, { passive: true });
-window.addEventListener('resize', () => updateScrollEffects());
-initJournal();
 
 // ── Contact form
 function handleContact() {

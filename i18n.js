@@ -28,6 +28,12 @@
       'hero.heading': 'Travel Beyond<br>the <em>Ordinary</em>',
       'hero.subtext': 'The Travel Chapter curates extraordinary journeys for discerning travellers — from intimate ryokans in Kyoto to private yacht charters along the Amalfi Coast.',
       'hero.cta_primary': 'Explore Trips',
+
+      // ── index.html: destinations ──
+      'destinations.eyebrow': 'Where We Go',
+      'destinations.heading': 'Handpicked<br><em>Destinations</em>',
+      'destinations.subtext': 'Every destination is personally vetted by our travel curators — chosen for their cultural depth, natural beauty and rare experiences.',
+
       'journal.toc1': 'The Beginning — Kyoto',
       'journal.toc2': 'Word Traveled Fast — Amalfi',
       'journal.toc3': 'Learning to Listen — Marrakech',
@@ -232,6 +238,11 @@
       'hero.heading': '超越平凡<br>探索<em>非凡</em>',
       'hero.subtext': 'The Travel Chapter 为品味独到的旅行者精心策划非凡旅程——从京都的静谧旅馆到阿马尔菲海岸的私人游艇之旅。',
       'hero.cta_primary': '探索行程',
+
+      'destinations.eyebrow': '我们的足迹',
+      'destinations.heading': '精心甄选<br><em>目的地</em>',
+      'destinations.subtext': '每一个目的地都经过我们旅行策划师的亲自实地考察——因其深厚的文化底蕴、自然美景与独特体验而入选。',
+
       'journal.toc1': '起点 — 京都',
       'journal.toc2': '口碑相传 — 阿马尔菲',
       'journal.toc3': '学会倾听 — 马拉喀什',
@@ -422,6 +433,10 @@
       'hero.heading': 'Mengembara Melangkaui<br>yang <em>Biasa</em>',
       'hero.subtext': 'The Travel Chapter merancang perjalanan luar biasa untuk pengembara yang bercita rasa tinggi — dari ryokan intim di Kyoto hingga sewaan yacht peribadi di Pantai Amalfi.',
       'hero.cta_primary': 'Terokai Percutian',
+
+      'destinations.eyebrow': 'Ke Mana Kami Pergi',
+      'destinations.heading': 'Destinasi<br><em>Pilihan</em>',
+      'destinations.subtext': 'Setiap destinasi disemak sendiri oleh penyelaras perjalanan kami — dipilih atas kedalaman budaya, keindahan semula jadi dan pengalaman yang jarang ditemui.',
       'journal.toc1': 'Permulaan — Kyoto',
       'journal.toc2': 'Cerita Tersebar Pantas — Amalfi',
       'journal.toc3': 'Belajar Mendengar — Marrakech',

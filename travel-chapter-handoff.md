@@ -234,6 +234,72 @@ Three further changes to the restored (Workstream G) homepage layout, all in `in
 
 ---
 
+## Workstream I — Phone-first customer registration (WhatsApp OTP), Twilio setup blocked (added 2026-08-08)
+
+User asked to make customer registration on `login.html` "use phone number first." Clarified with the user this meant an actual flow change (not just field reordering): collect + verify the phone number via WhatsApp OTP **before** asking for name/password, not the old order (fill in everything, submit, verify after).
+
+### Code changes — DONE, NOT YET COMMITTED
+
+`login.html` register flow is now 3 steps instead of 1:
+1. **`form-register`** (reused id, contents replaced) — phone number only, button now calls `handleRegisterPhone()`, which calls `sb.auth.signInWithOtp({ phone, options: { shouldCreateUser: true, channel: 'whatsapp' } })`. This creates an unconfirmed, passwordless auth user (if new) and sends the WhatsApp OTP immediately.
+2. **`form-verify`** (existing form, now only reachable from step 1) — same 6-digit code UI as before, but `handleVerify()` now runs *before* any password/name exists. It sets `suppressAutoRedirect = true` first (same pattern as the existing forgot-password flow), calls `verifyOtp()`, then checks `profiles.first_name` for the now-authenticated user: if already set (this phone belongs to a pre-existing, fully set-up account — e.g. someone hit "Join Us" with an existing member's number), it signs them straight in via `routeSession()` instead of re-registering them; otherwise shows step 3.
+3. **`form-register-finish`** (new) — First Name, Last Name, Password. Submits via `sb.auth.updateUser({ password, data: { first_name, last_name, tier: 'explorer' } })`, **then also directly `UPDATE`s the `profiles` row** with first_name/last_name (`sb.from('profiles').update(...).eq('id', session.user.id)`) — necessary because the `handle_new_user` trigger only populates `profiles` on the initial `auth.users` INSERT (which now happens back in step 1, before any name is known), so the trigger alone would leave `profiles.first_name` null forever without this extra write. RLS already permits a user to update their own `profiles` row (same pattern `dashboard.html`'s `saveProfile()` already uses), so no new policy was needed.
+
+`resendCode()` was changed from `sb.auth.resend({type:'sms', channel:'whatsapp'})` to calling `signInWithOtp()` again — required because the OTP is now issued via `signInWithOtp` (sign-in-style OTP), not `signUp` (the old flow), and `auth.resend` is for resending signup/change confirmations, not sign-in OTPs.
+
+New i18n keys added (EN/ZH/MS) in `i18n.js`: `login.send_code_button`, `login.finish_profile_label`.
+
+**Verified locally** (local `python -m http.server`, real browser via Claude-in-Chrome): step 1→3 UI renders and transitions correctly, client-side validation fires without hitting the network. Did **not** verify an actual end-to-end OTP send/receive — see below, this is now blocked on Twilio being wired up. While testing, found and cleared a leftover service worker from an earlier local-testing session that was silently serving a stale cached `i18n.js` on `localhost` — not a code bug, just a stale local browser cache artifact, noted in case it trips up testing again (symptom: translated text renders as the literal uppercased dotted key, e.g. "LOGIN.SEND_CODE_BUTTON").
+
+**Not committed/pushed.** `git status` shows `i18n.js` and `login.html` modified, nothing staged. Per [[feedback_netlify_deploy_gate]], don't push without asking first anyway — but also don't commit-and-sit-on-it without flagging: this code is **not functionally testable end-to-end yet** because WhatsApp OTP delivery itself isn't wired up (see below), so hold off presenting this as "done."
+
+### Twilio setup — BLOCKED, not resolved this session
+
+The WhatsApp OTP delivery needs Twilio configured as Supabase's Phone auth provider (`channel: 'whatsapp'` only works with Twilio/Twilio Verify — confirmed via Supabase's own docs). User signed up for a Twilio **trial** account ("My First Twilio Account", Account SID redacted here (GitHub's secret scanner flags Twilio Account SIDs regardless of Twilio's own stance that they're non-secret identifiers — see Twilio console for the actual value if needed; Auth Token was never shared with or entered by Claude, per the credential-handling boundary). Attempted to verify the user's own Malaysian mobile number as a "Verified Caller ID" (a trial-account prerequisite — trial accounts can only call/text numbers you've manually verified) and hit a chain of blockers:
+
+1. **SMS verification method: hard-blocked for Malaysia.** Twilio's own error: "The verification has been blocked as this is a restricted country for verifying a caller ID by SMS." Confirmed via Twilio's help center — Malaysia doesn't allow the legacy Caller-ID-verification-by-SMS method at all; **Call is the only allowed method for MY.**
+2. **Call verification: failed repeatedly** with a generic "We were unable to place the call. Please try again." Investigated Twilio's Voice → Settings → Geo Permissions page (`console.twilio.com` → Voice → Settings → Geo permissions) to rule out a geographic block: **Malaysia is already enabled under Low-Risk by default** (only two narrow high-risk sub-ranges — "Special Services Number Ranges" and "High-Risk for Toll Fraud" — are gated behind an account upgrade, and a normal mobile number shouldn't fall in either). So geo-permissions were **not** the actual cause of the Call failures — root cause of that specific error was never conclusively identified (possibly number-format entry issue — e.g. leaving the leading `0` in front of the local number instead of dropping it, since `+60` is already supplied by the country dropdown).
+3. **After repeated attempts, the Verified Caller IDs page itself started hard-redirecting** to Twilio's "Upgrade your account" paywall (`1console.twilio.com/.../upgrade/v2`) instead of loading at all — strongly suggests the trial hit some usage/attempt-based gate that now requires adding a payment method before the account can continue verifying caller IDs (or possibly placing any more voice calls). Not confirmed whether this is a hard wall or a temporary throttle — wasn't retried after waiting.
+
+**Decision:** user chose to stop here and pick this back up later rather than add a payment method mid-session. **Nothing was entered into Supabase's Auth → Phone provider settings** — Twilio is not yet wired up on the Supabase side at all, so the WhatsApp OTP flow (both the new code above, and technically the *old* pre-existing WhatsApp OTP flow this replaced) will not actually deliver messages if tested right now.
+
+### To resume this later
+
+1. Decide how to get past the Twilio trial wall: add a payment method (doesn't necessarily mean getting charged — trial credit is normally used first), or try the **WhatsApp Sandbox** join flow instead (Console → Messaging → Try it out → Send a WhatsApp message) — this is a separate Twilio feature from Caller ID verification and may not be gated the same way; wasn't tried this session before stopping.
+2. Once you have a working Twilio Account SID + Auth Token + a WhatsApp-capable Messaging Service SID (see prior chat turn for the detailed Twilio-side walkthrough — create a Messaging Service, attach the WhatsApp sender/sandbox to it), enter them into **Supabase Dashboard → project `nkrpkfqibsudqsonljve` → Authentication → Sign In / Providers → Phone → SMS Provider: Twilio**.
+3. Test the new 3-step register flow on `login.html` end-to-end with a real phone number.
+4. Only then commit + ask before pushing (per [[feedback_netlify_deploy_gate]]) — `login.html`/`i18n.js` changes are sitting uncommitted locally right now.
+
+### Update (2026-08-11) — switched from WhatsApp to plain SMS, still blocked
+
+User upgraded and topped up the Twilio account (no longer trial), which lifts the Caller-ID-verification wall above — but rather than continue fighting Malaysia's WhatsApp-sender/Meta-approval path, decided to switch the whole OTP flow from WhatsApp to **plain SMS**, which needs no Meta approval or WhatsApp Sender at all, just an SMS-capable Twilio number attached to a Messaging Service.
+
+**Code changed (uncommitted, same as the rest of this workstream):** all four `signInWithOtp(...)` calls in `login.html` (`handleRegisterPhone`, `resendCode`, `handleForgotSend`, `resendForgotCode` — i.e. both the new register flow *and* the pre-existing forgot-password flow, which also used to be WhatsApp) now pass `channel: 'sms'` instead of `'whatsapp'`. All user-facing copy mentioning "WhatsApp" in `login.html` and in all three `i18n.js` languages (EN/ZH/MS) was reworded to say SMS/text message instead — confirmed no `whatsapp` string remains in either file (case-insensitive grep).
+
+**Also fixed while auditing:** `login.html`'s hero "Explore Destinations" / "Our Story" buttons were hardcoded to `https://elaborate-clafoutis-52f5fa.netlify.app/#destinations` / `#about` — an entirely unrelated Netlify site, not this project's. No idea how that got in there; not something introduced this session, just found and fixed to relative links (`index.html#destinations` / `index.html#about`) while going through every hardcoded URL in the repo for the domain change below.
+
+**Still blocked, now on a different step:** waiting on Twilio phone number verification (buying/verifying an SMS-capable number in the Twilio console) before a Messaging Service can be created and the SID entered into Supabase. **User explicitly asked to leave this for later** — do not chase it further unprompted next session, wait to be asked.
+
+---
+
+## Workstream J — Custom domain `thetravelchapter.com.my` linked (added 2026-08-11)
+
+User linked the customer-facing Netlify site (`thetravelchapter`, siteId `56615704-86bc-4072-9a46-a1733c80eb8e`) to the real custom domain **`thetravelchapter.com.my`** (domain/DNS setup done on Netlify's side, outside Claude Code). The admin site (`quietmeridian-4471`) is **not** affected — it's staying on its Netlify subdomain, consistent with Workstream D's goal of keeping the admin panel on an unguessable, unrelated URL.
+
+**Audited every hardcoded absolute URL in the repo** (`grep -rn "netlify.app"`) and updated the ones pointing at the customer site's old Netlify subdomain to the new domain — **code changes only, none of this is deployed yet**:
+- `supabase/functions/admin-users/index.ts` — `ALLOWED_ORIGINS` now includes `https://thetravelchapter.com.my` and `https://www.thetravelchapter.com.my` (added, didn't remove the old `thetravelchapter.netlify.app` / `quietmeridian-4471.netlify.app` entries — harmless to keep both during the transition, and the admin site's own origin still needs to stay listed regardless). **www vs. apex wasn't confirmed with the user — both were added defensively; if only one is actually live, the unused one is harmless dead weight, not a bug.**
+- `admin/admin-login.html` ("Go to Member Portal"), `admin/admin-cms.html` (both "Preview Page" links), `admin/admin.html` ("← Back to Dashboard") — all four absolute cross-domain links updated from `https://thetravelchapter.netlify.app/...` to `https://thetravelchapter.com.my/...`.
+
+**Not done yet — needs the edge function redeployed:** `supabase functions deploy admin-users` has to run before the updated `ALLOWED_ORIGINS` takes effect. Supabase CLI (`2.113.0`) is installed on this machine and the project is already linked (`supabase/.temp/project-ref` → `nkrpkfqibsudqsonljve`), **but the CLI isn't logged in** (`supabase projects list` returns `LegacyPlatformAuthRequiredError`) — needs `supabase login` (interactive, opens a browser) run by the user before a deploy can happen. Per [[feedback_netlify_deploy_gate]], wasn't attempted without asking anyway.
+
+**Practical consequence until that deploy happens:** admin-panel privileged actions (create/delete/update user) will get **CORS-blocked** for anyone visiting the admin panel from a session that itself originated from `thetravelchapter.com.my` context — actually, to be precise, the edge function only cares about the *admin site's* origin (`quietmeridian-4471.netlify.app`, unchanged), so admin actions themselves aren't broken by this — but nothing tests `thetravelchapter.com.my` as a calling origin until the redeploy ships, so don't assume the new domain is fully wired end-to-end yet.
+
+**Also found and fixed while auditing (unrelated pre-existing bug, not caused by the domain change):** `login.html`'s hero "Explore Destinations" / "Our Story" buttons were hardcoded to `https://elaborate-clafoutis-52f5fa.netlify.app` — a stray, unrelated Netlify site. Fixed to relative anchors. See the Workstream I update above for detail.
+
+**Not committed or pushed** — same uncommitted batch as the rest of this session (`login.html`, `i18n.js`, plus now `admin/admin-login.html`, `admin/admin-cms.html`, `admin/admin.html`, `supabase/functions/admin-users/index.ts`, and this handoff doc itself). Ask before pushing or deploying, per [[feedback_netlify_deploy_gate]].
+
+---
+
 ## Task checklist
 
 - [x] Open all 6 pages in a real browser, confirm logo renders correctly (sizing/placement) — done 2026-07-26 at desktop size.
@@ -253,3 +319,9 @@ Three further changes to the restored (Workstream G) homepage layout, all in `in
 - [ ] Netlify CLI is now logged in on this machine (state persists in `%APPDATA%\netlify`) — future sessions may not need `netlify login` again, but if `netlify status` shows logged out, re-run it (retry once if the first attempt times out waiting for browser approval).
 - [ ] If admin.html/admin-cms.html/admin-login.html change again, remember the deploy command is `netlify deploy --prod --dir=admin --site c5f73ef7-2043-4f04-8611-702f5a4e773b` — a plain `git push` will not update the live admin site (see Workstream F).
 - [ ] (Optional) `admin-cms.html`'s Hero "Featured Card" fields are now dead on the live site (Workstream H, 2026-08-06) — either hide/relabel them so editors aren't confused, or add back a fallback path for when the trips table has zero active rows.
+- [ ] **Paused, explicitly deferred by user (2026-08-11):** Twilio account is now upgraded/topped up (trial wall no longer applies) and the OTP channel was switched from WhatsApp to plain SMS (no Meta approval needed) — but still waiting on Twilio phone number verification before a Messaging Service can be created. Don't chase this further unprompted; wait to be asked. See Workstream I's 2026-08-11 update for exact state.
+- [ ] Once the Twilio SMS setup is done, test the phone-first register flow (`login.html`, Workstream I) end-to-end with a real number, then commit `login.html` + `i18n.js` (currently uncommitted) and ask before pushing.
+- [ ] **Redeploy `admin-users` edge function** (`supabase functions deploy admin-users`) so the updated `ALLOWED_ORIGINS` (now includes `thetravelchapter.com.my` / `www.thetravelchapter.com.my`, added 2026-08-11, Workstream J) takes effect. CLI is installed and the project is linked, but not logged in on this machine — run `supabase login` first.
+- [ ] Commit and push the custom-domain URL updates (Workstream J, 2026-08-11): `admin/admin-login.html`, `admin/admin-cms.html`, `admin/admin.html`, `supabase/functions/admin-users/index.ts` — ask before pushing (customer site auto-deploys on push) and before running the edge function deploy.
+- [ ] After `thetravelchapter.com.my` is confirmed fully live, redeploy `admin/` to the admin Netlify site too (`netlify deploy --prod --dir=admin --site c5f73ef7-2043-4f04-8611-702f5a4e773b`) so its cross-links point at the new domain — the admin HTML changes above only take effect there once that manual deploy runs, same as any other admin-file change (see Workstream F).
+- [ ] Confirm with the user whether `www.thetravelchapter.com.my` is actually a live/used variant or apex-only — `ALLOWED_ORIGINS` defensively includes both, worth trimming to just what's real once confirmed.

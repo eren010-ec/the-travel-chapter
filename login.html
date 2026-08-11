@@ -270,8 +270,8 @@ input:focus { border-color: var(--gold); background: var(--white); }
       <h1 data-i18n="login.hero_heading" data-i18n-html>Your Journey<br>Starts <em>Here</em></h1>
       <p data-i18n="login.hero_subtext">Sign in to access your bookings, explore curated trips, and manage your membership — all in one place.</p>
       <div class="hero-actions">
-        <a href="https://elaborate-clafoutis-52f5fa.netlify.app/#destinations" class="btn-hero-primary" data-i18n="login.explore_destinations">Explore Destinations</a>
-        <a href="https://elaborate-clafoutis-52f5fa.netlify.app/#about" class="btn-hero-ghost" data-i18n="login.our_story">Our Story</a>
+        <a href="index.html#destinations" class="btn-hero-primary" data-i18n="login.explore_destinations">Explore Destinations</a>
+        <a href="index.html#about" class="btn-hero-ghost" data-i18n="login.our_story">Our Story</a>
       </div>
     </div>
 
@@ -310,24 +310,8 @@ input:focus { border-color: var(--gold); background: var(--white); }
         <p class="form-footer"><span data-i18n="login.new_here">New here?</span> <a onclick="showForm('register')" data-i18n="login.create_account_link">Create an account</a></p>
       </div>
 
-      <!-- REGISTER -->
+      <!-- REGISTER: step 1 - phone number, sent + verified before any other detail -->
       <div class="form hidden" id="form-register">
-        <div class="field-row">
-          <div class="field">
-            <label data-i18n="login.first_name_label">First Name</label>
-            <div class="input-wrap">
-              <input type="text" id="reg-first" placeholder="Jane" autocomplete="given-name" data-i18n-placeholder="login.first_name_placeholder">
-              <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-            </div>
-          </div>
-          <div class="field">
-            <label data-i18n="login.last_name_label">Last Name</label>
-            <div class="input-wrap">
-              <input type="text" id="reg-last" placeholder="Smith" autocomplete="family-name" data-i18n-placeholder="login.last_name_placeholder">
-              <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
-            </div>
-          </div>
-        </div>
         <div class="field">
           <label data-i18n="login.phone_label">Phone Number</label>
           <div class="input-wrap">
@@ -336,25 +320,13 @@ input:focus { border-color: var(--gold); background: var(--white); }
           </div>
           <span class="err-msg" id="reg-phone-err"></span>
         </div>
-        <div class="field">
-          <label data-i18n="login.password_label">Password</label>
-          <div class="input-wrap">
-            <input type="password" id="reg-pw" placeholder="Min. 8 characters" oninput="checkStrength(this.value, 'bar')" data-i18n-placeholder="login.reg_password_placeholder">
-            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-          </div>
-          <div class="pw-strength">
-            <div class="pw-bar" id="bar1"></div><div class="pw-bar" id="bar2"></div>
-            <div class="pw-bar" id="bar3"></div><div class="pw-bar" id="bar4"></div>
-          </div>
-          <span class="err-msg" id="reg-err"></span>
-        </div>
-        <button class="btn-submit" id="btn-register" onclick="handleRegister()" data-i18n="login.create_account_button">Create Account</button>
+        <button class="btn-submit" id="btn-register" onclick="handleRegisterPhone()" data-i18n="login.send_code_button">Send Verification Code</button>
         <p class="form-footer"><span data-i18n="login.already_member">Already a member?</span> <a onclick="showForm('login')" data-i18n="login.signin_link">Sign in</a></p>
       </div>
 
-      <!-- VERIFY PHONE (post-registration WhatsApp OTP) -->
+      <!-- VERIFY PHONE: step 2 - SMS OTP, before password/name are collected -->
       <div class="form hidden" id="form-verify">
-        <p class="form-footer" id="verify-label" style="text-align:left;" data-i18n="login.verify_default_label">We sent a WhatsApp code to your phone.</p>
+        <p class="form-footer" id="verify-label" style="text-align:left;" data-i18n="login.verify_default_label">We sent an SMS code to your phone.</p>
         <div class="field">
           <label data-i18n="login.verify_code_label">Verification Code</label>
           <div class="input-wrap">
@@ -367,6 +339,40 @@ input:focus { border-color: var(--gold); background: var(--white); }
         <p class="form-footer"><a onclick="resendCode()" id="resend-link" data-i18n="login.resend_code">Resend code</a> · <a onclick="showForm('register')" data-i18n="login.wrong_number">Wrong number?</a></p>
       </div>
 
+      <!-- REGISTER: step 3 - name + password, shown only after phone verification succeeds -->
+      <div class="form hidden" id="form-register-finish">
+        <p class="form-footer" style="text-align:left;" data-i18n="login.finish_profile_label">Phone verified. Just a few more details to finish setting up your account.</p>
+        <div class="field-row">
+          <div class="field">
+            <label data-i18n="login.first_name_label">First Name</label>
+            <div class="input-wrap">
+              <input type="text" id="regf-first" placeholder="Jane" autocomplete="given-name" data-i18n-placeholder="login.first_name_placeholder">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            </div>
+          </div>
+          <div class="field">
+            <label data-i18n="login.last_name_label">Last Name</label>
+            <div class="input-wrap">
+              <input type="text" id="regf-last" placeholder="Smith" autocomplete="family-name" data-i18n-placeholder="login.last_name_placeholder">
+              <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
+            </div>
+          </div>
+        </div>
+        <div class="field">
+          <label data-i18n="login.password_label">Password</label>
+          <div class="input-wrap">
+            <input type="password" id="regf-pw" placeholder="Min. 8 characters" oninput="checkStrength(this.value, 'bar')" data-i18n-placeholder="login.reg_password_placeholder">
+            <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <div class="pw-strength">
+            <div class="pw-bar" id="bar1"></div><div class="pw-bar" id="bar2"></div>
+            <div class="pw-bar" id="bar3"></div><div class="pw-bar" id="bar4"></div>
+          </div>
+          <span class="err-msg" id="regf-err"></span>
+        </div>
+        <button class="btn-submit" id="btn-register-finish" onclick="handleRegisterFinish()" data-i18n="login.create_account_button">Create Account</button>
+      </div>
+
       <!-- FORGOT PASSWORD: request code -->
       <div class="form hidden" id="form-forgot-request">
         <div class="field">
@@ -377,13 +383,13 @@ input:focus { border-color: var(--gold); background: var(--white); }
           </div>
           <span class="err-msg" id="forgot-err"></span>
         </div>
-        <button class="btn-submit" id="btn-forgot-send" onclick="handleForgotSend()" data-i18n="login.forgot_send_button">Send WhatsApp Code</button>
+        <button class="btn-submit" id="btn-forgot-send" onclick="handleForgotSend()" data-i18n="login.forgot_send_button">Send SMS Code</button>
         <p class="form-footer"><a onclick="showForm('login')" data-i18n="login.back_to_signin">Back to sign in</a></p>
       </div>
 
       <!-- FORGOT PASSWORD: verify code + set new password -->
       <div class="form hidden" id="form-forgot-verify">
-        <p class="form-footer" id="forgot-verify-label" style="text-align:left;" data-i18n="login.forgot_verify_default_label">Enter the code we sent to your WhatsApp.</p>
+        <p class="form-footer" id="forgot-verify-label" style="text-align:left;" data-i18n="login.forgot_verify_default_label">Enter the code we sent by SMS.</p>
         <div class="field">
           <label data-i18n="login.verify_code_label">Verification Code</label>
           <div class="input-wrap">
@@ -437,7 +443,7 @@ let suppressAutoRedirect = false;
 sb.auth.getSession().then(({ data: { session } }) => routeSession(session));
 sb.auth.onAuthStateChange((event, session) => { if (!suppressAutoRedirect) routeSession(session); });
 
-const ALL_FORMS = ['login', 'register', 'verify', 'forgot-request', 'forgot-verify'];
+const ALL_FORMS = ['login', 'register', 'verify', 'register-finish', 'forgot-request', 'forgot-verify'];
 function showForm(name) {
   ALL_FORMS.forEach(f => document.getElementById('form-' + f).classList.toggle('hidden', f !== name));
   document.getElementById('auth-tabs').style.display = (name === 'login' || name === 'register') ? 'flex' : 'none';
@@ -494,24 +500,18 @@ async function handleLogin() {
   if (error) { showErr('login-err', error.message); btn.disabled = false; btn.textContent = TC_I18N.t('login.signin_button'); }
 }
 
-async function handleRegister() {
+async function handleRegisterPhone() {
   clearErrors();
-  const first = document.getElementById('reg-first').value.trim();
-  const last  = document.getElementById('reg-last').value.trim();
   const phone = normalizePhone(document.getElementById('reg-phone').value);
-  const pw    = document.getElementById('reg-pw').value;
-  if (!first || !phone || !pw) { showErr('reg-err', TC_I18N.t('login.err_fill_required')); return; }
+  if (!phone) { showErr('reg-phone-err', TC_I18N.t('login.err_fill_required')); return; }
   if (!isValidPhone(phone)) { showErr('reg-phone-err', TC_I18N.t('login.err_invalid_phone')); return; }
-  if (pw.length < 8) { showErr('reg-err', TC_I18N.t('login.err_password_length')); return; }
   const btn = document.getElementById('btn-register');
-  btn.disabled = true; btn.textContent = TC_I18N.t('login.creating_loading');
-  // All new members start as explorer (lowest tier) — no tier selection
-  const { error } = await sb.auth.signUp({
-    phone, password: pw,
-    options: { data: { first_name: first, last_name: last, tier: 'explorer' }, channel: 'whatsapp' }
-  });
-  btn.disabled = false; btn.textContent = TC_I18N.t('login.create_account_button');
-  if (error) { showErr('reg-err', error.message); return; }
+  btn.disabled = true; btn.textContent = TC_I18N.t('login.sending_loading');
+  // Sends the SMS OTP and creates the (unconfirmed, passwordless) auth user if the phone is new.
+  // Name + password are collected afterwards, once the phone number itself is verified — see handleVerify().
+  const { error } = await sb.auth.signInWithOtp({ phone, options: { shouldCreateUser: true, channel: 'sms' } });
+  btn.disabled = false; btn.textContent = TC_I18N.t('login.send_code_button');
+  if (error) { showErr('reg-phone-err', error.message); return; }
   pendingPhone = phone;
   document.getElementById('verify-label').textContent = TC_I18N.t('login.verify_sent', { phone });
   showForm('verify');
@@ -524,15 +524,45 @@ async function handleVerify() {
   if (!code) { showErr('verify-err', TC_I18N.t('login.err_enter_code')); return; }
   const btn = document.getElementById('btn-verify');
   btn.disabled = true; btn.textContent = TC_I18N.t('login.verifying_loading');
+  // Hold off the auto-redirect listener — a session already exists after verifyOtp, but a brand
+  // new account has no name/password yet, so it isn't ready for the dashboard until handleRegisterFinish runs.
+  suppressAutoRedirect = true;
   const { error } = await sb.auth.verifyOtp({ phone: pendingPhone, token: code, type: 'sms' });
-  if (error) { showErr('verify-err', error.message); btn.disabled = false; btn.textContent = TC_I18N.t('login.verify_button'); return; }
+  if (error) { suppressAutoRedirect = false; showErr('verify-err', error.message); btn.disabled = false; btn.textContent = TC_I18N.t('login.verify_button'); return; }
+  btn.disabled = false; btn.textContent = TC_I18N.t('login.verify_button');
+  const { data: { session } } = await sb.auth.getSession();
+  // If this phone already belongs to a fully set-up account (e.g. someone hit "Join Us" with an
+  // existing member's number), don't send them through the finish-profile step — just sign them in.
+  const { data: existingProfile } = await sb.from('profiles').select('first_name').eq('id', session.user.id).single();
+  suppressAutoRedirect = false;
+  if (existingProfile?.first_name) { routeSession(session); return; }
+  showForm('register-finish');
+}
+
+async function handleRegisterFinish() {
+  clearErrors();
+  const first = document.getElementById('regf-first').value.trim();
+  const last  = document.getElementById('regf-last').value.trim();
+  const pw    = document.getElementById('regf-pw').value;
+  if (!first || !pw) { showErr('regf-err', TC_I18N.t('login.err_fill_required')); return; }
+  if (pw.length < 8) { showErr('regf-err', TC_I18N.t('login.err_password_length')); return; }
+  const btn = document.getElementById('btn-register-finish');
+  btn.disabled = true; btn.textContent = TC_I18N.t('login.creating_loading');
+  // All new members start as explorer (lowest tier) — no tier selection
+  const { error } = await sb.auth.updateUser({ password: pw, data: { first_name: first, last_name: last, tier: 'explorer' } });
+  if (error) { showErr('regf-err', error.message); btn.disabled = false; btn.textContent = TC_I18N.t('login.create_account_button'); return; }
+  const { data: { session } } = await sb.auth.getSession();
+  // handle_new_user only populates profiles on the initial insert (which happened back at
+  // signInWithOtp with no name yet) — write the name into profiles directly too, not just auth metadata.
+  await sb.from('profiles').update({ first_name: first, last_name: last }).eq('id', session.user.id);
+  btn.disabled = false; btn.textContent = TC_I18N.t('login.create_account_button');
   showToast(TC_I18N.t('login.toast_welcome'));
-  // onAuthStateChange fires from the new session and redirects to dashboard.html
+  routeSession(session);
 }
 
 async function resendCode() {
   if (!pendingPhone) return;
-  const { error } = await sb.auth.resend({ type: 'sms', phone: pendingPhone, options: { channel: 'whatsapp' } });
+  const { error } = await sb.auth.signInWithOtp({ phone: pendingPhone, options: { shouldCreateUser: true, channel: 'sms' } });
   if (error) showErr('verify-err', error.message);
   else { showToast(TC_I18N.t('login.toast_code_resent')); startResendCooldown(); }
 }
@@ -567,7 +597,7 @@ async function handleForgotSend() {
   if (!isValidPhone(phone)) { showErr('forgot-err', TC_I18N.t('login.err_invalid_phone')); return; }
   const btn = document.getElementById('btn-forgot-send');
   btn.disabled = true; btn.textContent = TC_I18N.t('login.sending_loading');
-  const { error } = await sb.auth.signInWithOtp({ phone, options: { channel: 'whatsapp', shouldCreateUser: false } });
+  const { error } = await sb.auth.signInWithOtp({ phone, options: { channel: 'sms', shouldCreateUser: false } });
   btn.disabled = false; btn.textContent = TC_I18N.t('login.forgot_send_button');
   if (error) { showErr('forgot-err', error.message); return; }
   pendingPhone = phone;
@@ -577,7 +607,7 @@ async function handleForgotSend() {
 
 async function resendForgotCode() {
   if (!pendingPhone) return;
-  const { error } = await sb.auth.signInWithOtp({ phone: pendingPhone, options: { channel: 'whatsapp', shouldCreateUser: false } });
+  const { error } = await sb.auth.signInWithOtp({ phone: pendingPhone, options: { channel: 'sms', shouldCreateUser: false } });
   if (error) showErr('forgot-verify-err', error.message);
   else showToast(TC_I18N.t('login.toast_code_resent'));
 }

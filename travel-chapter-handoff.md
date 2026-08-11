@@ -296,7 +296,19 @@ User linked the customer-facing Netlify site (`thetravelchapter`, siteId `566157
 
 **Also found and fixed while auditing (unrelated pre-existing bug, not caused by the domain change):** `login.html`'s hero "Explore Destinations" / "Our Story" buttons were hardcoded to `https://elaborate-clafoutis-52f5fa.netlify.app` — a stray, unrelated Netlify site. Fixed to relative anchors. See the Workstream I update above for detail.
 
-**Not committed or pushed** — same uncommitted batch as the rest of this session (`login.html`, `i18n.js`, plus now `admin/admin-login.html`, `admin/admin-cms.html`, `admin/admin.html`, `supabase/functions/admin-users/index.ts`, and this handoff doc itself). Ask before pushing or deploying, per [[feedback_netlify_deploy_gate]].
+**Committed locally (2026-08-11):**
+1. `08628a7` — WhatsApp → SMS switch, fixed stray wrong-domain hero links (`login.html`, `i18n.js`)
+2. `27c8268` — Admin cross-links + edge function CORS → `thetravelchapter.com.my` (`admin/admin-login.html`, `admin/admin-cms.html`, `admin/admin.html`, `supabase/functions/admin-users/index.ts`)
+3. `5c39727` — This handoff doc update
+
+**Push-protection block on the Twilio SID — RESOLVED (2026-08-12):** `git push origin main` was originally rejected by GitHub push protection, which flagged the raw Twilio Account SID written in the Twilio-setup section above (as a "Twilio Account String Identifier" secret) inside the commit documenting it. Twilio's own docs treat the Account SID as a public, non-secret identifier (the Auth Token is the real secret and was never entered anywhere) — this was very likely a false positive, but GitHub blocked it regardless. Resolved by amending that commit (and this one, which also quoted it) to redact the SID from both places in this doc, since these commits hadn't been pushed yet so rewriting them was safe. **Commit hashes above are the post-redaction versions** — the original hashes (`c90a495`, `60d64c8`) referenced in earlier session notes no longer exist on `main`.
+
+**Still pending, independent of the (now-resolved) push block:**
+- `supabase login` (interactive, not run yet on this machine) then `supabase functions deploy admin-users` — needed before the new `ALLOWED_ORIGINS` (from commit `27c8268`) actually takes effect. CLI (`2.113.0`) is installed and the project is linked.
+- `netlify deploy --prod --dir=admin --site c5f73ef7-2043-4f04-8611-702f5a4e773b` — needed before the admin site's updated cross-links (also from `27c8268`) go live; git push doesn't touch this separately-deployed site.
+- Confirm whether `www.thetravelchapter.com.my` is actually a live/used variant or apex-only — `ALLOWED_ORIGINS` defensively includes both; trim once confirmed.
+
+Per [[feedback_netlify_deploy_gate]]: don't push, don't run the edge-function deploy, and don't run the Netlify admin deploy without asking first, even though the commits themselves are done.
 
 ---
 
@@ -307,7 +319,7 @@ User linked the customer-facing Netlify site (`thetravelchapter`, siteId `566157
 - [x] Create GitHub repo, push — done, `eren010-ec/the-travel-chapter`.
 - [x] Confirm the customer site (repo root) is connected to Netlify and auto-deploying from `main` — confirmed 2026-08-04, site `thetravelchapter`, auto-deploys within ~30s of push.
 - [x] Second Netlify site for `admin/` — exists (`quietmeridian-4471`, confirmed 2026-08-04) but **is not git-linked**; it's a manual-CLI-deploy-only site. See Workstream F for the exact `netlify deploy` command needed after every admin-file change.
-- [ ] Redeploy the `admin-users` edge function (`supabase functions deploy admin-users`) so the updated `ALLOWED_ORIGINS` (now includes the new admin site's origin) takes effect — needed before admin user-management actions will work on the new domain.
+- [ ] Redeploy the `admin-users` edge function (`supabase functions deploy admin-users`) — `ALLOWED_ORIGINS` has accumulated two rounds of un-deployed changes now (the admin site's own origin, and as of 2026-08-11 `thetravelchapter.com.my`/`www`). CLI (`2.113.0`) is installed and the project is linked, but not logged in on this machine — run `supabase login` first.
 - [ ] Do a real install test on an Android phone (Chrome install prompt) and an iPhone ("Add to Home Screen") against both deployed HTTPS URLs — confirm the customer app and the admin app install as distinct home-screen apps with correct icons/names, and that offline app-shell loading works.
 - [ ] Update any bookmarks/docs that pointed at the old `admin.html` / `admin-login.html` / `admin-cms.html` root-level URLs — the only working admin URL going forward is the new separate site.
 - [ ] (Optional) `SET search_path = public` on the 3 flagged functions.
@@ -320,8 +332,7 @@ User linked the customer-facing Netlify site (`thetravelchapter`, siteId `566157
 - [ ] If admin.html/admin-cms.html/admin-login.html change again, remember the deploy command is `netlify deploy --prod --dir=admin --site c5f73ef7-2043-4f04-8611-702f5a4e773b` — a plain `git push` will not update the live admin site (see Workstream F).
 - [ ] (Optional) `admin-cms.html`'s Hero "Featured Card" fields are now dead on the live site (Workstream H, 2026-08-06) — either hide/relabel them so editors aren't confused, or add back a fallback path for when the trips table has zero active rows.
 - [ ] **Paused, explicitly deferred by user (2026-08-11):** Twilio account is now upgraded/topped up (trial wall no longer applies) and the OTP channel was switched from WhatsApp to plain SMS (no Meta approval needed) — but still waiting on Twilio phone number verification before a Messaging Service can be created. Don't chase this further unprompted; wait to be asked. See Workstream I's 2026-08-11 update for exact state.
-- [ ] Once the Twilio SMS setup is done, test the phone-first register flow (`login.html`, Workstream I) end-to-end with a real number, then commit `login.html` + `i18n.js` (currently uncommitted) and ask before pushing.
-- [ ] **Redeploy `admin-users` edge function** (`supabase functions deploy admin-users`) so the updated `ALLOWED_ORIGINS` (now includes `thetravelchapter.com.my` / `www.thetravelchapter.com.my`, added 2026-08-11, Workstream J) takes effect. CLI is installed and the project is linked, but not logged in on this machine — run `supabase login` first.
-- [ ] Commit and push the custom-domain URL updates (Workstream J, 2026-08-11): `admin/admin-login.html`, `admin/admin-cms.html`, `admin/admin.html`, `supabase/functions/admin-users/index.ts` — ask before pushing (customer site auto-deploys on push) and before running the edge function deploy.
-- [ ] After `thetravelchapter.com.my` is confirmed fully live, redeploy `admin/` to the admin Netlify site too (`netlify deploy --prod --dir=admin --site c5f73ef7-2043-4f04-8611-702f5a4e773b`) so its cross-links point at the new domain — the admin HTML changes above only take effect there once that manual deploy runs, same as any other admin-file change (see Workstream F).
+- [ ] Once the Twilio SMS setup is done, test the phone-first register flow (`login.html`, Workstream I) end-to-end with a real number.
+- [ ] **`git push origin main`** — the GitHub push-protection block is resolved (Twilio SID redacted from the two commits that quoted it, see Workstream J), but the push itself hasn't been done yet. Per [[feedback_netlify_deploy_gate]], ask before pushing. 5 commits are queued (`6d77c8d`, `08628a7`, `27c8268`, `5c39727`, plus this doc-consolidation commit).
+- [ ] After `thetravelchapter.com.my` is confirmed fully live, redeploy `admin/` to the admin Netlify site too (`netlify deploy --prod --dir=admin --site c5f73ef7-2043-4f04-8611-702f5a4e773b`) so its cross-links point at the new domain — the admin HTML changes only take effect there once that manual deploy runs, same as any other admin-file change (see Workstream F).
 - [ ] Confirm with the user whether `www.thetravelchapter.com.my` is actually a live/used variant or apex-only — `ALLOWED_ORIGINS` defensively includes both, worth trimming to just what's real once confirmed.

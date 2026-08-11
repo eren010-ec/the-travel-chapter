@@ -24,6 +24,8 @@ const SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 // must be listed here too, or admin actions (create/delete/update users) will
 // get CORS-blocked. Update this if the admin site's name ever changes.
 const ALLOWED_ORIGINS = [
+  'https://thetravelchapter.com.my',
+  'https://www.thetravelchapter.com.my',
   'https://thetravelchapter.netlify.app',
   'https://quietmeridian-4471.netlify.app',
 ];

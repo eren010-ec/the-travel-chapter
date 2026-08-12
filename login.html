@@ -359,6 +359,13 @@ input:focus { border-color: var(--gold); background: var(--white); }
           </div>
         </div>
         <div class="field">
+          <label data-i18n="login.email_label">Email</label>
+          <div class="input-wrap">
+            <input type="email" id="regf-email" placeholder="jane@example.com" autocomplete="email" data-i18n-placeholder="login.email_placeholder">
+            <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><path d="m22 6-10 7L2 6"/></svg>
+          </div>
+        </div>
+        <div class="field">
           <label data-i18n="login.password_label">Password</label>
           <div class="input-wrap">
             <input type="password" id="regf-pw" placeholder="Min. 8 characters" oninput="checkStrength(this.value, 'bar')" data-i18n-placeholder="login.reg_password_placeholder">
@@ -543,8 +550,10 @@ async function handleRegisterFinish() {
   clearErrors();
   const first = document.getElementById('regf-first').value.trim();
   const last  = document.getElementById('regf-last').value.trim();
+  const email = document.getElementById('regf-email').value.trim();
   const pw    = document.getElementById('regf-pw').value;
-  if (!first || !pw) { showErr('regf-err', TC_I18N.t('login.err_fill_required')); return; }
+  if (!first || !email || !pw) { showErr('regf-err', TC_I18N.t('login.err_fill_required')); return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('regf-err', TC_I18N.t('login.err_invalid_email')); return; }
   if (pw.length < 8) { showErr('regf-err', TC_I18N.t('login.err_password_length')); return; }
   const btn = document.getElementById('btn-register-finish');
   btn.disabled = true; btn.textContent = TC_I18N.t('login.creating_loading');
@@ -553,8 +562,10 @@ async function handleRegisterFinish() {
   if (error) { showErr('regf-err', error.message); btn.disabled = false; btn.textContent = TC_I18N.t('login.create_account_button'); return; }
   const { data: { session } } = await sb.auth.getSession();
   // handle_new_user only populates profiles on the initial insert (which happened back at
-  // signInWithOtp with no name yet) — write the name into profiles directly too, not just auth metadata.
-  await sb.from('profiles').update({ first_name: first, last_name: last }).eq('id', session.user.id);
+  // signInWithOtp with no name yet) — write the name/email into profiles directly too, not just auth metadata.
+  // Stored as a plain profiles column (not auth.users.email) so it doesn't trigger Supabase's
+  // email-confirmation flow — these are phone-auth accounts with no email provider dependency.
+  await sb.from('profiles').update({ first_name: first, last_name: last, email }).eq('id', session.user.id);
   btn.disabled = false; btn.textContent = TC_I18N.t('login.create_account_button');
   showToast(TC_I18N.t('login.toast_welcome'));
   routeSession(session);

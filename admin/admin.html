@@ -273,8 +273,8 @@ textarea { resize:vertical; min-height:70px; }
       </div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Name</th><th>Email</th><th>Tier</th><th>Points</th><th>Bookings</th><th>Total Spent</th><th>Joined</th><th>Actions</th></tr></thead>
-          <tbody id="members-body"><tr><td colspan="8" class="loading">Loading…</td></tr></tbody>
+          <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Tier</th><th>Points</th><th>Bookings</th><th>Total Spent</th><th>Joined</th><th>Actions</th></tr></thead>
+          <tbody id="members-body"><tr><td colspan="9" class="loading">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -1066,7 +1066,7 @@ function filterMembers() {
   const q=document.getElementById('mb-search').value.toLowerCase();
   const tf=document.getElementById('mb-tier-filter').value;
   // Exclude admins and staff from members list — they live in the Admins tab
-  const filtered=allMembers.filter(m=>!m.is_admin&&!m.is_staff&&`${m.first_name||''} ${m.last_name||''} ${m.email||''}`.toLowerCase().includes(q)&&(!tf||m.tier===tf));
+  const filtered=allMembers.filter(m=>!m.is_admin&&!m.is_staff&&`${m.first_name||''} ${m.last_name||''} ${m.email||''} ${m.contact_email||''} ${m.phone||''}`.toLowerCase().includes(q)&&(!tf||m.tier===tf));
   document.getElementById('mb-count').textContent=`${filtered.length} members`;
   renderMembersRows(filtered);
 }
@@ -1079,7 +1079,8 @@ function renderMembersRows(list) {
   document.getElementById('members-body').innerHTML = list.length
     ? list.map(m=>`<tr>
         <td><strong>${m.first_name||''} ${m.last_name||''}</strong></td>
-        <td style="color:var(--smoke);font-size:0.78rem;">${m.email}</td>
+        <td style="color:var(--smoke);font-size:0.78rem;">${m.contact_email||m.email||''}</td>
+        <td style="color:var(--smoke);font-size:0.78rem;">${m.phone||''}</td>
         <td><span class="pill pill-${m.tier}">${cap(m.tier)}</span></td>
         <td>${(m.tier_points||0).toLocaleString()}</td>
         <td>${m.total_bookings||0}</td>
@@ -1090,7 +1091,7 @@ function renderMembersRows(list) {
           <button class="btn btn-danger btn-sm" onclick="deleteMember('${m.id}','${(m.first_name||'')+" "+(m.last_name||'')}')">Delete</button>
         </div></td>
       </tr>`).join('')
-    : '<tr><td colspan="8" class="empty">No members found.</td></tr>';
+    : '<tr><td colspan="9" class="empty">No members found.</td></tr>';
 }
 
 // ── ADMINS TABLE (admin position + staff position) ─────────

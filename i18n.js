@@ -13,6 +13,7 @@
       // ── shared ──
       'tier.explorer': 'Explorer', 'tier.premier': 'Premier', 'tier.elite': 'Elite',
       'status.pending': 'pending', 'status.confirmed': 'confirmed', 'status.cancelled': 'cancelled', 'status.completed': 'completed',
+      'status.redeemed': 'redeemed', 'status.rewarded': 'rewarded',
       // Generic "Chapter {word}" builder used when destination chapters come from the CMS
       // (which may have more/fewer than the 5 hardcoded fallback chapters).
       'journal.chapter_label': 'Chapter {word}',
@@ -232,6 +233,7 @@
     zh: {
       'tier.explorer': '探索者', 'tier.premier': '尊享', 'tier.elite': '至尊',
       'status.pending': '待处理', 'status.confirmed': '已确认', 'status.cancelled': '已取消', 'status.completed': '已完成',
+      'status.redeemed': '已兑换', 'status.rewarded': '已奖励',
       'journal.chapter_label': '第{word}章',
       'journal.chapter_word1': '一', 'journal.chapter_word2': '二', 'journal.chapter_word3': '三', 'journal.chapter_word4': '四', 'journal.chapter_word5': '五',
       'journal.chapter_word6': '六', 'journal.chapter_word7': '七', 'journal.chapter_word8': '八', 'journal.chapter_word9': '九', 'journal.chapter_word10': '十',
@@ -431,6 +433,7 @@
     ms: {
       'tier.explorer': 'Explorer', 'tier.premier': 'Premier', 'tier.elite': 'Elite',
       'status.pending': 'menunggu', 'status.confirmed': 'disahkan', 'status.cancelled': 'dibatalkan', 'status.completed': 'selesai',
+      'status.redeemed': 'ditebus', 'status.rewarded': 'diberi ganjaran',
       'journal.chapter_label': 'Bab {word}',
       'journal.chapter_word1': 'Satu', 'journal.chapter_word2': 'Dua', 'journal.chapter_word3': 'Tiga', 'journal.chapter_word4': 'Empat', 'journal.chapter_word5': 'Lima',
       'journal.chapter_word6': 'Enam', 'journal.chapter_word7': 'Tujuh', 'journal.chapter_word8': 'Lapan', 'journal.chapter_word9': 'Sembilan', 'journal.chapter_word10': 'Sepuluh',

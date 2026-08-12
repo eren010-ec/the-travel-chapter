@@ -374,6 +374,8 @@ User asked to combine the "Handpicked Destinations" grid with Featured Trips: e.
 
 **Committed locally, not yet pushed** — same as the rest of this session; ask before pushing (see [[feedback_netlify_deploy_gate]]).
 
+**Follow-up, same session:** user asked for real photos instead of emoji placeholders on the two live trip cards. Both `trips` rows had `cover_image = NULL`. Ran a direct `UPDATE` against production Supabase (via SQL Editor, not a migration file — this repo has no `supabase/migrations/`) setting `cover_image` to Wikimedia Commons hotlinks reusing the exact same city photos already vetted in Workstream E: `Kiyomizu-dera,_Kyoto,_November_2016_-02.jpg` for "Kyoto in Autumn" and `Koutoubia_Mosque_2.jpg` for "Marrakech & Beyond" (both via `commons.wikimedia.org/wiki/Special:FilePath/<file>?width=1200`, confirmed resolving 200 via `curl -L` before writing). This is a **content change on production data, not a code change** — no git diff, nothing to commit for this part. Same hotlinking tradeoff already accepted in Workstream E applies here too (no control over Wikimedia renaming/deleting the file, no ongoing link-rot monitoring). Verified live in the browser — both cards render the real photo, and the modal shows it too.
+
 ---
 
 ## Task checklist

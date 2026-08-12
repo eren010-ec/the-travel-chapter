@@ -137,7 +137,7 @@ section { padding:100px 6%; }
 .section-header { margin-bottom:56px; }
 .section-header-split { display:flex; align-items:flex-end; justify-content:space-between; gap:32px; margin-bottom:56px; flex-wrap:wrap; }
 
-/* ── DESTINATIONS ── */
+/* ── DESTINATIONS + TRIPS (merged: each card is a real trip, styled as a photo card) ── */
 #destinations { background:var(--white); }
 .destinations-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
 .dest-card {
@@ -155,27 +155,31 @@ section { padding:100px 6%; }
 .dest-always { position:absolute; bottom:0; left:0; right:0; padding:24px; background:linear-gradient(to top, rgba(26,31,46,0.85) 0%, transparent 100%); }
 .dest-name { font-family:'Cormorant Garamond',serif; font-size:1.4rem; font-weight:300; color:var(--white); }
 .dest-country { font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.6); margin-top:3px; }
+.dest-price { font-size:0.78rem; color:var(--gold); font-weight:500; margin-top:4px; }
+.dest-price span { color:rgba(255,255,255,0.6); font-weight:300; }
 .dest-card-wide { grid-column:span 2; }
 
-/* ── FEATURED TRIPS ── */
-.trips-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:24px; margin-top:56px; }
-.trip-card { background:var(--white); border:1px solid var(--border); border-radius:14px; overflow:hidden; transition:all 0.3s; }
-.trip-card:hover { transform:translateY(-4px); box-shadow:0 16px 48px rgba(26,31,46,0.1); }
-.trip-thumb { height:180px; display:flex; align-items:center; justify-content:center; font-size:3.5rem; position:relative; }
-.trip-tier-badge { position:absolute; top:14px; right:14px; padding:4px 10px; border-radius:50px; font-size:0.62rem; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; }
-.tier-explorer { background:rgba(39,174,96,0.15); color:#27ae60; }
-.tier-premier  { background:rgba(184,149,90,0.15); color:var(--gold); }
-.tier-elite    { background:rgba(26,31,46,0.1);    color:var(--navy); }
-.trip-body { padding:20px; }
-.trip-name { font-family:'Cormorant Garamond',serif; font-size:1.15rem; font-weight:400; color:var(--navy); }
-.trip-desc { font-size:0.78rem; color:var(--smoke); margin-top:6px; line-height:1.6; }
-.trip-meta { display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; }
-.trip-tag { font-size:0.65rem; padding:3px 9px; border-radius:4px; background:var(--cream2); color:var(--smoke); border:1px solid var(--border); }
-.trip-footer { display:flex; align-items:center; justify-content:space-between; margin-top:16px; padding-top:14px; border-top:1px solid var(--border); }
-.trip-price { font-size:1rem; color:var(--gold); font-weight:500; }
-.trip-price span { font-size:0.68rem; color:var(--smoke); font-weight:300; }
-.btn-trip { padding:8px 16px; border-radius:6px; border:none; background:var(--navy); color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.72rem; font-weight:500; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; text-decoration:none; transition:all 0.2s; }
-.btn-trip:hover { background:var(--navy2); }
+/* ── TRIP DETAIL MODAL ── */
+.trip-modal-overlay { position:fixed; inset:0; background:rgba(26,31,46,0.75); display:none; align-items:center; justify-content:center; z-index:1000; padding:24px; }
+.trip-modal-overlay.open { display:flex; }
+.trip-modal { background:var(--white); border-radius:16px; max-width:460px; width:100%; max-height:90vh; overflow-y:auto; }
+.trip-modal-img { height:220px; background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; font-size:4rem; position:relative; }
+.trip-modal-close {
+  position:absolute; top:14px; right:14px; width:32px; height:32px; border-radius:50%;
+  background:rgba(26,31,46,0.55); color:var(--white); border:none; cursor:pointer;
+  font-size:1rem; line-height:1; display:flex; align-items:center; justify-content:center; transition:background 0.2s;
+}
+.trip-modal-close:hover { background:rgba(26,31,46,0.8); }
+.trip-modal-body { padding:28px; }
+.trip-modal-title { font-family:'Cormorant Garamond',serif; font-size:1.6rem; font-weight:400; color:var(--navy); }
+.trip-modal-price { font-size:1.05rem; color:var(--gold); font-weight:500; margin-top:6px; }
+.trip-modal-price span { font-size:0.72rem; color:var(--smoke); font-weight:300; }
+.trip-modal-desc { font-size:0.85rem; color:var(--smoke); line-height:1.75; margin-top:14px; }
+.trip-modal-cta {
+  display:block; margin-top:22px; padding:13px; border-radius:8px; background:var(--navy); color:var(--white);
+  text-align:center; text-decoration:none; font-size:0.75rem; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; transition:background 0.2s;
+}
+.trip-modal-cta:hover { background:var(--navy2); }
 
 /* ── MEMBERSHIP TIERS ── */
 #membership { background:var(--navy); position:relative; overflow:hidden; }
@@ -275,11 +279,11 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 /* ── SCROLL REVEAL ── */
 .reveal { opacity:0; transform:translateY(28px); transition:opacity 0.7s ease, transform 0.7s ease; }
 .reveal.visible { opacity:1; transform:translateY(0); }
-.trips-grid > .reveal:nth-child(2), .tiers-grid > .reveal:nth-child(2), .testimonials-grid > .reveal:nth-child(2) { transition-delay:0.08s; }
-.trips-grid > .reveal:nth-child(3), .tiers-grid > .reveal:nth-child(3), .testimonials-grid > .reveal:nth-child(3) { transition-delay:0.16s; }
-.trips-grid > .reveal:nth-child(4) { transition-delay:0.24s; }
-.trips-grid > .reveal:nth-child(5) { transition-delay:0.32s; }
-.trips-grid > .reveal:nth-child(6) { transition-delay:0.4s; }
+.destinations-grid > .reveal:nth-child(2), .tiers-grid > .reveal:nth-child(2), .testimonials-grid > .reveal:nth-child(2) { transition-delay:0.08s; }
+.destinations-grid > .reveal:nth-child(3), .tiers-grid > .reveal:nth-child(3), .testimonials-grid > .reveal:nth-child(3) { transition-delay:0.16s; }
+.destinations-grid > .reveal:nth-child(4) { transition-delay:0.24s; }
+.destinations-grid > .reveal:nth-child(5) { transition-delay:0.32s; }
+.destinations-grid > .reveal:nth-child(6) { transition-delay:0.4s; }
 
 /* ── TOAST ── */
 .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); padding:11px 22px; border-radius:50px; font-size:0.8rem; transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1); z-index:200; white-space:nowrap; border:1px solid; background:var(--white); }
@@ -297,7 +301,7 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 @media(max-width:768px) {
   section { padding:70px 5%; }
   .section-title { font-size:2.2rem; }
-  .destinations-grid,.trips-grid,.tiers-grid,.testimonials-grid { grid-template-columns:1fr; }
+  .destinations-grid,.tiers-grid,.testimonials-grid { grid-template-columns:1fr; }
   .dest-card-wide { grid-column:span 1; }
   .nav-links { display:none; }
   .hero-text h1 { font-size:2.4rem; }
@@ -383,156 +387,70 @@ footer { background:var(--navy); padding:56px 6% 32px; }
     </div>
     <p class="section-sub" id="dest-subtext" data-i18n="destinations.subtext">Every destination is personally vetted by our travel curators — chosen for their cultural depth, natural beauty and rare experiences.</p>
   </div>
-  <div class="destinations-grid" id="dest-grid">
-    <div class="dest-card dest-card-wide reveal">
+  <!-- Each card here IS a trip (title + price shown directly on the photo) — clicking opens
+       the details modal below. Data mirrors FALLBACK_TRIPS in the script block so modal lookups
+       stay correct even before loadTrips() resolves; keep both in sync if editing this list. -->
+  <div class="destinations-grid" id="trips">
+    <div class="dest-card dest-card-wide reveal" onclick="openTripModal(0)">
       <div class="dest-card-bg" style="background:linear-gradient(160deg,#1a3a2a,#2d6a4f);">🍁</div>
       <div class="dest-always">
-        <div class="dest-name">Kyoto, Japan</div>
-        <div class="dest-country">East Asia</div>
+        <div class="dest-name">Kyoto in Autumn</div>
+        <div class="dest-price">RM 3,200 <span data-i18n="trips.per_person">/ person</span></div>
       </div>
     </div>
-    <div class="dest-card reveal">
+    <div class="dest-card reveal" onclick="openTripModal(1)">
       <div class="dest-card-bg" style="background:linear-gradient(160deg,#1a2a3a,#1e6091);">⛵</div>
       <div class="dest-always">
-        <div class="dest-name">Amalfi Coast</div>
-        <div class="dest-country">Mediterranean</div>
+        <div class="dest-name">Amalfi by Yacht</div>
+        <div class="dest-price">RM 6,800 <span data-i18n="trips.per_person">/ person</span></div>
       </div>
     </div>
-    <div class="dest-card reveal">
-      <div class="dest-card-bg" style="background:linear-gradient(160deg,#3a2a1a,#6b4a1a);">🐪</div>
+    <div class="dest-card reveal" onclick="openTripModal(2)">
+      <div class="dest-card-bg" style="background:linear-gradient(160deg,#3a1a1a,#7a3520);">🐪</div>
       <div class="dest-always">
-        <div class="dest-name">Marrakech</div>
-        <div class="dest-country">North Africa</div>
+        <div class="dest-name">Marrakech &amp; Beyond</div>
+        <div class="dest-price">RM 3,900 <span data-i18n="trips.per_person">/ person</span></div>
       </div>
     </div>
-    <div class="dest-card reveal">
+    <div class="dest-card reveal" onclick="openTripModal(3)">
       <div class="dest-card-bg" style="background:linear-gradient(160deg,#1a2a3a,#2d3561);">🛶</div>
       <div class="dest-always">
-        <div class="dest-name">Luang Prabang</div>
-        <div class="dest-country">Southeast Asia</div>
+        <div class="dest-name">Mekong River Journey</div>
+        <div class="dest-price">RM 4,100 <span data-i18n="trips.per_person">/ person</span></div>
       </div>
     </div>
-    <div class="dest-card dest-card-wide reveal">
+    <div class="dest-card dest-card-wide reveal" onclick="openTripModal(4)">
       <div class="dest-card-bg" style="background:linear-gradient(160deg,#2a1a3a,#4a2f6a);">🏔️</div>
       <div class="dest-always">
-        <div class="dest-name">Patagonia</div>
-        <div class="dest-country">South America</div>
+        <div class="dest-name">Patagonia Wilderness</div>
+        <div class="dest-price">RM 5,500 <span data-i18n="trips.per_person">/ person</span></div>
       </div>
     </div>
-  </div>
-
-  <!-- ── FEATURED TRIPS ── -->
-  <div class="trips-grid" id="trips">
-    <div class="trip-card reveal">
-      <div class="trip-thumb" style="background:linear-gradient(160deg,#1a3a2a,#2d6a4f);">
-        🍁 <span class="trip-tier-badge tier-explorer" data-i18n="tier.explorer">Explorer</span>
-      </div>
-      <div class="trip-body">
-        <div class="trip-name" data-i18n="trips.card1.name">Kyoto in Autumn</div>
-        <div class="trip-desc" data-i18n="trips.card1.desc">Chase the crimson maple leaves through Kyoto's finest temples and hidden gardens.</div>
-        <div class="trip-meta">
-          <span class="trip-tag">📅 <span data-i18n="trips.card1.duration">8 days</span></span>
-          <span class="trip-tag">👥 <span data-i18n="trips.card1.pax">Max 10</span></span>
-          <span class="trip-tag">✈️ <span data-i18n="trips.card1.window">Oct – Nov</span></span>
-        </div>
-        <div class="trip-footer">
-          <div class="trip-price">RM 3,200 <span data-i18n="trips.per_person">/ person</span></div>
-          <a href="index.html" class="btn-trip" data-i18n="trips.book_now">Book Now</a>
-        </div>
-      </div>
-    </div>
-    <div class="trip-card reveal">
-      <div class="trip-thumb" style="background:linear-gradient(160deg,#1a2a3a,#1e6091);">
-        ⛵ <span class="trip-tier-badge tier-premier" data-i18n="tier.premier">Premier</span>
-      </div>
-      <div class="trip-body">
-        <div class="trip-name" data-i18n="trips.card2.name">Amalfi by Yacht</div>
-        <div class="trip-desc" data-i18n="trips.card2.desc">A private yacht journey along the Amalfi Coast — secluded coves, fresh seafood and golden sunsets.</div>
-        <div class="trip-meta">
-          <span class="trip-tag">📅 <span data-i18n="trips.card2.duration">6 days</span></span>
-          <span class="trip-tag">👥 <span data-i18n="trips.card2.pax">Max 8</span></span>
-          <span class="trip-tag">✈️ <span data-i18n="trips.card2.window">Jun – Jul</span></span>
-        </div>
-        <div class="trip-footer">
-          <div class="trip-price">RM 6,800 <span data-i18n="trips.per_person">/ person</span></div>
-          <a href="index.html" class="btn-trip" data-i18n="trips.book_now">Book Now</a>
-        </div>
-      </div>
-    </div>
-    <div class="trip-card reveal">
-      <div class="trip-thumb" style="background:linear-gradient(160deg,#3a1a1a,#7a3520);">
-        🐪 <span class="trip-tier-badge tier-explorer" data-i18n="tier.explorer">Explorer</span>
-      </div>
-      <div class="trip-body">
-        <div class="trip-name" data-i18n="trips.card3.name">Marrakech & Beyond</div>
-        <div class="trip-desc" data-i18n="trips.card3.desc">Imperial cities, Sahara desert camps and Atlas mountain villages — Morocco in full depth.</div>
-        <div class="trip-meta">
-          <span class="trip-tag">📅 <span data-i18n="trips.card3.duration">9 days</span></span>
-          <span class="trip-tag">👥 <span data-i18n="trips.card3.pax">Max 14</span></span>
-          <span class="trip-tag">✈️ <span data-i18n="trips.card3.window">Sep – Oct</span></span>
-        </div>
-        <div class="trip-footer">
-          <div class="trip-price">RM 3,900 <span data-i18n="trips.per_person">/ person</span></div>
-          <a href="index.html" class="btn-trip" data-i18n="trips.book_now">Book Now</a>
-        </div>
-      </div>
-    </div>
-    <div class="trip-card reveal">
-      <div class="trip-thumb" style="background:linear-gradient(160deg,#1a2a3a,#2d3561);">
-        🛶 <span class="trip-tier-badge tier-explorer" data-i18n="tier.explorer">Explorer</span>
-      </div>
-      <div class="trip-body">
-        <div class="trip-name" data-i18n="trips.card4.name">Mekong River Journey</div>
-        <div class="trip-desc" data-i18n="trips.card4.desc">Slow travel through Laos on a restored river cruiser — monasteries, markets and misty mornings.</div>
-        <div class="trip-meta">
-          <span class="trip-tag">📅 <span data-i18n="trips.card4.duration">10 days</span></span>
-          <span class="trip-tag">👥 <span data-i18n="trips.card4.pax">Max 12</span></span>
-          <span class="trip-tag">✈️ <span data-i18n="trips.card4.window">Nov – Jan</span></span>
-        </div>
-        <div class="trip-footer">
-          <div class="trip-price">RM 4,100 <span data-i18n="trips.per_person">/ person</span></div>
-          <a href="index.html" class="btn-trip" data-i18n="trips.book_now">Book Now</a>
-        </div>
-      </div>
-    </div>
-    <div class="trip-card reveal">
-      <div class="trip-thumb" style="background:linear-gradient(160deg,#2a1a3a,#4a2f6a);">
-        🏔️ <span class="trip-tier-badge tier-premier" data-i18n="tier.premier">Premier</span>
-      </div>
-      <div class="trip-body">
-        <div class="trip-name" data-i18n="trips.card5.name">Patagonia Wilderness</div>
-        <div class="trip-desc" data-i18n="trips.card5.desc">Trek the W Circuit with expert mountain guides — glaciers, granite towers and the end of the world.</div>
-        <div class="trip-meta">
-          <span class="trip-tag">📅 <span data-i18n="trips.card5.duration">12 days</span></span>
-          <span class="trip-tag">👥 <span data-i18n="trips.card5.pax">Max 8</span></span>
-          <span class="trip-tag">✈️ <span data-i18n="trips.card5.window">Dec – Feb</span></span>
-        </div>
-        <div class="trip-footer">
-          <div class="trip-price">RM 5,500 <span data-i18n="trips.per_person">/ person</span></div>
-          <a href="index.html" class="btn-trip" data-i18n="trips.book_now">Book Now</a>
-        </div>
-      </div>
-    </div>
-    <div class="trip-card reveal">
-      <div class="trip-thumb" style="background:linear-gradient(160deg,#1a1a3a,#2d3561);">
-        🏯 <span class="trip-tier-badge tier-elite" data-i18n="tier.elite">Elite</span>
-      </div>
-      <div class="trip-body">
-        <div class="trip-name" data-i18n="trips.card6.name">Elite Japan Immersion</div>
-        <div class="trip-desc" data-i18n="trips.card6.desc">Private geisha dinners, bullet-train journeys and exclusive onsen retreats — Japan at its most intimate.</div>
-        <div class="trip-meta">
-          <span class="trip-tag">📅 <span data-i18n="trips.card6.duration">14 days</span></span>
-          <span class="trip-tag">👥 <span data-i18n="trips.card6.pax">Max 6</span></span>
-          <span class="trip-tag">✈️ <span data-i18n="trips.card6.window">Oct · Mar</span></span>
-        </div>
-        <div class="trip-footer">
-          <div class="trip-price">RM 12,000 <span data-i18n="trips.per_person">/ person</span></div>
-          <a href="index.html" class="btn-trip" data-i18n="trips.book_now">Book Now</a>
-        </div>
+    <div class="dest-card reveal" onclick="openTripModal(5)">
+      <div class="dest-card-bg" style="background:linear-gradient(160deg,#1a1a3a,#2d3561);">🏯</div>
+      <div class="dest-always">
+        <div class="dest-name">Elite Japan Immersion</div>
+        <div class="dest-price">RM 12,000 <span data-i18n="trips.per_person">/ person</span></div>
       </div>
     </div>
   </div>
 </section>
+
+<!-- ── TRIP DETAILS MODAL ── -->
+<div class="trip-modal-overlay" id="trip-modal-overlay" onclick="if(event.target===this) closeTripModal()">
+  <div class="trip-modal">
+    <div class="trip-modal-img" id="tm-img">
+      <span id="tm-emoji"></span>
+      <button class="trip-modal-close" onclick="closeTripModal()" aria-label="Close">✕</button>
+    </div>
+    <div class="trip-modal-body">
+      <div class="trip-modal-title" id="tm-title"></div>
+      <div class="trip-modal-price" id="tm-price"></div>
+      <div class="trip-modal-desc" id="tm-desc"></div>
+      <a href="login.html" class="trip-modal-cta" id="tm-cta" data-i18n="trips.book_now">Book Now</a>
+    </div>
+  </div>
+</div>
 
 <!-- ── MEMBERSHIP TIERS ── -->
 <section id="membership">
@@ -896,11 +814,17 @@ const TRIP_THUMBS = [
   { gradient:'linear-gradient(160deg,#1a1a3a,#2d3561)', emoji:'🏯' },
 ];
 function cap(s) { return s ? s[0].toUpperCase()+s.slice(1) : ''; }
-function departureWindow(dates) {
-  if (!dates || !dates.length) return '';
-  const months = dates.map(d => new Date(d).toLocaleDateString('en-US', { month:'short' }));
-  return [...new Set(months)].slice(0,2).join(' – ');
-}
+
+// Mirrors the hand-authored static cards in #trips, in the same order — used as the
+// openTripModal() data source until loadTrips() resolves with real DB rows (or if it never does).
+const FALLBACK_TRIPS = [
+  { title:'Kyoto in Autumn', summary:"Chase the crimson maple leaves through Kyoto's finest temples and hidden gardens.", price_usd:3200 },
+  { title:'Amalfi by Yacht', summary:'A private yacht journey along the Amalfi Coast — secluded coves, fresh seafood and golden sunsets.', price_usd:6800 },
+  { title:'Marrakech & Beyond', summary:'Imperial cities, Sahara desert camps and Atlas mountain villages — Morocco in full depth.', price_usd:3900 },
+  { title:'Mekong River Journey', summary:'Slow travel through Laos on a restored river cruiser — monasteries, markets and misty mornings.', price_usd:4100 },
+  { title:'Patagonia Wilderness', summary:'Trek the W Circuit with expert mountain guides — glaciers, granite towers and the end of the world.', price_usd:5500 },
+  { title:'Elite Japan Immersion', summary:'Private geisha dinners, bullet-train journeys and exclusive onsen retreats — Japan at its most intimate.', price_usd:12000 },
+];
 
 let lastDbTrips = null;
 async function loadTrips() {
@@ -914,31 +838,41 @@ function renderDbTrips(data) {
   if (!grid) return;
   grid.innerHTML = data.map((t, i) => {
     const thumb = TRIP_THUMBS[i % TRIP_THUMBS.length];
-    const window = departureWindow(t.departure_dates);
     const hasImage = !!t.cover_image;
-    const thumbStyle = hasImage ? `background:url('${t.cover_image}') center/cover no-repeat;` : `background:${thumb.gradient};`;
+    const bgStyle = hasImage ? `background:url('${t.cover_image}') center/cover no-repeat;` : `background:${thumb.gradient};`;
+    const wide = (i % 6 === 0 || i % 6 === 4) ? ' dest-card-wide' : '';
     return `
-      <div class="trip-card reveal">
-        <div class="trip-thumb" style="${thumbStyle}">
-          ${hasImage?'':thumb.emoji} <span class="trip-tier-badge tier-${t.min_tier}">${TC_I18N.t('tier.'+t.min_tier)}</span>
-        </div>
-        <div class="trip-body">
-          <div class="trip-name">${t.title||''}</div>
-          <div class="trip-desc">${t.summary||''}</div>
-          <div class="trip-meta">
-            <span class="trip-tag">📅 ${t.duration_days} ${TC_I18N.t('trips.days')}</span>
-            <span class="trip-tag">👥 ${TC_I18N.t('trips.max')} ${t.max_pax}</span>
-            ${window?`<span class="trip-tag">✈️ ${window}</span>`:''}
-          </div>
-          <div class="trip-footer">
-            <div class="trip-price">RM ${Number(t.price_usd).toLocaleString()} <span>${TC_I18N.t('trips.per_person')}</span></div>
-            <a href="index.html" class="btn-trip">${TC_I18N.t('trips.book_now')}</a>
-          </div>
+      <div class="dest-card${wide} reveal" onclick="openTripModal(${i})">
+        <div class="dest-card-bg" style="${bgStyle}">${hasImage?'':thumb.emoji}</div>
+        <div class="dest-always">
+          <div class="dest-name">${t.title||''}</div>
+          <div class="dest-price">RM ${Number(t.price_usd||0).toLocaleString()} <span>${TC_I18N.t('trips.per_person')}</span></div>
         </div>
       </div>`;
   }).join('');
   syncHeroCardsToTrips(data);
 }
+function openTripModal(i) {
+  const t = (lastDbTrips || FALLBACK_TRIPS)[i];
+  if (!t) return;
+  const thumb = TRIP_THUMBS[i % TRIP_THUMBS.length];
+  const hasImage = !!t.cover_image;
+  document.getElementById('tm-img').style.background = hasImage ? `url('${t.cover_image}') center/cover no-repeat` : thumb.gradient;
+  document.getElementById('tm-emoji').textContent = hasImage ? '' : thumb.emoji;
+  document.getElementById('tm-title').textContent = t.title || '';
+  document.getElementById('tm-price').innerHTML = `RM ${Number(t.price_usd||0).toLocaleString()} <span>${TC_I18N.t('trips.per_person')}</span>`;
+  document.getElementById('tm-desc').textContent = t.summary || '';
+  document.getElementById('tm-cta').href = memberLoggedIn ? 'dashboard.html' : 'login.html';
+  document.getElementById('trip-modal-overlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeTripModal() {
+  document.getElementById('trip-modal-overlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeTripModal(); });
+let memberLoggedIn = false;
+sb.auth.getSession().then(({ data: { session } }) => { memberLoggedIn = !!session; });
 function syncHeroCardsToTrips(data) {
   const [t1, t2] = data;
   if (t1) {

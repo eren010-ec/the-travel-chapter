@@ -355,6 +355,27 @@ User asked for two things: (1) after phone-first registration, collect the membe
 
 ---
 
+## Workstream L — Merged Destinations + Trips into one clickable grid with a details modal (added 2026-08-12)
+
+User asked to combine the "Handpicked Destinations" grid with Featured Trips: e.g. the Kyoto card should show its price and title directly on the photo, and clicking it should open a small popup with details — rather than the two separate, unlinked grids from Workstream H (destinations = CMS-managed name/region/photo with no trip data; trips = DB-managed real trip data below it).
+
+**Asked clarifying questions before implementing** (explicitly requested by the user this turn). Resolved: (1) replace the destinations grid entirely rather than try to link two separate data models — trips become the only grid, styled with the big-photo "destination card" look; (2) the modal shows photo/title/price/description only (no duration/pax/dates — those stay dropped from this view entirely); (3) the "Book Now" button was already a dead placeholder (`href="index.html"`) since it was first built — wired it to `login.html` (or `dashboard.html` if a session already exists), still short of real checkout logic.
+
+**What changed, all in `index.html`:**
+- Deleted the old static `<div class="destinations-grid" id="dest-grid">` (5 hardcoded destination cards) entirely, along with its CSS-independent `<div class="trips-grid" id="trips">` (6 hardcoded trip cards) — merged into one `<div class="destinations-grid" id="trips">` (kept `id="trips"` so the nav/footer/hero `#trips` anchors still work; kept `id="destinations"` on the outer `<section>` for the `#destinations` anchor). Cards reuse the existing `.dest-card`/`.dest-card-wide`/`.dest-card-bg`/`.dest-always`/`.dest-name` classes from the old destinations styling (big photo, hover lift, bottom gradient overlay), with a new `.dest-price` class added for the gold price line.
+- `renderDbTrips()` (called by `loadTrips()`, which reads the real `trips` table) rewritten to emit this new card shape instead of the old white-card `.trip-card` layout — title + price only on the card face, `onclick="openTripModal(i)"` on every card. Wide-card treatment (`dest-card-wide`) now applied by index (`i % 6 === 0 || i % 6 === 4`) rather than being CMS/DB-authored, to keep the masonry rhythm without a new schema field.
+- All `.trip-card`/`.trip-thumb`/`.trip-tier-badge`/`.tier-explorer`/`.tier-premier`/`.tier-elite`/`.trip-body`/`.trip-name`/`.trip-desc`/`.trip-meta`/`.trip-tag`/`.trip-footer`/`.trip-price`/`.btn-trip` CSS deleted — fully superseded, not used anywhere else in the file (checked). `departureWindow()` JS helper also deleted (its only call site was the removed old trip-card template); `cap()` was already dead before this change and was left alone, matching this project's established convention of not blindly pruning pre-existing dead code outside the area actually being touched.
+- New trip-details modal (`#trip-modal-overlay` → `.trip-modal` → image + title + price + description + CTA), built from scratch — index.html had no modal pattern before this. Closes via the ✕ button, clicking the overlay backdrop, or Escape. Body scroll is locked while open (`document.body.style.overflow`).
+- New `FALLBACK_TRIPS` JS array mirrors the (still hand-authored, for genuine no-JS/fetch-failure resilience) static HTML fallback cards' data exactly — `openTripModal(i)` reads `(lastDbTrips || FALLBACK_TRIPS)[i]`, so clicking a card works correctly even in the brief window before `loadTrips()` resolves, or if the Supabase fetch ever fails. **Keep these two in sync if editing the fallback list later** — there's no single source of truth enforcing it, just a code comment.
+- `memberLoggedIn` flag set once via `sb.auth.getSession()` at page load; `openTripModal()` uses it to point the modal's Book Now button at `dashboard.html` vs `login.html`.
+- `applyDestinations()` (the CMS-apply function for the old `#dest-grid`) was **not** deleted — it still applies the section's eyebrow/heading/subtext (still live, still CMS-editable — the header text didn't change), and its dead inner block targeting `#dest-grid` already safely no-ops (`if (grid)` guard, element no longer exists). Matches the exact precedent already set in Workstream H for `applyFeaturedTrips()`/hero "Featured Card" fields — dead sub-behavior deliberately left in place rather than surgically excised.
+
+**Verified live** via local `python -m http.server` + Claude-in-Chrome, against production Supabase's real `trips` table data (2 active rows at test time: "Marrakech & Beyond" RM 3,900, "Kyoto in Autumn" RM 1,000) — confirmed the merged grid renders correctly, clicking a card opens the modal with correct photo/title/price/description, the Book Now link correctly pointed to `login.html` (no session in the test browser), and the close button/backdrop-click both dismiss the modal. Did not test the `dashboard.html` CTA branch (would need a logged-in test session) or the genuine static-HTML fallback path (would need to simulate a Supabase fetch failure) — both are straightforward code paths, just not independently exercised this session.
+
+**Committed locally, not yet pushed** — same as the rest of this session; ask before pushing (see [[feedback_netlify_deploy_gate]]).
+
+---
+
 ## Task checklist
 
 - [x] Open all 6 pages in a real browser, confirm logo renders correctly (sizing/placement) — done 2026-07-26 at desktop size.

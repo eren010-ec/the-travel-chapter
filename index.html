@@ -910,31 +910,38 @@ function syncHeroCardsToTrips(data) {
 }
 TC_I18N.onChange(() => { if (lastDbTrips) renderDbTrips(lastDbTrips); });
 
-let lastCmsMembership = null;
 function applyMembership(d) {
-  lastCmsMembership = d;
   txt('mem-eyebrow', d.eyebrow);
   html('mem-heading', italicHeading(d.heading, d.heading_italic));
   txt('mem-subtext', d.subtext);
-  renderTiersGrid(d);
+  renderTiersGrid();
 }
-// Only the tiers grid needs to redraw on a language switch (it embeds the fixed
-// "Most Popular" badge text) — re-running the eyebrow/heading/subtext txt()/html()
-// calls above would stomp the translation applyStatic() just applied to them.
-function renderTiersGrid(d) {
-  if (!d.tiers) return;
+// Tier cards are NOT CMS-driven (unlike the rest of this function) — they reuse the same
+// trilingual dash.tier_*/tier.* i18n keys dashboard.html's tier comparison already has, so
+// this section is fully translated instead of always showing whatever language the CMS
+// content happens to be authored in. Keep both pages' perk lists in sync if editing either.
+const TIERS = [
+  { key: 'explorer', icon: '🌿', featured: false, perkCount: 4 },
+  { key: 'premier',  icon: '✦',  featured: true,  perkCount: 5 },
+  { key: 'elite',    icon: '👑', featured: false, perkCount: 5 },
+];
+function renderTiersGrid() {
   const grid = document.getElementById('tiers-grid');
-  if (grid) grid.innerHTML = d.tiers.map(t => `
-    <div class="tier-card ${t.featured?'featured':''} reveal">
-      ${t.featured?`<div class="tier-featured-label">${TC_I18N.t('membership.most_popular')}</div>`:''}
-      <div class="tier-icon">${t.icon||''}</div>
-      <div class="tier-name">${t.name||''}</div>
-      <div class="tier-pts">${t.points||''}</div>
+  if (!grid) return;
+  grid.innerHTML = TIERS.map(tier => {
+    const perks = Array.from({length: tier.perkCount}, (_, i) => TC_I18N.t(`dash.tier_${tier.key}_perk${i+1}`));
+    return `
+    <div class="tier-card ${tier.featured?'featured':''} reveal">
+      ${tier.featured?`<div class="tier-featured-label">${TC_I18N.t('membership.most_popular')}</div>`:''}
+      <div class="tier-icon">${tier.icon}</div>
+      <div class="tier-name">${TC_I18N.t('tier.'+tier.key)}</div>
+      <div class="tier-pts">${TC_I18N.t(`dash.tier_${tier.key}_pts`)}</div>
       <div class="tier-divider"></div>
-      <ul class="tier-perks">${(t.perks||[]).map(p=>`<li>${p}</li>`).join('')}</ul>
-    </div>`).join('');
+      <ul class="tier-perks">${perks.map(p=>`<li>${p}</li>`).join('')}</ul>
+    </div>`;
+  }).join('');
 }
-TC_I18N.onChange(() => { if (lastCmsMembership) renderTiersGrid(lastCmsMembership); });
+TC_I18N.onChange(() => renderTiersGrid());
 
 function applyAbout(d) {
   txt('about-eyebrow', d.eyebrow);

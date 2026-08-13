@@ -420,6 +420,43 @@ User asked for a full check of the site's trilingual support after noticing the 
 
 ---
 
+## Workstream O — Full site audit: console errors, admin-CMS field parity, member↔admin data sync, security advisor (added 2026-08-13)
+
+User asked for a full check of the whole site including the admin panel, specifically errors and sync between the member and admin sides. Research-only session — no admin/member login credentials available, so everything was verified either via the 3 publicly-reachable pages (index/login/admin-login) in-browser, or via direct SQL/dashboard access (which this session already had a working connection to). Findings below, roughly in order of how actionable they are.
+
+### Console errors: clean
+Hard-reloaded and checked `index.html`, `login.html`, `admin/admin-login.html` — zero errors from the app's own code on any of them. The only console entries present were `TypeError: Cannot read properties of undefined (reading 'M_ID')` from an unrelated Chrome extension (`chrome-extension://eppiocemhmnlbhjplcgkofciiegomcon/`), not this app — confirmed by identical timestamps across unrelated page loads. `dashboard.html` and the authenticated admin pages weren't checked this way (no session to reach them past the auth redirect).
+
+### New finding: 4 more dead admin-cms.html fields, previously undocumented
+Following the same pattern already found twice this session (Hero "Featured Card" in Workstream H, Membership tiers in Workstream N), systematically cross-referenced **every** `admin-cms.html` form field against its corresponding `apply*()` function target element in `index.html`. Found 4 more editable-but-invisible fields, all pre-existing (not caused by anything this session touched):
+1. **Hero → secondary CTA button** (`hero_cta_secondary_label`/`hero_cta_secondary_href`) — `applyHero()` never even attempts to read `d.cta_secondary_label`/`href`, no `hero-cta-secondary` element exists. Distinct from the already-documented "Featured Card" dead fields in the same tab.
+2. **CTA Banner → secondary button** (`cta_secondary_label`/`cta_secondary_href`) — same issue, `applyCta()` looks for `document.getElementById('cta-secondary')` which doesn't exist; only the primary button (`cta-primary`) is real.
+3. **Navbar → "Logo / Brand Name" text field** — `applyNavbar()` only checks `d.logo` for truthiness, then hardcodes the text to the literal string `'The Travel Chapter'` regardless of what was actually typed. Editing this field to say anything else has zero visible effect.
+4. **Navbar → "Navigation Links" array editor** (add/edit/remove label+href per link) — fully dead. The actual `<nav>` menu (`<ul class="nav-links">`) is 100% static hardcoded HTML with i18n-driven labels (`nav.destinations`, `nav.trips`, etc.), never touched by any JS. Confirmed via direct HTML inspection, not just absence of a target ID.
+
+All other admin-cms.html sections (Destinations header, About, Testimonials, Contact, Footer) were checked field-by-field and are fully live — no other gaps found. **Not fixed this session** — flagging clearly rather than silently patching, since deciding whether to wire these up, hide them, or leave them as future capacity is a product decision, not a bug fix with one obvious right answer.
+
+### New finding: member's registration email has no edit path anywhere
+`profiles.email` (added this session, Workstream K) is set once at registration and then genuinely orphaned: `dashboard.html`'s "My Profile" page has no email field at all (only first/last name, phone, DOB, nationality, passport), and `admin/admin.html`'s member-edit modal has no `contact_email` field either — it only appears as a read-only cell in the members list table. If a member typos their email at signup, or it changes, **there is currently no UI path for anyone — member or admin — to correct it**, only a direct SQL `UPDATE`. Worth a small follow-up (either add it to the dashboard profile form, or add it to the admin edit modal, or both) — not done this session, wasn't asked, flagging since it's directly relevant to "member ↔ admin sync."
+
+### Member ↔ admin data sync: verified clean via direct view/RPC comparison
+Pulled `pg_get_viewdef()` for all 8 `admin_*` views (`admin_members`, `admin_bookings`, `admin_referrals`, `admin_vouchers`, `admin_lucky_draws`, `admin_lucky_draw_entrants`, `admin_lucky_draw_winners`, `admin_revenue_bookings`) and cross-checked every column against the exact field names `admin/admin.html`'s JS actually reads off each RPC's response. **Only `admin_members` had a real gap, and it was already found and fixed earlier this session** (Workstream K — missing `phone`/`date_of_birth`/`nationality`/`passport_no`). Every other view is fully in sync with what the admin panel consumes — some views expose a few columns the UI doesn't currently render (e.g. `admin_bookings.points_earned`, `.duration_days`, `.trip_price`, `.member_tier`), which is normal and not a bug (unused ≠ broken). Also confirmed `get_admin_revenue()` — the RPC name `admin.html` actually calls — exists and correctly wraps `admin_revenue_bookings`, ruling out a naming-mismatch bug.
+
+Also verified the **admin Trips management UI** (`page-trips` in `admin/admin.html`) — this is complete and correctly built: title/slug/summary/duration/price/min-tier/max-pax/departure-dates/active-toggle, plus a real photo **file upload** (not just a URL field) to a Supabase Storage bucket. Confirmed the `trip-images` bucket exists, is public, and has the correct RLS policies (`admin/staff upload/update/delete`, `public read`). This is the *intended* way to add trip photos going forward — the manual Wikimedia-hotlink `UPDATE` used earlier this session (Workstream L follow-up) was a one-off workaround before this admin UI was found/verified, not the normal workflow.
+
+### Supabase Security Advisor: 0 errors, 32 warnings — one new, rest already known
+- **0 errors.**
+- **New, not previously documented:** `Public Bucket Allows Listing` on `storage.trip-images` — the bucket's public SELECT policy allows listing all filenames in the bucket, not just fetching a known URL. Low severity for a bucket of public marketing photos (nothing sensitive), but noted since it wasn't flagged before. Not fixed this session.
+- **~30 warnings, already-known/accepted pattern:** `Public Can Execute SECURITY DEFINER Function` / `Signed-In Users Can Execute SECURITY DEFINER Function` on `is_admin()`, `is_admin_or_staff()`, `handle_new_user()`, `award_points_on_confirm()`, `build_lucky_draw_pool()`, `draw_lucky_winners()`, `protect_booking_integrity()`, `protect_position_flags()`, and every `get_admin_*()` RPC — matches the exact "expected/benign" pattern already documented in Workstream B (these functions internally call `is_admin_or_staff()` and raise an exception before doing anything if the caller isn't authorized, so "callable" ≠ "usable").
+- **1 already-known, still-not-fixed:** Leaked password protection still disabled in Auth settings — same item that's been on the optional-follow-ups list since Workstream B.
+
+### Not checked this session (no credentials / out of scope)
+`dashboard.html`'s and `admin/admin.html`'s/`admin-cms.html`'s authenticated-view behavior (rendering with real data, button click-throughs) — would need a real member/admin session, and Claude doesn't handle login credentials. Also didn't re-run the `function_search_path_mutable` check for the 3 originally-flagged functions from Workstream B (`award_points_on_confirm`, `handle_new_user`, `set_updated_at`) — not visible in this pass's warnings list (possibly already fixed, possibly just not surfaced by this particular filter), worth a direct re-check if picking this up.
+
+**No code changes this session** — this was a research/audit pass only. Nothing to commit.
+
+---
+
 ## Task checklist
 
 - [x] Open all 6 pages in a real browser, confirm logo renders correctly (sizing/placement) — done 2026-07-26 at desktop size.
@@ -446,3 +483,6 @@ User asked for a full check of the site's trilingual support after noticing the 
 - [ ] **New commit `06683c3` (Twilio Verify + `+60` prefill, Workstream I) and the Workstream K changes (registration email field, admin phone/email visibility) are committed locally but not yet pushed** — ask before pushing, per [[feedback_netlify_deploy_gate]].
 - [ ] After `thetravelchapter.com.my` is confirmed fully live, redeploy `admin/` to the admin Netlify site too (`netlify deploy --prod --dir=admin --site c5f73ef7-2043-4f04-8611-702f5a4e773b`) so its cross-links point at the new domain — the admin HTML changes only take effect there once that manual deploy runs, same as any other admin-file change (see Workstream F).
 - [ ] Confirm with the user whether `www.thetravelchapter.com.my` is actually a live/used variant or apex-only — `ALLOWED_ORIGINS` defensively includes both, worth trimming to just what's real once confirmed.
+- [ ] (Optional) 4 more dead `admin-cms.html` fields found during Workstream O's full audit: Hero secondary CTA, CTA Banner secondary CTA, Navbar brand-name text (value ignored), Navbar nav-links array (fully unused, nav is static HTML). Same class of issue as the already-known Hero Featured Card / Membership Tiers dead fields — hide/relabel or wire up, neither done.
+- [ ] Member's registration email (`profiles.email`) has no edit UI anywhere — not on `dashboard.html`'s My Profile page, not in `admin/admin.html`'s member-edit modal (list-view only, read-only). Only fixable via direct SQL right now. Worth adding to one or both forms.
+- [ ] (Optional) `storage.trip-images` bucket flagged by Supabase Security Advisor as allowing public file listing (not just fetch-by-URL) — low severity for public marketing photos, but worth tightening the SELECT policy if it matters.

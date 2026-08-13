@@ -656,26 +656,16 @@ function renderFooterForm(d) {
 }
 
 function renderNavbarForm(d) {
-  const links = d.links || [];
   return `
   <div class="card">
     <div class="card-title"><span>🔤</span> Brand</div>
     <div class="field"><label>Logo / Brand Name</label><input type="text" id="nav_logo" value="${esc(d.logo||'')}"></div>
-  </div>
-  <div class="card">
-    <div class="card-title"><span>🔗</span> Navigation Links</div>
-    ${links.map((l,i)=>`
-      <div class="array-item">
-        <div class="array-item-header">
-          <div class="array-item-label">Link ${i+1}</div>
-          <button class="btn-icon" onclick="removeNavLink(${i})">✕</button>
-        </div>
-        <div class="field-row">
-          <div class="field"><label>Label</label><input type="text" id="nav_label_${i}" value="${esc(l.label||'')}"></div>
-          <div class="field"><label>Link / Anchor</label><input type="text" id="nav_href_${i}" value="${esc(l.href||'')}"></div>
-        </div>
-      </div>`).join('')}
-    <button class="btn-add-item" onclick="addNavLink()">+ Add Link</button>
+    <div class="field" style="margin-top:8px;padding:14px;background:var(--cream2);border-radius:10px;border:1px solid var(--border);">
+      <div style="display:flex;gap:8px;align-items:flex-start;">
+        <span style="font-size:1rem;flex-shrink:0;">ℹ️</span>
+        <span style="font-size:0.78rem;color:var(--smoke);line-height:1.5;">The navigation menu items (Destinations, Trips, Membership, etc.) are fixed in code and translated into English/Chinese/Malay — they aren't editable here, since CMS-authored labels would only ever show in one language.</span>
+      </div>
+    </div>
   </div>`;
 }
 
@@ -738,10 +728,9 @@ function buildContentFromForm(section) {
         trip_options:v('con_trip_options').split('\n').map(s=>s.trim()).filter(Boolean) };
     case 'footer':
       return { ...d, tagline:v('footer_tagline'), copyright:v('footer_copyright'), location_badge:v('footer_location_badge') };
-    case 'navbar': {
-      const links = (d.links||[]).map((_,i)=>({ label:v(`nav_label_${i}`), href:v(`nav_href_${i}`) }));
-      return { ...d, logo:v('nav_logo'), links };
-    }
+    case 'navbar':
+      // links intentionally left untouched — not editable here, see renderNavbarForm's info note
+      return { ...d, logo:v('nav_logo') };
     default: return d;
   }
 }
@@ -800,19 +789,6 @@ function removeTestimonial(i) {
   cmsData['testimonials'] = built;
   renderEditor('testimonials');
 }
-function addNavLink() {
-  const built = buildContentFromForm('navbar');
-  built.links.push({ label:'', href:'#' });
-  cmsData['navbar'] = built;
-  renderEditor('navbar');
-}
-function removeNavLink(i) {
-  const built = buildContentFromForm('navbar');
-  built.links.splice(i,1);
-  cmsData['navbar'] = built;
-  renderEditor('navbar');
-}
-
 // ── UTILS ──────────────────────────────────────────────────
 function esc(s) { return String(s).replace(/"/g,'&quot;').replace(/</g,'&lt;'); }
 

@@ -349,6 +349,7 @@ footer { background:var(--navy); padding:56px 6% 32px; }
       <p id="hero-subtext" data-i18n="hero.subtext">The Travel Chapter curates extraordinary journeys for discerning travellers — from intimate ryokans in Kyoto to private yacht charters along the Amalfi Coast.</p>
       <div class="hero-actions">
         <a href="#trips" class="btn-hero-primary" id="hero-cta-primary" data-i18n="hero.cta_primary">Explore Trips</a>
+        <a href="#" class="btn-hero-ghost" id="hero-cta-secondary" style="display:none;"></a>
       </div>
       <div class="hero-stats" id="hero-stats">
         <div><span class="hero-stat-val">48+</span><span class="hero-stat-lbl">Destinations</span></div>
@@ -598,6 +599,7 @@ footer { background:var(--navy); padding:56px 6% 32px; }
   <p class="reveal" id="cta-subtext" data-i18n="cta.subtext">Join thousands of discerning travellers who have trusted us with their most precious journeys.</p>
   <div class="cta-actions reveal">
     <a href="#contact" class="btn-hero-primary" id="cta-primary" data-i18n="cta.primary">Talk to Us</a>
+    <a href="#" class="btn-hero-ghost" id="cta-secondary" style="display:none;"></a>
   </div>
 </div>
 
@@ -756,6 +758,11 @@ function applyHero(d) {
   txt('hero-subtext', d.subtext);
   const p1 = document.getElementById('hero-cta-primary');
   if(p1) { p1.textContent=d.cta_primary_label||''; p1.href=d.cta_primary_href||'#'; }
+  const p2 = document.getElementById('hero-cta-secondary');
+  if(p2) {
+    if (d.cta_secondary_label) { p2.textContent=d.cta_secondary_label; p2.href=d.cta_secondary_href||'#'; p2.style.display=''; }
+    else { p2.style.display='none'; }
+  }
   if(d.stats) {
     const el = document.getElementById('hero-stats');
     if(el) el.innerHTML = d.stats.map(s=>`<div><span class="hero-stat-val">${s.value}</span><span class="hero-stat-lbl">${s.label}</span></div>`).join('');
@@ -988,7 +995,10 @@ function applyCta(d) {
   txt('cta-subtext', d.subtext);
   const p1=document.getElementById('cta-primary'); const p2=document.getElementById('cta-secondary');
   if(p1){p1.textContent=d.cta_primary_label||'';p1.href=d.cta_primary_href||'#';}
-  if(p2){p2.textContent=d.cta_secondary_label||'';p2.href=d.cta_secondary_href||'#';}
+  if(p2){
+    if (d.cta_secondary_label) { p2.textContent=d.cta_secondary_label; p2.href=d.cta_secondary_href||'#'; p2.style.display=''; }
+    else { p2.style.display='none'; }
+  }
 }
 
 let lastCmsContact = null;
@@ -1018,7 +1028,7 @@ function applyFooter(d) {
 
 function applyNavbar(d) {
   const logo=document.getElementById('nav-logo-text');
-  if(logo&&d.logo) logo.textContent='The Travel Chapter';
+  if(logo&&d.logo) logo.textContent=d.logo;
 }
 
 // ── Scroll reveal

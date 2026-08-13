@@ -457,6 +457,30 @@ Also verified the **admin Trips management UI** (`page-trips` in `admin/admin.ht
 
 ---
 
+## Workstream P — Fixed all 3 genuinely-new findings from Workstream O's audit (added 2026-08-13)
+
+User asked to fix the 3 real (not-previously-known) issues surfaced by the prior audit, in order.
+
+### 1. Four dead `admin-cms.html` fields — all now live
+- **Hero secondary CTA**: added `#hero-cta-secondary` `<a>` in `index.html`, `applyHero(d)` now reads `d.cta_secondary_label`/`d.cta_secondary_href` and hides the button when empty.
+- **CTA Banner secondary button**: same pattern, new `#cta-secondary` `<a>`, `applyCta(d)` wired up the same way.
+- **Navbar brand-name text**: `applyNavbar(d)` no longer hardcodes `'The Travel Chapter'` — now sets `logo.textContent = d.logo` when present.
+- **Navbar "Navigation Links" array editor**: this one genuinely can't be wired up — the live `<nav>` menu is static, trilingual, i18n-driven HTML (`nav.destinations` etc.), and CMS-authored link labels would only ever render in one language, silently breaking ZH/BM visitors. Removed the dead editor from `admin-cms.html`'s `renderNavbarForm()` (and its `addNavLink()`/`removeNavLink()` helpers) and replaced it with a small info note explaining why nav links live in code, not CMS. `buildContentFromForm()`'s navbar case updated to match (leaves `links` untouched).
+- **Verified locally**: hard-reloaded `index.html`, confirmed via screenshot + DOM inspection that both secondary buttons now render with their real previously-invisible saved CMS content ("BECOME A MEMBER" / "Talk to Us First"), and confirmed via a live `cms_content` query that the navbar logo text (`"The Travel Chapter"`) is genuinely being read from the DB now, not coincidentally matching a hardcoded default.
+
+### 2. Member registration email — now editable in both places
+- `dashboard.html`: added an Email field to the "My Profile" personal-information card (between Last Name and Phone Number, matching existing field order). `prefillProfile()` reads `profile.email`, `saveProfile()` writes `email` into the `profiles` update payload.
+- `admin/admin.html`: added a **"Contact Email"** field to the member-edit modal's Personal Information grid — deliberately a new `#mm-contact-email` id, kept separate from the existing `#mm-email` field. Relabeled that existing field "Login Email" (was just "Email Address") and added a line to its hint text clarifying it's separate from Contact Email, since `#mm-email` writes the real *auth* login credential via the `admin-users` edge function — folding the two together was the exact accidental-credential-set risk already caught once this session (Workstream K). `openMemberModal()` populates the new field from `m.contact_email` (the `admin_members` view column); `saveMember()` writes it back as `email` in the plain `sb.from('profiles').update()` call, never through `callAdminFn()`.
+- `i18n.js`: added `dash.email`/`dash.email_ph` keys to all three locales (EN "Email", ZH "电子邮件", MS "E-mel", matching the term already used for `login.email_label`).
+- **Not verified live in the browser** — both pages are behind an auth gate and no test credentials are available this session (same limitation noted in Workstream O). Verified by code review instead: both new fields follow the exact same id/read/write pattern as the adjacent pre-existing fields (first/last name), so the wiring is consistent with proven-working code.
+
+### 3. `trip-images` bucket public listing — fixed
+Confirmed via grep that nothing in the codebase calls `.list()` on this bucket (only `.upload()` for admin/staff uploads and `.getPublicUrl()` for the public photo URLs, which is a pure URL-construction helper — it doesn't hit the network and doesn't need the SELECT policy). Since the bucket's public flag already serves objects at their public URL without going through `storage.objects` RLS, the public SELECT policy was serving no purpose the app actually needs, only exposing the ability to list every filename via the Storage API. Confirmed with the user, then ran `drop policy "public read trip images" on storage.objects;` directly via the Supabase SQL Editor. Verified via `pg_policies` before/after (4 rows → 3 rows) that only the public-read policy was removed and the 3 admin/staff upload/update/delete policies are untouched. Bucket currently holds zero uploaded files (existing trip photos are hotlinked from Wikimedia, not stored here), so there was nothing to break either way.
+
+**Changes are committed locally only, not pushed** — per [[feedback_netlify_deploy_gate]] and the standing "run fully on local" instruction, ask before pushing. The database policy change (`DROP POLICY`) already took effect directly on production Supabase (that's a DB change, not a Netlify deploy — separate from the git-push gate).
+
+---
+
 ## Task checklist
 
 - [x] Open all 6 pages in a real browser, confirm logo renders correctly (sizing/placement) — done 2026-07-26 at desktop size.
@@ -483,6 +507,6 @@ Also verified the **admin Trips management UI** (`page-trips` in `admin/admin.ht
 - [ ] **New commit `06683c3` (Twilio Verify + `+60` prefill, Workstream I) and the Workstream K changes (registration email field, admin phone/email visibility) are committed locally but not yet pushed** — ask before pushing, per [[feedback_netlify_deploy_gate]].
 - [ ] After `thetravelchapter.com.my` is confirmed fully live, redeploy `admin/` to the admin Netlify site too (`netlify deploy --prod --dir=admin --site c5f73ef7-2043-4f04-8611-702f5a4e773b`) so its cross-links point at the new domain — the admin HTML changes only take effect there once that manual deploy runs, same as any other admin-file change (see Workstream F).
 - [ ] Confirm with the user whether `www.thetravelchapter.com.my` is actually a live/used variant or apex-only — `ALLOWED_ORIGINS` defensively includes both, worth trimming to just what's real once confirmed.
-- [ ] (Optional) 4 more dead `admin-cms.html` fields found during Workstream O's full audit: Hero secondary CTA, CTA Banner secondary CTA, Navbar brand-name text (value ignored), Navbar nav-links array (fully unused, nav is static HTML). Same class of issue as the already-known Hero Featured Card / Membership Tiers dead fields — hide/relabel or wire up, neither done.
-- [ ] Member's registration email (`profiles.email`) has no edit UI anywhere — not on `dashboard.html`'s My Profile page, not in `admin/admin.html`'s member-edit modal (list-view only, read-only). Only fixable via direct SQL right now. Worth adding to one or both forms.
-- [ ] (Optional) `storage.trip-images` bucket flagged by Supabase Security Advisor as allowing public file listing (not just fetch-by-URL) — low severity for public marketing photos, but worth tightening the SELECT policy if it matters.
+- [x] **4 dead `admin-cms.html` fields — fixed 2026-08-13 (Workstream P).** Hero secondary CTA and CTA Banner secondary CTA now wired up and rendering real saved content; Navbar brand-name text now actually reads `d.logo`; Navbar nav-links array editor removed (replaced with an explanatory note — nav is intentionally static/trilingual, not CMS-editable). Verified locally via hard reload + DOM inspection. Not yet pushed.
+- [x] **Member's registration email edit UI — fixed 2026-08-13 (Workstream P).** Added an Email field to `dashboard.html`'s My Profile page, and a separate "Contact Email" field (`#mm-contact-email`, distinct from the login-email `#mm-email`) to `admin/admin.html`'s member-edit modal. Not verified live (no test login credentials this session) — verified by code review, follows the exact pattern of the adjacent working fields. Not yet pushed.
+- [x] **`storage.trip-images` public-listing finding — fixed 2026-08-13 (Workstream P).** Confirmed nothing in the app relies on bucket listing, then dropped the `public read trip images` SELECT policy directly on production via SQL Editor (confirmed 4→3 policies, admin/staff policies untouched). This was a live DB change, already in effect — not gated by the pending git push.

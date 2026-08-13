@@ -379,6 +379,7 @@ textarea { resize:vertical; min-height:80px; }
       <div class="profile-grid">
         <div class="field"><label data-i18n="dash.first_name">First Name</label><input type="text" id="p-first" placeholder="Jane" data-i18n-placeholder="dash.first_name_ph"></div>
         <div class="field"><label data-i18n="dash.last_name">Last Name</label><input type="text" id="p-last" placeholder="Smith" data-i18n-placeholder="dash.last_name_ph"></div>
+        <div class="field"><label data-i18n="dash.email">Email</label><input type="email" id="p-email" placeholder="jane@example.com" data-i18n-placeholder="dash.email_ph"></div>
         <div class="field"><label data-i18n="dash.phone_number">Phone Number</label><input type="tel" id="p-phone" placeholder="+60 12 345 6789" data-i18n-placeholder="dash.phone_ph"></div>
         <div class="field"><label data-i18n="dash.dob">Date of Birth</label><input type="date" id="p-dob"></div>
         <div class="field"><label data-i18n="dash.nationality">Nationality</label><input type="text" id="p-nationality" placeholder="Malaysian" data-i18n-placeholder="dash.nationality_ph"></div>
@@ -645,6 +646,7 @@ function prefillProfile() {
   if (!profile) return;
   document.getElementById('p-first').value       = profile.first_name    ||'';
   document.getElementById('p-last').value        = profile.last_name     ||'';
+  document.getElementById('p-email').value       = profile.email         ||'';
   document.getElementById('p-phone').value       = profile.phone         ||'';
   document.getElementById('p-dob').value         = profile.date_of_birth ||'';
   document.getElementById('p-nationality').value = profile.nationality   ||'';
@@ -657,6 +659,7 @@ async function saveProfile() {
   const updates = {
     first_name:    document.getElementById('p-first').value.trim(),
     last_name:     document.getElementById('p-last').value.trim(),
+    email:         document.getElementById('p-email').value.trim(),
     phone:         document.getElementById('p-phone').value.trim(),
     date_of_birth: document.getElementById('p-dob').value||null,
     nationality:   document.getElementById('p-nationality').value.trim(),

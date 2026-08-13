@@ -510,9 +510,9 @@ textarea { resize:vertical; min-height:70px; }
   <div class="modal" style="max-width:600px;">
     <h2 id="mm-title">Member Details</h2>
     <div class="field" style="margin-bottom:0;padding-bottom:16px;border-bottom:1px solid var(--border);">
-      <label>Email Address</label>
+      <label>Login Email</label>
       <input type="email" id="mm-email" placeholder="member@example.com or leave blank for internal account">
-      <div class="field-hint" style="font-size:0.68rem;color:#c5bdb4;margin-top:3px;">Leave blank to keep existing email. Internal placeholder emails end in @thetravelchapter.internal</div>
+      <div class="field-hint" style="font-size:0.68rem;color:#c5bdb4;margin-top:3px;">Leave blank to keep existing email. Internal placeholder emails end in @thetravelchapter.internal. This is separate from the member's Contact Email below.</div>
     </div>
     <div class="modal-section" style="margin-top:16px;padding-top:0;border-top:none;">
       <div class="modal-section-title">Password</div>
@@ -533,6 +533,7 @@ textarea { resize:vertical; min-height:70px; }
     <div class="form-grid">
       <div class="field"><label>First Name</label><input type="text" id="mm-first"></div>
       <div class="field"><label>Last Name</label><input type="text" id="mm-last"></div>
+      <div class="field"><label>Contact Email</label><input type="email" id="mm-contact-email" placeholder="jane@example.com"></div>
       <div class="field"><label>Phone</label><input type="tel" id="mm-phone"></div>
       <div class="field"><label>Date of Birth</label><input type="date" id="mm-dob"></div>
       <div class="field"><label>Nationality</label><input type="text" id="mm-nationality"></div>
@@ -1168,6 +1169,7 @@ async function openMemberModal(id) {
   // Fill fields
   document.getElementById('mm-first').value       = m.first_name    || '';
   document.getElementById('mm-last').value        = m.last_name     || '';
+  document.getElementById('mm-contact-email').value = m.contact_email || '';
   document.getElementById('mm-phone').value       = m.phone         || '';
   document.getElementById('mm-dob').value         = m.date_of_birth || '';
   document.getElementById('mm-nationality').value = m.nationality   || '';
@@ -1243,6 +1245,7 @@ async function saveMember() {
   const updates = {
     first_name:    document.getElementById('mm-first').value.trim(),
     last_name:     document.getElementById('mm-last').value.trim(),
+    email:         document.getElementById('mm-contact-email').value.trim(),
     phone:         document.getElementById('mm-phone').value.trim(),
     date_of_birth: document.getElementById('mm-dob').value || null,
     nationality:   document.getElementById('mm-nationality').value.trim(),

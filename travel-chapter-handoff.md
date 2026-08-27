@@ -519,6 +519,8 @@ User ran `netlify login` (fresh browser OAuth) then said the team's Netlify depl
 
 ## Workstream S — New standalone "Free Gifts" page, CMS-editable (added 2026-08-27)
 
+> **SHIPPED 2026-08-27** — commit `4029eae` on `main`; customer build `ready` on Netlify; admin site redeployed via `netlify deploy --dir=admin`. The `admin/admin-cms.html` "Free Gifts" tab is live. The `cms_content` row `section='free_gifts'` does not exist yet — it's created on the first Save from that tab, and until then `free-gifts.html` shows its empty state.
+
 User asked for a new page listing all the free gifts, each with a picture, editable from the CMS.
 
 **New file: `free-gifts.html`** (repo root, customer site). Self-contained page (own `<style>`, reusing the site's design tokens / navbar / footer markup verbatim so it reads as native). Loads `supabase-js` + `i18n.js` like the other customer pages.
@@ -546,12 +548,14 @@ User asked for a new page listing all the free gifts, each with a picture, edita
 
 ## Workstream T — Member "Rewards Store": product catalogue + redeemable-points balance + manual request queue (added 2026-08-27)
 
+> **SHIPPED 2026-08-27** — migration applied + verified; commit `4029eae` pushed; customer build `ready`; admin site redeployed. No products or `reward_points` grants exist yet — add them in admin → Products / the member modal. See per-section notes below (they still say "not applied" in places — that's superseded by this banner).
+
 User asked for a "product section" in the member portal to list all products with a **points-to-redeem cost and/or a MYR buy-in price**. Answered 3 scoping questions first: (1) products managed in the **admin panel via a new DB table** (like Trips), not the CMS; (2) a member "Redeem/Request" action **logs a pending request for staff to fulfil manually** — no automatic points math; (3) redemptions spend a **new, separate `reward_points` balance**, not `tier_points` (so redeeming never affects membership tier standing).
 
 **Mid-build, the user added:** "remove the membership tier feature later — change that to redeemable points balance, no tier anymore." Treated as a **separate future workstream** (see Task checklist). This workstream deliberately builds `reward_points` as a standalone balance that already works with or without the tier system, so it's a stepping stone, not a conflict.
 
-### DB migration — NOT YET APPLIED
-New file `supabase/migrations/20260827123000_products_rewards_requests.sql` (this created the previously-absent `supabase/migrations/` dir). Written to be re-runnable. **Nothing in it has been run against production** — hand it to the user to apply via the Supabase SQL Editor or `supabase db query --linked -f <file>` (CLI is authed + project linked; `supabase db push` won't work — no Docker on this machine, and there's no prior migration history table). Contents:
+### DB migration — APPLIED 2026-08-27
+Applied to production via `supabase db query --linked -f …` and verified (`products` + `product_requests` tables, `profiles.reward_points`, all 8 RLS policies, `admin_members` view picked up `reward_points`). File: `supabase/migrations/20260827123000_products_rewards_requests.sql` (this created the previously-absent `supabase/migrations/` dir). Written to be re-runnable. **Nothing in it has been run against production** — hand it to the user to apply via the Supabase SQL Editor or `supabase db query --linked -f <file>` (CLI is authed + project linked; `supabase db push` won't work — no Docker on this machine, and there's no prior migration history table). Contents:
 - `profiles.reward_points integer not null default 0` — the spendable balance.
 - **Extends `protect_position_flags()`** (the existing BEFORE UPDATE trigger on `profiles`) to also block non-admin/staff from changing `reward_points`, exactly as it already blocks `tier`/`tier_points`. **This is required** — the `profiles` "update own profile" policy has no WITH CHECK, so without the trigger a member could PATCH their own `reward_points`. Function body was reproduced verbatim from the live DB dump + the one new column.
 - `products` table (`name`, `description`, `image_url`, `points_cost` nullable, `price_myr` nullable, `is_active`, `sort_order`, timestamps) + `set_updated_at` trigger + RLS: public read of active rows (`is_active OR is_admin_or_staff()`), admin/staff insert/update/delete.
@@ -579,6 +583,8 @@ JS syntax-checked (`node -c` on i18n.js; `new Function()` parse of every `<scrip
 ---
 
 ## Workstream U — Removed the membership-tier system; `reward_points` is now the only points balance (added 2026-08-27)
+
+> **SHIPPED 2026-08-27** — migration `20260827130000_remove_membership_tiers.sql` applied + verified (`award_points_on_confirm` credits `reward_points`; `protect_position_flags` no longer references tier/tier_points; `handle_new_user` sets no tier; no member has non-zero `tier_points`). Commit `4029eae` pushed; customer build `ready`; admin site redeployed. `profiles.tier` / `profiles.tier_points` / `trips.min_tier` columns + the `admin_members` view's tier columns remain in the DB, unread.
 
 Follows Workstream T. User: *"remove the membership tier feature… change that to redeemable points balance. no tier anymore."* Scoped via 5 questions:
 1. **Trips** — gate dropped entirely. Every active trip is bookable by every member. `trips.min_tier` kept in the DB but unused everywhere.
@@ -632,7 +638,9 @@ Re-runnable. Apply **after** the Workstream T migration (it re-adds `reward_poin
 - [ ] (Optional, future) If a real native Android `.apk` is wanted later: wrap with Capacitor — requires installing Java JDK + Android SDK command-line tools on a build machine first.
 - [ ] (Optional, future) If a real iOS app is wanted later: needs a Mac with Xcode (and an Apple Developer account to install on a physical device or ship to the App Store) — cannot be done from this Windows machine.
 - [x] ~~Update `admin-cms.html`'s Destinations tab form to include `chapter_title` / `dateline` / `story` fields~~ — moot, Workstream G (2026-08-06) reverted the destinations grid back to plain `name`/`region`/`image`/`emoji`/`gradient` fields, which the CMS form already supports.
-- [x] **Remove the membership-tier system entirely; replace with the `reward_points` balance (user request, 2026-08-27).** DONE in code — see Workstream U below. Migration `20260827130000_remove_membership_tiers.sql` NOT YET APPLIED. Decisions taken: trip gate dropped entirely (all trips bookable by everyone; `trips.min_tier` kept but unused); existing `tier_points` carried 1:1 into `reward_points` then zeroed; booking auto-award kept, now credits `reward_points`; homepage "Membership" section → "Rewards" section; dashboard "Membership" page → "Points" page.
+- [x] **Remove the membership-tier system entirely; replace with the `reward_points` balance (user request, 2026-08-27).** DONE and SHIPPED — see Workstream U. Both migrations applied to production + verified; `4029eae` pushed; customer + admin sites live. Trip gate dropped (all trips bookable; `trips.min_tier` kept unused); `tier_points`→`reward_points` 1:1 then zeroed; booking auto-award now credits `reward_points`; homepage "Membership" section → "Rewards"; dashboard "Membership" page → "Points".
+- [ ] Follow-up (cosmetic): dead CSS left behind by the tier removal — `.tier-badge`/`.tier-cards`/`.tier-card` in `dashboard.html`, `.tier-selector`/`.tier-opt` in `admin/admin.html`. Harmless; `.tier-card`/`.tier-perks` in `index.html` are still IN USE by the new Rewards section. Prune the dead ones in a future hygiene pass if desired.
+- [ ] Follow-up: the `cms_content` rows `section='membership'` and (once created) `section='free_gifts'` — the `membership` row is now orphaned (nothing reads it). Safe to leave or delete.
 - [ ] Referral checkout flow is still manual/admin-recorded — there's no customer-facing "enter a referral code at booking" field (matches the existing vouchers pattern, which also has no checkout-time redemption UI). If that's wanted, it needs a new field in `dashboard.html`'s booking modal plus admin-side matching logic.
 - [ ] Netlify CLI is now logged in on this machine (state persists in `%APPDATA%\netlify`) — future sessions may not need `netlify login` again, but if `netlify status` shows logged out, re-run it (retry once if the first attempt times out waiting for browser approval).
 - [ ] If admin.html/admin-cms.html/admin-login.html change again, remember the deploy command is `netlify deploy --prod --dir=admin --site c5f73ef7-2043-4f04-8611-702f5a4e773b` — a plain `git push` will not update the live admin site (see Workstream F).

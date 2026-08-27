@@ -166,8 +166,8 @@ textarea { resize:vertical; min-height:80px; line-height:1.6; }
     <button class="nav-item" data-section="featured_trips">
       <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.15 12 19.79 19.79 0 0 1 1.07 3.4 2 2 0 0 1 3 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16z"/></svg>Featured Trips
     </button>
-    <button class="nav-item" data-section="membership">
-      <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>Membership
+    <button class="nav-item" data-section="free_gifts">
+      <svg viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>Free Gifts
     </button>
     <button class="nav-item" data-section="about">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>About Us
@@ -287,6 +287,25 @@ function removeDestImage(i) {
   cmsData['destinations'] = built;
   renderEditor('destinations');
 }
+function handleGiftImageSelect(event, i) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showToast('Please choose an image file.', true); return; }
+  if (file.size > 5 * 1024 * 1024) { showToast('Image must be under 5MB.', true); return; }
+  const built = buildContentFromForm('free_gifts');
+  built.items[i]._file = file;
+  built.items[i]._removed = false;
+  cmsData['free_gifts'] = built;
+  renderEditor('free_gifts');
+}
+function removeGiftImage(i) {
+  const built = buildContentFromForm('free_gifts');
+  built.items[i]._file = null;
+  built.items[i]._removed = true;
+  built.items[i].image = null;
+  cmsData['free_gifts'] = built;
+  renderEditor('free_gifts');
+}
 
 // ── SAVE ───────────────────────────────────────────────────
 async function saveSection(section) {
@@ -317,6 +336,18 @@ async function saveSection(section) {
       delete item._file; delete item._removed;
     }
   }
+  if (section === 'free_gifts' && content.items) {
+    for (const item of content.items) {
+      if (item._file) {
+        const url = await uploadCmsImage(item._file, 'free-gifts');
+        if (url === null) { btn.disabled = false; btn.textContent = 'Save Changes'; return; }
+        item.image = url;
+      } else if (item._removed) {
+        item.image = null;
+      }
+      delete item._file; delete item._removed;
+    }
+  }
 
   const { error } = await sb.from('cms_content')
     .upsert({ section, content, updated_at: new Date().toISOString() }, { onConflict: 'section' });
@@ -336,15 +367,20 @@ function renderEditor(section) {
   const main = document.getElementById('editor-content');
   const sectionLabels = {
     hero:'Hero Banner', destinations:'Destinations', featured_trips:'Featured Trips',
-    membership:'Membership Tiers', about:'About Us', testimonials:'Testimonials',
+    free_gifts:'Free Gifts', about:'About Us', testimonials:'Testimonials',
     cta_banner:'CTA Banner', contact:'Contact', footer:'Footer', navbar:'Navigation'
   };
+  const isStandalonePage = section === 'free_gifts';
+  const previewUrl = isStandalonePage
+    ? 'https://thetravelchapter.my/free-gifts.html'
+    : 'https://thetravelchapter.my/index.html';
+  const pageWord = isStandalonePage ? 'Free Gifts page' : 'landing page';
 
   let html = `
     <div class="editor-header">
       <div>
         <h1>${sectionLabels[section] || section}</h1>
-        <p>Edit the content for the <strong>${sectionLabels[section]}</strong> section of your landing page.</p>
+        <p>Edit the content for the <strong>${sectionLabels[section]}</strong> ${isStandalonePage ? 'page' : 'section of your landing page'}.</p>
       </div>
       <div class="save-bar">
         <span class="save-status" id="save-status">Ready to edit</span>
@@ -352,8 +388,8 @@ function renderEditor(section) {
       </div>
     </div>
     <div class="preview-strip">
-      <p>Changes saved here will appear on your <strong>landing page</strong> automatically.</p>
-      <a href="https://thetravelchapter.my/index.html" target="_blank" class="btn btn-ghost" style="color:rgba(255,255,255,0.6);border-color:rgba(255,255,255,0.15);font-size:0.72rem;">Preview Page ↗</a>
+      <p>Changes saved here will appear on your <strong>${pageWord}</strong> automatically.</p>
+      <a href="${previewUrl}" target="_blank" class="btn btn-ghost" style="color:rgba(255,255,255,0.6);border-color:rgba(255,255,255,0.15);font-size:0.72rem;">Preview Page ↗</a>
     </div>`;
 
   // Render section-specific form
@@ -361,7 +397,7 @@ function renderEditor(section) {
     case 'hero':        html += renderHeroForm(data); break;
     case 'destinations':html += renderDestinationsForm(data); break;
     case 'featured_trips':html += renderFeaturedTripsForm(data); break;
-    case 'membership':  html += renderMembershipForm(data); break;
+    case 'free_gifts':  html += renderFreeGiftsForm(data); break;
     case 'about':       html += renderAboutForm(data); break;
     case 'testimonials':html += renderTestimonialsForm(data); break;
     case 'cta_banner':  html += renderCtaBannerForm(data); break;
@@ -506,39 +542,39 @@ function renderFeaturedTripsForm(d) {
   </div>`;
 }
 
-function renderMembershipForm(d) {
-  const tiers = d.tiers || [];
+function renderFreeGiftsForm(d) {
+  const items = d.items || [];
   return `
   <div class="card">
-    <div class="card-title"><span>📝</span> Section Header</div>
-    ${sectionHeaderFields('mem', d)}
+    <div class="card-title"><span>📝</span> Page Header</div>
+    ${sectionHeaderFields('gift', d)}
   </div>
   <div class="card">
-    <div class="card-title"><span>⭐</span> Membership Tiers</div>
-    ${tiers.map((tier,i) => `
-      <div class="array-item">
+    <div class="card-title"><span>🎁</span> Gifts</div>
+    <div id="gift-items">
+    ${items.map((item,i) => `
+      <div class="array-item" id="gift_item_${i}">
         <div class="array-item-header">
-          <div class="array-item-label">${tier.icon||''} ${tier.name||'Tier '+(i+1)}</div>
-        </div>
-        <div class="field-row">
-          <div class="field"><label>Icon / Emoji</label><input type="text" id="tier_icon_${i}" value="${esc(tier.icon||'')}"></div>
-          <div class="field"><label>Tier Name</label><input type="text" id="tier_name_${i}" value="${esc(tier.name||'')}"></div>
-        </div>
-        <div class="field-row">
-          <div class="field"><label>Points Range</label><input type="text" id="tier_pts_${i}" value="${esc(tier.points||'')}"></div>
-          <div class="field"><label>CTA Button Label</label><input type="text" id="tier_cta_${i}" value="${esc(tier.cta||'')}"></div>
-        </div>
-        <div class="field">
-          <label>Featured (highlighted card)</label>
-          <div class="toggle-field" style="margin-top:8px;">
-            <label class="toggle"><input type="checkbox" id="tier_featured_${i}" ${tier.featured?'checked':''}><span class="toggle-slider"></span></label>
-            <span style="font-size:0.8rem;color:var(--smoke);">Show "Most Popular" badge</span>
+          <div class="array-item-label">Gift ${i+1}</div>
+          <div class="array-item-actions">
+            <button class="btn-icon move" onclick="moveGift(${i},-1)" title="Move up">↑</button>
+            <button class="btn-icon move" onclick="moveGift(${i},1)" title="Move down">↓</button>
+            <button class="btn-icon" onclick="removeGift(${i})">✕</button>
           </div>
         </div>
-        <div class="field"><label>Perks (one per line)</label>
-          <textarea id="tier_perks_${i}" rows="5">${(tier.perks||[]).join('\n')}</textarea>
+        <div class="field"><label>Gift Name</label><input type="text" id="gift_name_${i}" value="${esc(item.name||'')}" placeholder="Leather luggage tag"></div>
+        <div class="field"><label>Description</label><textarea id="gift_desc_${i}" rows="3">${esc(item.description||'')}</textarea></div>
+        <div class="field"><label>How to get it (optional badge)</label><input type="text" id="gift_note_${i}" value="${esc(item.note||'')}" placeholder="Free with any booking"></div>
+        <div class="field-row">
+          <div class="field"><label>Emoji (shown if no photo)</label><input type="text" id="gift_emoji_${i}" value="${esc(item.emoji||'')}" placeholder="🎁"></div>
+          <div class="field">
+            <label>Photo</label>
+            ${imageUploadField(imagePreviewUrl(item), `handleGiftImageSelect(event,${i})`, `removeGiftImage(${i})`)}
+          </div>
         </div>
       </div>`).join('')}
+    </div>
+    <button class="btn-add-item" onclick="addGift()">+ Add Gift</button>
   </div>`;
 }
 
@@ -698,13 +734,13 @@ function buildContentFromForm(section) {
     }
     case 'featured_trips':
       return { ...d, eyebrow:v('ft_eyebrow'), heading:v('ft_heading'), heading_italic:v('ft_heading_italic'), subtext:v('ft_subtext') };
-    case 'membership': {
-      const tiers = (d.tiers||[]).map((_,i)=>({
-        icon:v(`tier_icon_${i}`), name:v(`tier_name_${i}`), points:v(`tier_pts_${i}`),
-        cta:v(`tier_cta_${i}`), featured:c(`tier_featured_${i}`),
-        perks:v(`tier_perks_${i}`).split('\n').map(s=>s.trim()).filter(Boolean)
+    case 'free_gifts': {
+      const items = (d.items||[]).map((item,i)=>({
+        name:v(`gift_name_${i}`), description:v(`gift_desc_${i}`), note:v(`gift_note_${i}`),
+        emoji:v(`gift_emoji_${i}`),
+        image:item.image, _file:item._file, _removed:item._removed
       }));
-      return { ...d, eyebrow:v('mem_eyebrow'), heading:v('mem_heading'), heading_italic:v('mem_heading_italic'), subtext:v('mem_subtext'), tiers };
+      return { ...d, eyebrow:v('gift_eyebrow'), heading:v('gift_heading'), heading_italic:v('gift_heading_italic'), subtext:v('gift_subtext'), items };
     }
     case 'about': {
       const paragraphs = (d.paragraphs||[]).map((_,i)=>v(`about_para_${i}`));
@@ -776,6 +812,27 @@ function moveDestination(i, dir) {
   [built.items[i],built.items[j]]=[built.items[j],built.items[i]];
   cmsData['destinations'] = built;
   renderEditor('destinations');
+}
+function addGift() {
+  const built = buildContentFromForm('free_gifts');
+  built.items = built.items || [];
+  built.items.push({ name:'', description:'', note:'', emoji:'🎁' });
+  cmsData['free_gifts'] = built;
+  renderEditor('free_gifts');
+}
+function removeGift(i) {
+  const built = buildContentFromForm('free_gifts');
+  built.items.splice(i,1);
+  cmsData['free_gifts'] = built;
+  renderEditor('free_gifts');
+}
+function moveGift(i, dir) {
+  const built = buildContentFromForm('free_gifts');
+  const j = i + dir;
+  if (j<0||j>=built.items.length) return;
+  [built.items[i],built.items[j]]=[built.items[j],built.items[i]];
+  cmsData['free_gifts'] = built;
+  renderEditor('free_gifts');
 }
 function addTestimonial() {
   const built = buildContentFromForm('testimonials');

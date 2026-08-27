@@ -231,9 +231,13 @@ textarea { resize:vertical; min-height:80px; }
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="9" r="1"/><circle cx="15" cy="9" r="1"/><circle cx="9" cy="15" r="1"/><circle cx="15" cy="15" r="1"/><circle cx="12" cy="12" r="1"/></svg>
       <span data-i18n="dash.nav_luckydraw">Lucky Draw</span>
     </button>
-    <button class="nav-item" data-page="membership">
-      <svg viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-      <span data-i18n="dash.nav_membership">Membership</span>
+    <button class="nav-item" data-page="rewards">
+      <svg viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>
+      <span data-i18n="dash.nav_rewards">Rewards Store</span>
+    </button>
+    <button class="nav-item" data-page="points">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15 9.5a2.5 2 0 0 0-2.5-1.5h-1A2.5 2.5 0 0 0 9 10.5 2.5 2.5 0 0 0 11.5 13h1a2.5 2.5 0 0 1 0 5h-1A2.5 2 0 0 1 9 16.5M12 6v2m0 8v2"/></svg>
+      <span data-i18n="dash.nav_points">Points</span>
     </button>
     <button class="nav-item" data-page="profile">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>
@@ -266,12 +270,12 @@ textarea { resize:vertical; min-height:80px; }
     </div>
     <div class="grid-3">
       <div class="stat-card"><div class="stat-value" id="ov-bookings">—</div><div class="stat-label" data-i18n="dash.stat_bookings">Total Bookings</div></div>
-      <div class="stat-card"><div class="stat-value" id="ov-points">—</div><div class="stat-label" data-i18n="dash.stat_points">Tier Points</div></div>
-      <div class="stat-card"><div class="stat-value" id="ov-tier-val">—</div><div class="stat-label" data-i18n="dash.stat_tier">Membership Tier</div></div>
+      <div class="stat-card"><div class="stat-value" id="ov-points">—</div><div class="stat-label" data-i18n="dash.stat_points">Redeemable Points</div></div>
+      <div class="stat-card"><div class="stat-value" id="ov-earned">—</div><div class="stat-label" data-i18n="dash.stat_earned">Points Earned</div></div>
     </div>
     <div class="grid-2">
       <div class="card"><div class="card-title" data-i18n="dash.recent_bookings">Recent Bookings</div><div id="ov-recent"></div></div>
-      <div class="card"><div class="card-title" data-i18n="dash.tier_progress">Tier Progress</div><div id="ov-progress"></div></div>
+      <div class="card"><div class="card-title" data-i18n="dash.points_summary">Points Summary</div><div id="ov-progress"></div></div>
     </div>
   </div>
 
@@ -325,46 +329,36 @@ textarea { resize:vertical; min-height:80px; }
     </div>
   </div>
 
-  <!-- MEMBERSHIP -->
-  <div class="page" id="page-membership">
+  <!-- REWARDS STORE -->
+  <div class="page" id="page-rewards">
     <div class="page-header">
-      <h1 data-i18n="dash.membership_heading" data-i18n-html>My <em>Membership</em></h1>
-      <p data-i18n="dash.membership_subtitle">Your tier unlocks exclusive trips and privileges.</p>
+      <h1 data-i18n="dash.rewards_heading" data-i18n-html>Rewards <em>Store</em></h1>
+      <p data-i18n="dash.rewards_subtitle">Redeem your points for gifts, or request a member product to buy.</p>
     </div>
-    <div class="card" style="margin-bottom:20px;">
-      <div class="card-title" data-i18n="dash.current_status">Current Status</div>
-      <div id="membership-status"></div>
+    <div class="card" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+      <span style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:var(--gold);" id="rw-balance">0</span>
+      <span style="font-size:0.85rem;color:var(--smoke);" data-i18n="dash.rewards_balance_label">redeemable points available</span>
+    </div>
+    <div class="trips-grid" id="rewards-grid" style="margin-top:20px;"><div class="empty-state" style="grid-column:1/-1;" data-i18n="dash.loading">Loading…</div></div>
+    <div class="card" style="margin-top:24px;">
+      <div class="card-title" data-i18n="dash.rewards_my_requests">My Requests</div>
+      <div id="rw-requests"><div class="empty-state" data-i18n="dash.loading">Loading…</div></div>
+    </div>
+  </div>
+
+  <!-- POINTS -->
+  <div class="page" id="page-points">
+    <div class="page-header">
+      <h1 data-i18n="dash.points_heading" data-i18n-html>My <em>Points</em></h1>
+      <p data-i18n="dash.points_subtitle">Earn 1 point for every RM spent on a confirmed booking. Spend them in the Rewards Store.</p>
+    </div>
+    <div class="grid-2" style="margin-bottom:20px;">
+      <div class="stat-card"><div class="stat-value" id="pt-balance">—</div><div class="stat-label" data-i18n="dash.points_balance">Redeemable Balance</div></div>
+      <div class="stat-card"><div class="stat-value" id="pt-earned">—</div><div class="stat-label" data-i18n="dash.points_earned_total">Earned from Bookings</div></div>
     </div>
     <div class="card">
-      <div class="card-title" data-i18n="dash.tier_comparison">Tier Comparison</div>
-      <div class="tier-cards" style="margin-top:8px;">
-        <div class="tier-card" id="tier-explorer">
-          <div class="tier-icon">🌿</div><h3 data-i18n="tier.explorer">Explorer</h3>
-          <div class="tier-pts" data-i18n="dash.tier_explorer_pts">0 – 999 pts</div>
-          <ul class="tier-perks">
-            <li data-i18n="dash.tier_explorer_perk1">Access to all Explorer trips</li><li data-i18n="dash.tier_explorer_perk2">1 point per RM spent</li>
-            <li data-i18n="dash.tier_explorer_perk3">Email travel updates</li><li data-i18n="dash.tier_explorer_perk4">24/7 support chat</li>
-          </ul>
-        </div>
-        <div class="tier-card" id="tier-premier">
-          <div class="tier-icon">✦</div><h3 data-i18n="tier.premier">Premier</h3>
-          <div class="tier-pts" data-i18n="dash.tier_premier_pts">1,000 – 4,999 pts</div>
-          <ul class="tier-perks">
-            <li data-i18n="dash.tier_premier_perk1">All Explorer benefits</li><li data-i18n="dash.tier_premier_perk2">Access to Premier trips</li>
-            <li data-i18n="dash.tier_premier_perk3">Priority booking windows</li><li data-i18n="dash.tier_premier_perk4">Complimentary travel insurance</li>
-            <li data-i18n="dash.tier_premier_perk5">Exclusive member events</li>
-          </ul>
-        </div>
-        <div class="tier-card" id="tier-elite">
-          <div class="tier-icon">👑</div><h3 data-i18n="tier.elite">Elite</h3>
-          <div class="tier-pts" data-i18n="dash.tier_elite_pts">5,000+ pts</div>
-          <ul class="tier-perks">
-            <li data-i18n="dash.tier_elite_perk1">All Premier benefits</li><li data-i18n="dash.tier_elite_perk2">Access to Elite-only trips</li>
-            <li data-i18n="dash.tier_elite_perk3">Dedicated travel concierge</li><li data-i18n="dash.tier_elite_perk4">Airport lounge access</li>
-            <li data-i18n="dash.tier_elite_perk5">Annual gift &amp; surprises</li>
-          </ul>
-        </div>
-      </div>
+      <div class="card-title" data-i18n="dash.points_activity">Recent Activity</div>
+      <div id="pt-activity"><div class="empty-state" data-i18n="dash.loading">Loading…</div></div>
     </div>
   </div>
 
@@ -408,6 +402,26 @@ textarea { resize:vertical; min-height:80px; }
   </div>
 </div>
 
+<!-- PRODUCT REQUEST MODAL -->
+<div class="modal-overlay" id="product-modal">
+  <div class="modal">
+    <h2 id="pm-title" data-i18n="dash.rewards_modal_title">Request Item</h2>
+    <div class="modal-fields">
+      <div id="pm-product-line" style="font-size:0.9rem;color:var(--navy);font-weight:500;"></div>
+      <div class="field" id="pm-method-field"><label data-i18n="dash.rewards_method">How would you like it</label>
+        <select id="pm-method"></select>
+      </div>
+      <div class="field"><label data-i18n="dash.rewards_qty">Quantity</label><input type="number" id="pm-qty" value="1" min="1" max="99"></div>
+      <div class="field"><label data-i18n="dash.rewards_note">Note (optional)</label><textarea id="pm-note" placeholder="Delivery address, size, colour…" data-i18n-placeholder="dash.rewards_note_ph"></textarea></div>
+      <div class="total-box"><div class="lbl" data-i18n="dash.rewards_total">Total</div><div class="val" id="pm-total">—</div></div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-ghost" id="pm-cancel" data-i18n="dash.cancel">Cancel</button>
+      <button class="btn-primary" id="pm-submit" style="flex:2;" data-i18n="dash.rewards_submit">Submit Request</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -420,6 +434,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
 let currentUser = null, profile = null, trips = [], bookings = [], bookingTrip = null;
 let activePromotions = [], myReferrals = [], myDrawWins = [];
+let products = [], productRequests = [], activeProduct = null;
 
 // ── NAVIGATION via event delegation ─────────────────────────
 document.getElementById('sidebar-nav').addEventListener('click', function(e) {
@@ -439,6 +454,19 @@ document.getElementById('trips-grid').addEventListener('click', function(e) {
   const btn = e.target.closest('.btn-book[data-tripid]');
   if (btn) openBookingModal(btn.getAttribute('data-tripid'));
 });
+document.getElementById('rewards-grid').addEventListener('click', function(e) {
+  const btn = e.target.closest('.btn-book[data-pid]');
+  if (btn) openProductModal(btn.getAttribute('data-pid'));
+});
+document.getElementById('rw-requests').addEventListener('click', function(e) {
+  const btn = e.target.closest('[data-cancel-req]');
+  if (btn) cancelProductRequest(btn.getAttribute('data-cancel-req'));
+});
+document.getElementById('pm-cancel').addEventListener('click', () => document.getElementById('product-modal').classList.remove('open'));
+document.getElementById('product-modal').addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); });
+document.getElementById('pm-method').addEventListener('change', updatePmTotal);
+document.getElementById('pm-qty').addEventListener('input', updatePmTotal);
+document.getElementById('pm-submit').addEventListener('click', submitProductRequest);
 document.getElementById('btn-save-profile').addEventListener('click', saveProfile);
 document.getElementById('btn-confirm-book').addEventListener('click', confirmBooking);
 document.getElementById('btn-close-modal').addEventListener('click', closeBookingModal);
@@ -468,8 +496,8 @@ async function init() {
   }
 
   await Promise.all([loadProfile(), loadTrips(), loadBookings()]);
-  await loadReferralData();
-  renderSidebar(); renderOverview(); renderTrips(); renderBookings(); renderMembership(); prefillProfile(); renderReferralsPage();
+  await Promise.all([loadReferralData(), loadProducts(), loadProductRequests()]);
+  renderSidebar(); renderOverview(); renderTrips(); renderBookings(); renderPoints(); prefillProfile(); renderReferralsPage(); renderRewards();
 }
 
 async function loadProfile() {
@@ -483,6 +511,16 @@ async function loadTrips() {
 async function loadBookings() {
   const { data } = await sb.from('bookings').select('*, trips(title, duration_days)').eq('member_id', currentUser.id).order('booked_at', { ascending: false });
   bookings = data || [];
+}
+async function loadProducts() {
+  const { data } = await sb.from('products').select('*').eq('is_active', true)
+    .order('sort_order', { ascending: true }).order('name', { ascending: true });
+  products = data || [];
+}
+async function loadProductRequests() {
+  const { data } = await sb.from('product_requests').select('*')
+    .eq('member_id', currentUser.id).order('created_at', { ascending: false });
+  productRequests = data || [];
 }
 async function loadReferralData() {
   const [{ data: promos }, { data: referrals }, { data: wins }] = await Promise.all([
@@ -503,15 +541,14 @@ function renderSidebar() {
   const nameEl = document.getElementById('sb-name');
   nameEl.textContent = name;
   nameEl.removeAttribute('data-i18n'); // it's the member's real name now, not the "Loading…" placeholder — don't let a later applyStatic() call overwrite it
-  document.getElementById('sb-tier').textContent = TC_I18N.t('tier.'+(profile?.tier||'explorer'));
+  document.getElementById('sb-tier').textContent = `${(profile?.reward_points||0).toLocaleString()} ${TC_I18N.t('dash.rewards_pts')}`;
 }
 
 // ── RENDER OVERVIEW ──────────────────────────────────────────
 function renderOverview() {
   document.getElementById('ov-name').textContent = profile?.first_name || 'traveller';
   document.getElementById('ov-bookings').textContent = bookings.length;
-  document.getElementById('ov-points').textContent = (profile?.tier_points||0).toLocaleString();
-  document.getElementById('ov-tier-val').textContent = TC_I18N.t('tier.'+(profile?.tier||'explorer'));
+  document.getElementById('ov-points').textContent = (profile?.reward_points||0).toLocaleString();
 
   const recent = bookings.slice(0,3);
   document.getElementById('ov-recent').innerHTML = recent.length
@@ -521,39 +558,42 @@ function renderOverview() {
         <span class="status-pill status-${b.status}">${TC_I18N.t('status.'+b.status)}</span></div>`).join('')
     : `<div class="empty-state"><div class="icon">🗺️</div><p>${TC_I18N.t('dash.no_bookings_overview')}</p></div>`;
 
-  const pts=profile?.tier_points||0, tier=profile?.tier||'explorer';
-  let pct=100, nextLabel='';
-  if (tier==='explorer') { pct=Math.min(100,Math.round(pts/1000*100)); nextLabel=TC_I18N.t('dash.pts_to_premier',{n:(1000-Math.min(pts,1000)).toLocaleString()}); }
-  else if (tier==='premier') { pct=Math.min(100,Math.round((pts-1000)/4000*100)); nextLabel=TC_I18N.t('dash.pts_to_elite',{n:(5000-Math.min(pts,5000)).toLocaleString()}); }
-  else { nextLabel=TC_I18N.t('dash.max_tier'); }
-
-  const tierLabel = TC_I18N.t('tier.'+tier);
+  const st = pointsStats();
+  document.getElementById('ov-earned').textContent = st.earned.toLocaleString();
   document.getElementById('ov-progress').innerHTML = `
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
-      <span class="tier-badge ${tier}">${tierLabel}</span>
-      <span style="font-size:0.78rem;color:var(--smoke);">${pts.toLocaleString()} ${TC_I18N.t('dash.pts_suffix')}</span>
-    </div>
-    <div class="progress-bar"><div class="progress-fill" style="width:${pct}%"></div></div>
-    <div class="progress-labels"><span>${tierLabel}</span><span>${nextLabel}</span></div>`;
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:0.82rem;color:var(--smoke);">${TC_I18N.t('dash.points_earned_total')}</span>
+        <span style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--navy);">${st.earned.toLocaleString()}</span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;">
+        <span style="font-size:0.82rem;color:var(--smoke);">${TC_I18N.t('dash.points_balance')}</span>
+        <span style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--gold);">${st.balance.toLocaleString()}</span>
+      </div>
+    </div>`;
+}
+
+// Redeemable balance + lifetime earned-from-bookings, used by Overview + Points page.
+function pointsStats() {
+  const balance = profile?.reward_points || 0;
+  const earned = bookings
+    .filter(b => b.status === 'confirmed' || b.status === 'completed')
+    .reduce((s, b) => s + (b.points_earned != null ? b.points_earned : Math.floor(Number(b.total_usd) || 0)), 0);
+  return { balance, earned };
 }
 
 // ── RENDER TRIPS ─────────────────────────────────────────────
 const tripEmojis = {'kyoto-autumn':'🍁','amalfi-yacht':'⛵','mekong-river':'🛶','patagonia-wild':'🏔️','marrakech-beyond':'🐪','japan-elite':'🏯'};
 const tripGrads  = ['linear-gradient(135deg,#1a3a2a,#2d6a4f)','linear-gradient(135deg,#1a2a3a,#1e6091)','linear-gradient(135deg,#3a1a1a,#7a3520)','linear-gradient(135deg,#2a1a3a,#4a2f6a)','linear-gradient(135deg,#3a2a1a,#6b4a1a)','linear-gradient(135deg,#1a1a3a,#2d3561)'];
-const tierRank   = { explorer:0, premier:1, elite:2 };
-
 function renderTrips() {
   const grid = document.getElementById('trips-grid');
   if (!trips.length) { grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="icon">✈️</div><p>${TC_I18N.t('dash.no_trips')}</p></div>`; return; }
-  const myRank = tierRank[profile?.tier||'explorer'];
   grid.innerHTML = trips.map((t,i) => {
-    const locked = myRank < (tierRank[t.min_tier]||0);
     const emoji  = tripEmojis[t.slug]||'✈️';
     const grad   = tripGrads[i%tripGrads.length];
     const dates  = (t.departure_dates||[]).slice(0,2).map(d=>fmtDate(d)).join(' · ');
     const hasImage = !!t.cover_image;
     const thumbStyle = hasImage ? `background:url('${t.cover_image}') center/cover no-repeat;` : `background:${grad};`;
-    const tierLabel = TC_I18N.t('tier.'+t.min_tier);
     return `<div class="trip-card">
       <div class="trip-thumb" style="${thumbStyle}">${hasImage?'':emoji}</div>
       <div class="trip-body">
@@ -562,12 +602,11 @@ function renderTrips() {
         <div class="trip-tags">
           <span class="trip-tag">📅 ${t.duration_days} ${TC_I18N.t('dash.days_label')}</span>
           <span class="trip-tag">👥 ${TC_I18N.t('dash.max_label')} ${t.max_pax}</span>
-          <span class="trip-tag">${tierLabel}+</span>
         </div>
         ${dates?`<div style="font-size:0.7rem;color:var(--smoke);margin-top:8px;">🗓 ${dates}</div>`:''}
         <div class="trip-footer">
           <div class="trip-price">RM ${Number(t.price_usd).toLocaleString()} <span>${TC_I18N.t('dash.per_person')}</span></div>
-          ${locked?`<div class="locked-badge">🔒 ${tierLabel}+ ${TC_I18N.t('dash.locked_suffix')}</div>`:`<button class="btn-book" data-tripid="${t.id}">${TC_I18N.t('dash.book_now')}</button>`}
+          <button class="btn-book" data-tripid="${t.id}">${TC_I18N.t('dash.book_now')}</button>
         </div>
       </div></div>`;
   }).join('');
@@ -585,25 +624,30 @@ function renderBookings() {
   </div>`).join('');
 }
 
-// ── RENDER MEMBERSHIP ────────────────────────────────────────
-function renderMembership() {
-  const tier=profile?.tier||'explorer', pts=profile?.tier_points||0;
-  ['explorer','premier','elite'].forEach(t => {
-    const card = document.getElementById('tier-'+t);
-    card.classList.toggle('current', t===tier);
-    const ex = card.querySelector('.current-label'); if (ex) ex.remove();
-    if (t===tier) { const lbl=document.createElement('div'); lbl.className='current-label'; lbl.textContent=TC_I18N.t('dash.your_tier'); card.prepend(lbl); }
+// ── RENDER POINTS ───────────────────────────────────────────
+function renderPoints() {
+  const st = pointsStats();
+  document.getElementById('pt-balance').textContent = st.balance.toLocaleString();
+  document.getElementById('pt-earned').textContent = st.earned.toLocaleString();
+
+  const events = [];
+  bookings.filter(b => b.status === 'confirmed' || b.status === 'completed').forEach(b => {
+    const n = b.points_earned != null ? b.points_earned : Math.floor(Number(b.total_usd) || 0);
+    events.push({ date: b.booked_at || b.departure_date, label: b.trips?.title || TC_I18N.t('dash.rewards_pts'), delta: `+${n.toLocaleString()}`, kind: 'earn' });
   });
-  let nextInfo = '';
-  if (tier==='explorer')     nextInfo=`<span style="font-size:0.8rem;color:var(--smoke);">${TC_I18N.t('dash.earn_more_premier',{n:(1000-pts).toLocaleString()})}</span>`;
-  else if (tier==='premier') nextInfo=`<span style="font-size:0.8rem;color:var(--smoke);">${TC_I18N.t('dash.earn_more_elite',{n:(5000-pts).toLocaleString()})}</span>`;
-  else                       nextInfo=`<span style="font-size:0.8rem;color:var(--gold);">${TC_I18N.t('dash.highest_tier')}</span>`;
-  document.getElementById('membership-status').innerHTML = `
-    <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
-      <span class="tier-badge ${tier}" style="font-size:0.76rem;padding:6px 16px;">${TC_I18N.t('tier.'+tier)} ${TC_I18N.t('dash.member_suffix')}</span>
-      <span style="font-family:'Cormorant Garamond',serif;font-size:1.4rem;color:var(--gold);">${pts.toLocaleString()} ${TC_I18N.t('dash.pts_suffix')}</span>
-      ${nextInfo}
-    </div>`;
+  productRequests.filter(r => r.method === 'points' && r.status !== 'rejected' && r.status !== 'cancelled').forEach(r => {
+    const n = Number(r.points_cost_snapshot || 0) * r.quantity;
+    events.push({ date: r.created_at, label: r.product_name, delta: `−${n.toLocaleString()}`, kind: 'spend', pending: r.status !== 'fulfilled' });
+  });
+  events.sort((a, b) => new Date(b.date) - new Date(a.date));
+
+  document.getElementById('pt-activity').innerHTML = events.length
+    ? events.map(e => `<div class="booking-row" style="grid-template-columns:1fr auto;">
+        <div><div class="booking-trip">${e.label}</div>
+        <div class="booking-meta">${fmtDate(e.date)}${e.pending ? ' · ' + TC_I18N.t('status.pending') : ''}</div></div>
+        <span style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:${e.kind === 'earn' ? '#27ae60' : 'var(--gold)'};">${e.delta} ${TC_I18N.t('dash.rewards_pts')}</span>
+      </div>`).join('')
+    : `<div class="empty-state"><div class="icon">✨</div><p>${TC_I18N.t('dash.points_no_activity')}</p></div>`;
 }
 
 // ── RENDER REFERRALS ─────────────────────────────────────────
@@ -639,6 +683,123 @@ function renderReferralsPage() {
         <span class="status-pill status-confirmed">🎉 #${w.prize_rank}</span>
       </div>`).join('')
     : `<div class="empty-state"><div class="icon">🎁</div><p>${TC_I18N.t('dash.no_wins')}</p></div>`;
+}
+
+// ── RENDER REWARDS STORE ─────────────────────────────────────
+const productReqPill = { pending:'pending', approved:'pending', fulfilled:'confirmed', rejected:'cancelled', cancelled:'cancelled' };
+const productGrads = ['linear-gradient(135deg,#1a3a2a,#2d6a4f)','linear-gradient(135deg,#1a2a3a,#1e6091)','linear-gradient(135deg,#3a1a1a,#7a3520)','linear-gradient(135deg,#2a1a3a,#4a2f6a)','linear-gradient(135deg,#3a2a1a,#6b4a1a)','linear-gradient(135deg,#1a1a3a,#2d3561)'];
+
+function priceTag(p) {
+  const bits = [];
+  if (p.points_cost != null) bits.push(`<span style="color:var(--gold);font-weight:500;">${Number(p.points_cost).toLocaleString()} ${TC_I18N.t('dash.rewards_pts')}</span>`);
+  if (p.price_myr   != null) bits.push(`<span style="color:var(--navy);font-weight:500;">RM ${Number(p.price_myr).toLocaleString()}</span>`);
+  return bits.join(`<span style="color:var(--smoke);"> ${TC_I18N.t('dash.rewards_or')} </span>`) || `<span style="color:var(--smoke);">${TC_I18N.t('dash.rewards_enquire')}</span>`;
+}
+
+function renderRewards() {
+  document.getElementById('rw-balance').textContent = (profile?.reward_points || 0).toLocaleString();
+
+  const grid = document.getElementById('rewards-grid');
+  grid.innerHTML = products.length
+    ? products.map((p,i) => {
+        const hasImg = !!p.image_url;
+        const thumb = hasImg ? `background:url('${p.image_url}') center/cover no-repeat;` : `background:${productGrads[i%productGrads.length]};`;
+        return `<div class="trip-card">
+          <div class="trip-thumb" style="${thumb}">${hasImg?'':'🎁'}</div>
+          <div class="trip-body">
+            <div class="trip-name">${p.name}</div>
+            <div class="trip-desc">${p.description||''}</div>
+            <div class="trip-footer">
+              <div style="font-size:0.85rem;">${priceTag(p)}</div>
+              <button class="btn-book" data-pid="${p.id}">${TC_I18N.t('dash.rewards_redeem')}</button>
+            </div>
+          </div></div>`;
+      }).join('')
+    : `<div class="empty-state" style="grid-column:1/-1;"><div class="icon">🎁</div><p>${TC_I18N.t('dash.rewards_empty')}</p></div>`;
+
+  renderMyRequests();
+}
+
+function renderMyRequests() {
+  const box = document.getElementById('rw-requests');
+  box.innerHTML = productRequests.length
+    ? productRequests.map(r => {
+        const amount = r.method === 'points'
+          ? `${Number(r.points_cost_snapshot||0).toLocaleString()} ${TC_I18N.t('dash.rewards_pts')}`
+          : `RM ${Number(r.price_snapshot||0).toLocaleString()}`;
+        const canCancel = r.status === 'pending';
+        return `<div class="booking-row" style="grid-template-columns:1fr auto auto;">
+          <div><div class="booking-trip">${r.product_name} ${r.quantity>1?`× ${r.quantity}`:''}</div>
+          <div class="booking-meta">${amount} · ${fmtDate(r.created_at)}</div></div>
+          ${canCancel ? `<button class="btn-ghost" style="flex:none;padding:6px 12px;font-size:0.7rem;" data-cancel-req="${r.id}">${TC_I18N.t('dash.cancel')}</button>` : '<span></span>'}
+          <span class="status-pill status-${productReqPill[r.status]||'pending'}">${TC_I18N.t('status.'+r.status)}</span>
+        </div>`;
+      }).join('')
+    : `<div class="empty-state"><div class="icon">🧾</div><p>${TC_I18N.t('dash.rewards_no_requests')}</p></div>`;
+}
+
+// ── PRODUCT REQUEST MODAL ────────────────────────────────────
+function openProductModal(pid) {
+  activeProduct = products.find(p => p.id === pid);
+  if (!activeProduct) return;
+  document.getElementById('pm-product-line').textContent = activeProduct.name;
+  const sel = document.getElementById('pm-method');
+  const opts = [];
+  if (activeProduct.points_cost != null) opts.push(`<option value="points">${TC_I18N.t('dash.rewards_method_points')}</option>`);
+  if (activeProduct.price_myr   != null) opts.push(`<option value="cash">${TC_I18N.t('dash.rewards_method_cash')}</option>`);
+  sel.innerHTML = opts.join('');
+  document.getElementById('pm-method-field').style.display = opts.length > 1 ? 'flex' : 'none';
+  document.getElementById('pm-qty').value = 1;
+  document.getElementById('pm-note').value = '';
+  updatePmTotal();
+  document.getElementById('product-modal').classList.add('open');
+}
+
+function updatePmTotal() {
+  if (!activeProduct) return;
+  const method = document.getElementById('pm-method').value || (activeProduct.points_cost != null ? 'points' : 'cash');
+  const qty = Math.max(1, parseInt(document.getElementById('pm-qty').value) || 1);
+  const el = document.getElementById('pm-total');
+  if (method === 'points') el.textContent = `${(Number(activeProduct.points_cost||0) * qty).toLocaleString()} ${TC_I18N.t('dash.rewards_pts')}`;
+  else el.textContent = `RM ${(Number(activeProduct.price_myr||0) * qty).toLocaleString()}`;
+}
+
+async function submitProductRequest() {
+  if (!activeProduct) return;
+  const btn = document.getElementById('pm-submit');
+  btn.disabled = true; btn.textContent = TC_I18N.t('dash.confirming');
+  const method = document.getElementById('pm-method').value || (activeProduct.points_cost != null ? 'points' : 'cash');
+  const qty = Math.min(99, Math.max(1, parseInt(document.getElementById('pm-qty').value) || 1));
+  const row = {
+    member_id: currentUser.id,
+    member_name: `${profile?.first_name||''} ${profile?.last_name||''}`.trim() || null,
+    member_email: profile?.email || currentUser.email || null,
+    product_id: activeProduct.id,
+    product_name: activeProduct.name,
+    method,
+    points_cost_snapshot: method === 'points' ? (activeProduct.points_cost ?? null) : null,
+    price_snapshot: method === 'cash' ? (activeProduct.price_myr ?? null) : null,
+    quantity: qty,
+    note: document.getElementById('pm-note').value.trim() || null,
+    status: 'pending',
+  };
+  const { error } = await sb.from('product_requests').insert(row);
+  if (error) showToast(TC_I18N.t('dash.error_prefix') + error.message, true);
+  else {
+    document.getElementById('product-modal').classList.remove('open');
+    await loadProductRequests();
+    renderMyRequests();
+    showToast(TC_I18N.t('dash.rewards_submitted'));
+  }
+  btn.disabled = false; btn.textContent = TC_I18N.t('dash.rewards_submit');
+}
+
+async function cancelProductRequest(id) {
+  const { error } = await sb.from('product_requests').update({ status: 'cancelled' }).eq('id', id);
+  if (error) { showToast(TC_I18N.t('dash.error_prefix') + error.message, true); return; }
+  await loadProductRequests();
+  renderMyRequests();
+  showToast(TC_I18N.t('dash.rewards_cancelled'));
 }
 
 // ── PROFILE ──────────────────────────────────────────────────
@@ -725,7 +886,7 @@ init();
 // Static labels are handled by TC_I18N.applyStatic() itself via [data-i18n].
 TC_I18N.onChange(() => {
   if (!currentUser) return;
-  renderSidebar(); renderOverview(); renderTrips(); renderBookings(); renderMembership(); renderReferralsPage();
+  renderSidebar(); renderOverview(); renderTrips(); renderBookings(); renderPoints(); renderReferralsPage(); renderRewards();
 });
 
 // ── PWA: service worker registration

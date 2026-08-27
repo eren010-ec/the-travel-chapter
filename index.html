@@ -324,7 +324,8 @@ footer { background:var(--navy); padding:56px 6% 32px; }
   <ul class="nav-links">
     <li><a href="#destinations" data-i18n="nav.destinations">Destinations</a></li>
     <li><a href="#trips" data-i18n="nav.trips">Trips</a></li>
-    <li><a href="#membership" data-i18n="nav.membership">Membership</a></li>
+    <li><a href="#membership" data-i18n="nav.rewards">Rewards</a></li>
+    <li><a href="free-gifts.html" data-i18n="nav.free_gifts">Free Gifts</a></li>
     <li><a href="#about" data-i18n="nav.about">About</a></li>
     <li><a href="#contact" data-i18n="nav.contact">Contact</a></li>
   </ul>
@@ -453,51 +454,39 @@ footer { background:var(--navy); padding:56px 6% 32px; }
   </div>
 </div>
 
-<!-- ── MEMBERSHIP TIERS ── -->
+<!-- ── MEMBER REWARDS ── (id kept as #membership so existing nav/footer anchors still resolve) -->
 <section id="membership">
   <div class="section-header" style="text-align:center;">
-    <div class="section-eyebrow" style="justify-content:center;" id="mem-eyebrow" data-i18n="membership.eyebrow">Membership</div>
-    <h2 class="section-title reveal" id="mem-heading" data-i18n="membership.heading" data-i18n-html>Choose Your <em>Chapter</em></h2>
-    <p class="section-sub reveal" style="margin:0 auto;" id="mem-subtext" data-i18n="membership.subtext">Every member starts as an Explorer and earns points with every journey — unlocking richer experiences as you travel more.</p>
+    <div class="section-eyebrow" style="justify-content:center;" data-i18n="rewards.eyebrow">Member Rewards</div>
+    <h2 class="section-title reveal" data-i18n="rewards.heading" data-i18n-html>Earn as You <em>Travel</em></h2>
+    <p class="section-sub reveal" style="margin:0 auto;" data-i18n="rewards.subtext">Every booking earns redeemable points. Spend them on gifts and member products in your Rewards Store — no tiers, no expiry.</p>
   </div>
   <div class="tiers-grid" id="tiers-grid">
     <div class="tier-card reveal">
-      <div class="tier-icon">🌿</div>
-      <div class="tier-name" data-i18n="tier.explorer">Explorer</div>
-      <div class="tier-pts" data-i18n="membership.explorer.pts">0 – 999 Points</div>
+      <div class="tier-icon">✈️</div>
+      <div class="tier-name" data-i18n="rewards.card1_title">Earn on Every Trip</div>
       <div class="tier-divider"></div>
       <ul class="tier-perks">
-        <li data-i18n="membership.explorer.perk1">Access to all Explorer trips</li>
-        <li data-i18n="membership.explorer.perk2">1 point per RM spent</li>
-        <li data-i18n="membership.explorer.perk3">Email travel updates</li>
-        <li data-i18n="membership.explorer.perk4">24/7 member support</li>
+        <li data-i18n="rewards.card1_perk1">1 point for every RM you spend</li>
+        <li data-i18n="rewards.card1_perk2">Points credited when your booking is confirmed</li>
       </ul>
     </div>
     <div class="tier-card featured reveal">
-      <div class="tier-featured-label" data-i18n="membership.most_popular">Most Popular</div>
-      <div class="tier-icon">✦</div>
-      <div class="tier-name" data-i18n="tier.premier">Premier</div>
-      <div class="tier-pts" data-i18n="membership.premier.pts">1,000 – 4,999 Points</div>
+      <div class="tier-icon">🎁</div>
+      <div class="tier-name" data-i18n="rewards.card2_title">Redeem for Rewards</div>
       <div class="tier-divider"></div>
       <ul class="tier-perks">
-        <li data-i18n="membership.premier.perk1">All Explorer benefits</li>
-        <li data-i18n="membership.premier.perk2">Access to Premier trips</li>
-        <li data-i18n="membership.premier.perk3">Priority booking windows</li>
-        <li data-i18n="membership.premier.perk4">Complimentary travel insurance</li>
-        <li data-i18n="membership.premier.perk5">Exclusive member events</li>
+        <li data-i18n="rewards.card2_perk1">Browse the Rewards Store in your member portal</li>
+        <li data-i18n="rewards.card2_perk2">Request gifts and member products with points or cash</li>
       </ul>
     </div>
     <div class="tier-card reveal">
-      <div class="tier-icon">👑</div>
-      <div class="tier-name" data-i18n="tier.elite">Elite</div>
-      <div class="tier-pts" data-i18n="membership.elite.pts">5,000+ Points</div>
+      <div class="tier-icon">🔓</div>
+      <div class="tier-name" data-i18n="rewards.card3_title">No Tiers, No Catch</div>
       <div class="tier-divider"></div>
       <ul class="tier-perks">
-        <li data-i18n="membership.elite.perk1">All Premier benefits</li>
-        <li data-i18n="membership.elite.perk2">Access to Elite-only trips</li>
-        <li data-i18n="membership.elite.perk3">Dedicated travel concierge</li>
-        <li data-i18n="membership.elite.perk4">Airport lounge access</li>
-        <li data-i18n="membership.elite.perk5">Annual gift & surprises</li>
+        <li data-i18n="rewards.card3_perk1">Every trip is open to every member</li>
+        <li data-i18n="rewards.card3_perk2">Your points never expire</li>
       </ul>
     </div>
   </div>
@@ -672,7 +661,8 @@ footer { background:var(--navy); padding:56px 6% 32px; }
       <ul class="footer-links">
         <li><a href="#destinations" data-i18n="footer.link_destinations">Destinations</a></li>
         <li><a href="#trips" data-i18n="footer.link_trips">Featured Trips</a></li>
-        <li><a href="#membership" data-i18n="footer.link_membership">Membership</a></li>
+        <li><a href="#membership" data-i18n="footer.link_rewards">Rewards</a></li>
+        <li><a href="free-gifts.html" data-i18n="footer.link_free_gifts">Free Gifts</a></li>
         <li><a href="#about" data-i18n="footer.link_about">Our Story</a></li>
       </ul>
     </div>
@@ -721,7 +711,6 @@ async function loadCMS() {
   if (cms.hero)         applyHero(cms.hero);
   if (cms.destinations) applyDestinations(cms.destinations);
   if (cms.featured_trips) applyFeaturedTrips(cms.featured_trips);
-  if (cms.membership)   applyMembership(cms.membership);
   if (cms.about)        applyAbout(cms.about);
   if (cms.testimonials) applyTestimonials(cms.testimonials);
   if (cms.cta_banner)   applyCta(cms.cta_banner);
@@ -917,38 +906,8 @@ function syncHeroCardsToTrips(data) {
 }
 TC_I18N.onChange(() => { if (lastDbTrips) renderDbTrips(lastDbTrips); });
 
-function applyMembership(d) {
-  txt('mem-eyebrow', d.eyebrow);
-  html('mem-heading', italicHeading(d.heading, d.heading_italic));
-  txt('mem-subtext', d.subtext);
-  renderTiersGrid();
-}
-// Tier cards are NOT CMS-driven (unlike the rest of this function) — they reuse the same
-// trilingual dash.tier_*/tier.* i18n keys dashboard.html's tier comparison already has, so
-// this section is fully translated instead of always showing whatever language the CMS
-// content happens to be authored in. Keep both pages' perk lists in sync if editing either.
-const TIERS = [
-  { key: 'explorer', icon: '🌿', featured: false, perkCount: 4 },
-  { key: 'premier',  icon: '✦',  featured: true,  perkCount: 5 },
-  { key: 'elite',    icon: '👑', featured: false, perkCount: 5 },
-];
-function renderTiersGrid() {
-  const grid = document.getElementById('tiers-grid');
-  if (!grid) return;
-  grid.innerHTML = TIERS.map(tier => {
-    const perks = Array.from({length: tier.perkCount}, (_, i) => TC_I18N.t(`dash.tier_${tier.key}_perk${i+1}`));
-    return `
-    <div class="tier-card ${tier.featured?'featured':''} reveal">
-      ${tier.featured?`<div class="tier-featured-label">${TC_I18N.t('membership.most_popular')}</div>`:''}
-      <div class="tier-icon">${tier.icon}</div>
-      <div class="tier-name">${TC_I18N.t('tier.'+tier.key)}</div>
-      <div class="tier-pts">${TC_I18N.t(`dash.tier_${tier.key}_pts`)}</div>
-      <div class="tier-divider"></div>
-      <ul class="tier-perks">${perks.map(p=>`<li>${p}</li>`).join('')}</ul>
-    </div>`;
-  }).join('');
-}
-TC_I18N.onChange(() => renderTiersGrid());
+// The Member Rewards section (#membership) is fully static, trilingual via
+// data-i18n (rewards.*) — no CMS, no JS. The old tier-cards renderer lived here.
 
 function applyAbout(d) {
   txt('about-eyebrow', d.eyebrow);

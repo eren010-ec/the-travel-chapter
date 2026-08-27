@@ -517,6 +517,106 @@ User ran `netlify login` (fresh browser OAuth) then said the team's Netlify depl
 
 ---
 
+## Workstream S — New standalone "Free Gifts" page, CMS-editable (added 2026-08-27)
+
+User asked for a new page listing all the free gifts, each with a picture, editable from the CMS.
+
+**New file: `free-gifts.html`** (repo root, customer site). Self-contained page (own `<style>`, reusing the site's design tokens / navbar / footer markup verbatim so it reads as native). Loads `supabase-js` + `i18n.js` like the other customer pages.
+- Reads its content from a **new `cms_content` section, `section = 'free_gifts'`** — `sb.from('cms_content').select('content').eq('section','free_gifts').maybeSingle()`. If the row doesn't exist yet (it won't until an admin saves the tab once), the page renders a friendly empty state (`#gifts-empty`, i18n key `gifts.empty`) — no error.
+- Content shape: `{ eyebrow, heading, subtext, items: [ { name, description, note, emoji, image } ] }`. `note` renders as a small gold pill ("Free with any booking" etc.). `image` is a public URL from the `trip-images` bucket (same bucket/pattern the Hero + Destinations image uploads already use); `emoji` is the fallback tile when no photo is set.
+- Page-header eyebrow/heading/subtext fall back to i18n (`gifts.eyebrow` / `gifts.heading` / `gifts.subtext`) and are overridden by the CMS values when present (and `data-i18n` is stripped off those nodes when overridden, so a later language switch doesn't stomp the CMS text — matches the site's established "CMS freeform content is single-language" behaviour, same as destination names / tier perks). Gift `name`/`description`/`note` are CMS freeform = single language by design.
+- Grid is `.gift-card` (photo on top 16:11, name + description + note below), 3-up desktop / 2-up tablet / 1-up mobile, with the same `.reveal` scroll-in animation and navbar-shadow-on-scroll as `index.html`. Registers `sw-customer.js` like the other customer pages.
+
+**`index.html`** — added "Free Gifts" (`free-gifts.html`) to the navbar `<ul class="nav-links">` (between Membership and About) and to the footer "Explore" column, both as `data-i18n` links (`nav.free_gifts` / `footer.link_free_gifts`).
+
+**`i18n.js`** — added keys in all three locales (EN/ZH/MS): `nav.free_gifts`, `footer.link_free_gifts`, and the page-chrome keys `gifts.eyebrow` / `gifts.heading` (has an `<em>`) / `gifts.subtext` / `gifts.empty` / `gifts.cta`.
+
+**`admin/admin-cms.html`** — new **"Free Gifts"** section in the content editor (sidebar nav-item between Membership and About Us):
+- `renderFreeGiftsForm(d)` — a Page Header card (`sectionHeaderFields('gift', d)` → ids `gift_eyebrow` / `gift_heading` / `gift_heading_italic` / `gift_subtext`) + a repeating **Gifts** list. Each gift: Name, Description (textarea), "How to get it" badge text, Emoji fallback, and a **photo upload** (reuses the existing `imageUploadField()` / `imagePreviewUrl()` / `uploadCmsImage(file,'free-gifts')` plumbing — uploads to the `trip-images` bucket, folder `free-gifts/`).
+- Wired into `renderEditor()`'s `switch`, `sectionLabels`, `buildContentFromForm()` (`case 'free_gifts'`), and `saveSection()`'s image-processing block (mirrors the `destinations` items loop: upload pending `_file`s, honour `_removed`, strip the `_` scratch keys before upsert).
+- New array helpers `addGift()` / `removeGift(i)` / `moveGift(i,dir)` and image handlers `handleGiftImageSelect(event,i)` / `removeGiftImage(i)` (copies of the destination equivalents).
+- `renderEditor()`'s header/preview-strip copy is now section-aware: for `free_gifts` it says "page" instead of "section of your landing page" and the Preview links point at `https://thetravelchapter.my/free-gifts.html`.
+- Because the admin site is served from `admin/` and is **not** git-linked, this file's change needs the manual deploy: `netlify deploy --prod --dir=admin --site c5f73ef7-2043-4f04-8611-702f5a4e773b` (see Workstream F). The `free-gifts.html` / `index.html` / `i18n.js` changes ship with the normal customer-site build.
+
+**Tested locally** (`python -m http.server` + Claude-in-Chrome, against production Supabase — no `free_gifts` row exists yet, so the empty state was what rendered): page renders on-brand in EN and ZH, navbar/footer "Free Gifts" links present and translated on `index.html` too, language switch works, no app console errors (only the known unrelated `M_ID` Chrome-extension exception from Workstream O). **Not tested:** the actual admin CMS form (behind the admin auth gate, no test credentials this session) and a populated gift grid (no row to populate it) — both verified by code review against the identical Destinations pattern instead.
+
+**Not committed / not pushed / not deployed** — per [[feedback_netlify_deploy_gate]], left for the user to review and give the go-ahead. After pushing the customer files, someone should open the Free Gifts tab in the admin CMS, add a gift or two with photos, and Save — that first save creates the `free_gifts` row and the live page fills in.
+
+---
+
+## Workstream T — Member "Rewards Store": product catalogue + redeemable-points balance + manual request queue (added 2026-08-27)
+
+User asked for a "product section" in the member portal to list all products with a **points-to-redeem cost and/or a MYR buy-in price**. Answered 3 scoping questions first: (1) products managed in the **admin panel via a new DB table** (like Trips), not the CMS; (2) a member "Redeem/Request" action **logs a pending request for staff to fulfil manually** — no automatic points math; (3) redemptions spend a **new, separate `reward_points` balance**, not `tier_points` (so redeeming never affects membership tier standing).
+
+**Mid-build, the user added:** "remove the membership tier feature later — change that to redeemable points balance, no tier anymore." Treated as a **separate future workstream** (see Task checklist). This workstream deliberately builds `reward_points` as a standalone balance that already works with or without the tier system, so it's a stepping stone, not a conflict.
+
+### DB migration — NOT YET APPLIED
+New file `supabase/migrations/20260827123000_products_rewards_requests.sql` (this created the previously-absent `supabase/migrations/` dir). Written to be re-runnable. **Nothing in it has been run against production** — hand it to the user to apply via the Supabase SQL Editor or `supabase db query --linked -f <file>` (CLI is authed + project linked; `supabase db push` won't work — no Docker on this machine, and there's no prior migration history table). Contents:
+- `profiles.reward_points integer not null default 0` — the spendable balance.
+- **Extends `protect_position_flags()`** (the existing BEFORE UPDATE trigger on `profiles`) to also block non-admin/staff from changing `reward_points`, exactly as it already blocks `tier`/`tier_points`. **This is required** — the `profiles` "update own profile" policy has no WITH CHECK, so without the trigger a member could PATCH their own `reward_points`. Function body was reproduced verbatim from the live DB dump + the one new column.
+- `products` table (`name`, `description`, `image_url`, `points_cost` nullable, `price_myr` nullable, `is_active`, `sort_order`, timestamps) + `set_updated_at` trigger + RLS: public read of active rows (`is_active OR is_admin_or_staff()`), admin/staff insert/update/delete.
+- `product_requests` table — one row per member redemption/purchase request. Stores **snapshots** (`member_name`, `member_email`, `product_name`, `points_cost_snapshot`, `price_snapshot`) so the admin queue needs zero joins and records survive a product being deleted (`product_id … on delete set null`). `method` in (`points`,`cash`); `status` in (`pending`,`approved`,`fulfilled`,`rejected`,`cancelled`). RLS: members read/create their own + can flip their own row to `cancelled`; admin/staff manage all. No new views ⇒ no `lock_down_admin_views`-style REVOKE needed.
+- **`create or replace view admin_members`** with `p.reward_points` appended (reproduced from live `pg_get_viewdef`). This is the one slightly-fragile statement (a function returns `SETOF admin_members`); it's last in the file, each statement auto-commits, and **the frontend does not depend on it** (admin member modal fetches `reward_points` with a direct `profiles` select), so if it errors the rest is still fully functional.
+
+**Security notes flagged, not blockers:** a member can technically also edit `note`/`quantity`/`*_snapshot`/`method` on their own still-pending request row (the cancel policy only constrains `status`); and the snapshots are client-supplied so a member could understate a cost. Both are harmless because **fulfilment is 100% manual** — staff see the real product and the real `member_id`. If tighter is wanted later, add a BEFORE UPDATE trigger on `product_requests`.
+
+### Frontend — all built, degrades gracefully if the migration isn't applied yet
+(`sb.from('products')` / `product_requests` just return `{data:null}` when the tables are absent — same pattern as every other loader — so pages don't crash pre-migration; the store simply shows empty.)
+
+- **`dashboard.html`** — new sidebar item **"Rewards Store"** (`data-page="rewards"`, between Lucky Draw and Membership) + `#page-rewards`: a redeemable-points balance chip, a product grid (reuses `.trip-card`; photo or 🎁, name, description, `N pts` / `RM x` / "Enquire" tag, a "Request" button), and a "My Requests" list with status pills and a Cancel button on pending rows. New `#product-modal` (method selector shown only if the product has both points+price, quantity, note, live total). `loadProducts()` / `loadProductRequests()` added to `init()` and to the `TC_I18N.onChange` re-render. `submitProductRequest()` inserts a `pending` row with snapshots; `cancelProductRequest()` sets it `cancelled`.
+- **`admin/admin.html`** — new sidebar item **"Products"** (`data-page="products"`, after Trips) + `#page-products` with two cards: **Catalogue** table (thumb / points / price / status / edit+delete) with a `#product-modal` (name, description, photo upload to `trip-images` bucket, folder `products/` — same helper shape as the trip modal; points cost, price, sort order, active toggle), and **Redemption Requests** table (member / product / method / qty / amount / date / status / action buttons) with a status filter. `setProductRequestStatus()` walks `pending→approved→fulfilled`/`rejected` (and `rejected→pending` to reopen); marking a points request `fulfilled` pops a `confirm()` reminding staff to deduct the points manually in the Members tab — **there is no auto-deduction**. Member-edit modal gains a **"Redeemable Points"** field next to Tier Points (hidden for admin/staff accounts, same as Tier Points); `openMemberModal()` fetches it via a direct `profiles` select, `saveMember()` writes it back in the existing plain `profiles.update()` for regular members only. New helpers: `escapeHtml()` (member-supplied text now renders in admin tables) and `.pill-approved/.pill-fulfilled/.pill-rejected` styles.
+- **`i18n.js`** — EN/ZH/MS for `dash.nav_rewards` + ~20 `dash.rewards_*` keys + `status.approved` / `status.fulfilled` / `status.rejected` (the last three also cover any future use of those statuses elsewhere).
+
+### Testing
+JS syntax-checked (`node -c` on i18n.js; `new Function()` parse of every `<script>` in dashboard.html / admin.html) — all pass. **No live/browser test:** both pages are behind an auth gate with no test credentials this session, and the Chrome extension disconnected partway through. Verified by code review against the identical Trips / Referrals patterns. The migration has **not** been run.
+
+### To ship
+1. Apply `supabase/migrations/20260827123000_products_rewards_requests.sql` to production (SQL Editor or `supabase db query --linked -f …`).
+2. Commit + push (customer build covers `dashboard.html` / `i18n.js`; `index.html` unchanged this workstream).
+3. `netlify deploy --prod --dir=admin --site c5f73ef7-2043-4f04-8611-702f5a4e773b` for the `admin/admin.html` changes (git push does not touch the admin site — see Workstream F).
+4. In the admin panel: add a few products (with photos), and grant some members `reward_points` via the member modal. Then a member sees the store populated and can file requests.
+
+---
+
+## Workstream U — Removed the membership-tier system; `reward_points` is now the only points balance (added 2026-08-27)
+
+Follows Workstream T. User: *"remove the membership tier feature… change that to redeemable points balance. no tier anymore."* Scoped via 5 questions:
+1. **Trips** — gate dropped entirely. Every active trip is bookable by every member. `trips.min_tier` kept in the DB but unused everywhere.
+2. **Existing `tier_points`** — carried over 1:1 into `reward_points` (one-time `UPDATE`, then `tier_points` zeroed so the statement is idempotent).
+3. **Booking auto-award** — kept. `award_points_on_confirm()` now credits `reward_points` instead of `tier_points` (still 1 pt / RM).
+4. **Homepage "Choose Your Chapter" section** — replaced with a static "Member Rewards" section (earn on bookings / redeem in the store / no tiers).
+5. **Dashboard "Membership" page** — replaced with a "Points" page (balance, lifetime earned, recent activity).
+
+### DB migration — `supabase/migrations/20260827130000_remove_membership_tiers.sql` — NOT YET APPLIED
+Re-runnable. Apply **after** the Workstream T migration (it re-adds `reward_points` with `if not exists` as a guard, so order is forgiving). Contents:
+- `UPDATE profiles SET reward_points = reward_points + tier_points, tier_points = 0` (the 1:1 carry-over).
+- `award_points_on_confirm()` → writes `reward_points`.
+- `protect_position_flags()` simplified — now only guards `is_admin`/`is_staff` (admin-only) and `reward_points` (admin/staff-only); the dead `tier`/`tier_points` guards removed.
+- `handle_new_user()` — stops threading `tier` from signup metadata (column keeps its `'explorer'` default so rows stay valid).
+- `profiles.tier`, `profiles.tier_points`, `trips.min_tier` **columns are kept, not dropped** — reversible, and nothing that still reads them breaks. `admin_members` view still exposes `tier`/`tier_points` too (CREATE OR REPLACE VIEW can't drop columns and a function returns SETOF it) — the UI just ignores them.
+
+### Frontend (all done, syntax-checked; degrades fine pre-migration since `reward_points` reads just come back 0)
+- **`index.html`** — `<section id="membership">` (id kept so `#membership` nav/footer anchors still resolve) rewritten to the static "Member Rewards" section, 3 cards via new `rewards.*` i18n keys. Deleted `applyMembership()` / `renderTiersGrid()` / the `TIERS` const / the `cms.membership` apply call / the tiers `onChange`. Nav + footer "Membership" links relabelled "Rewards" (`nav.rewards` / `footer.link_rewards`). `.tier-card`/`.tier-perks` CSS reused by the new cards.
+- **`dashboard.html`** — sidebar "Membership" → "Points" (`data-page="points"`, `#page-points`). Overview: "Tier Points" stat → "Redeemable Points" (`reward_points`); "Membership Tier" stat → "Points Earned"; "Tier Progress" card → "Points Summary". New `renderPoints()` (balance / lifetime earned from confirmed bookings / merged activity feed of booking-earns and Rewards-Store point-spends) replaces `renderMembership()`. `renderTrips()` — removed the `tierRank`/`locked` gate and the tier tag; every card shows Book Now. Sidebar member chip shows the points balance instead of a tier name. New `pointsStats()` helper.
+- **`admin/admin.html`** — member-edit modal: tier selector + "Tier Points" field removed; "Redeemable Points" (`#mm-reward-points`, from Workstream T) is now the only points field; section relabelled "Points & Access". `saveMember()` no longer writes `tier`/`tier_points`. Members table: "Tier" column + tier filter removed, "Points" column now shows `reward_points` (needs the Workstream T `admin_members` view change). Trips: "Min Tier" removed from the modal, the table, the filter, and the `saveTrip` payload. Deleted `selectMemberTier()` and `editingMemberTier`.
+- **`admin/admin-cms.html`** — "Membership" section removed entirely (nav item, `renderMembershipForm()`, the `buildContentFromForm` case, the switch case, the label). The `cms_content` row `section='membership'` is left in the DB, unread.
+- **`i18n.js`** — deleted the `membership.*`, `tier.*`, `dash.tier_*`, `dash.membership_*` key blocks and the scattered tier keys (`dash.stat_tier`, `dash.tier_progress`, `dash.pts_to_*`, `dash.earn_more_*`, `dash.max_tier`, `dash.highest_tier`, `dash.pts_suffix`, `dash.current_status`, `dash.tier_comparison`, `dash.your_tier`, `dash.member_suffix`, `dash.nav_membership`, `nav.membership`, `footer.link_membership`) across all 3 locales; added `rewards.*` (12), `dash.points_*` (7), `dash.nav_points`, `dash.stat_earned`, `dash.points_summary`, `nav.rewards`, `footer.link_rewards`. **All 3 locales verified at 353 keys with identical key sets.** `free-gifts.html` nav/footer links repointed to `nav.rewards` / `footer.link_rewards`.
+
+### Verified
+- `node -c` on i18n.js + `new Function()` parse of every `<script>` in all 5 HTML files — pass.
+- i18n locale-parity + referenced-key check script — pass (353/353/353, no missing refs).
+- Homepage in a real browser: nav shows "Rewards", the new Member Rewards section renders correctly (eyebrow / italic heading / 3 cards), **zero console errors** on a fresh load.
+- **Not browser-tested:** `dashboard.html` (Points page, trips grid, sidebar chip) and `admin/admin.html` (member modal, members/trips tables) — auth-gated, no test creds, and untestable further without applying the migration. Verified by code review + syntax.
+- Dead CSS (`.tier-badge` etc. in dashboard.html, `.tier-selector`/`.tier-opt` in admin.html) left in place per the project's "don't prune unrelated dead code" convention.
+
+### To ship
+1. Apply **both** migrations in order: `20260827123000_products_rewards_requests.sql` (Workstream T) then `20260827130000_remove_membership_tiers.sql` (this one).
+2. Commit + push (customer build covers `index.html` / `dashboard.html` / `i18n.js` / `free-gifts.html`).
+3. `netlify deploy --prod --dir=admin --site c5f73ef7-2043-4f04-8611-702f5a4e773b` for `admin/admin.html` + `admin/admin-cms.html`.
+4. Spot-check: a member's Overview/Points page shows their carried-over balance; booking → confirm (admin) still credits points; every trip shows Book Now.
+
+---
+
 ## Task checklist
 
 - [x] Open all 6 pages in a real browser, confirm logo renders correctly (sizing/placement) — done 2026-07-26 at desktop size.
@@ -532,6 +632,7 @@ User ran `netlify login` (fresh browser OAuth) then said the team's Netlify depl
 - [ ] (Optional, future) If a real native Android `.apk` is wanted later: wrap with Capacitor — requires installing Java JDK + Android SDK command-line tools on a build machine first.
 - [ ] (Optional, future) If a real iOS app is wanted later: needs a Mac with Xcode (and an Apple Developer account to install on a physical device or ship to the App Store) — cannot be done from this Windows machine.
 - [x] ~~Update `admin-cms.html`'s Destinations tab form to include `chapter_title` / `dateline` / `story` fields~~ — moot, Workstream G (2026-08-06) reverted the destinations grid back to plain `name`/`region`/`image`/`emoji`/`gradient` fields, which the CMS form already supports.
+- [x] **Remove the membership-tier system entirely; replace with the `reward_points` balance (user request, 2026-08-27).** DONE in code — see Workstream U below. Migration `20260827130000_remove_membership_tiers.sql` NOT YET APPLIED. Decisions taken: trip gate dropped entirely (all trips bookable by everyone; `trips.min_tier` kept but unused); existing `tier_points` carried 1:1 into `reward_points` then zeroed; booking auto-award kept, now credits `reward_points`; homepage "Membership" section → "Rewards" section; dashboard "Membership" page → "Points" page.
 - [ ] Referral checkout flow is still manual/admin-recorded — there's no customer-facing "enter a referral code at booking" field (matches the existing vouchers pattern, which also has no checkout-time redemption UI). If that's wanted, it needs a new field in `dashboard.html`'s booking modal plus admin-side matching logic.
 - [ ] Netlify CLI is now logged in on this machine (state persists in `%APPDATA%\netlify`) — future sessions may not need `netlify login` again, but if `netlify status` shows logged out, re-run it (retry once if the first attempt times out waiting for browser approval).
 - [ ] If admin.html/admin-cms.html/admin-login.html change again, remember the deploy command is `netlify deploy --prod --dir=admin --site c5f73ef7-2043-4f04-8611-702f5a4e773b` — a plain `git push` will not update the live admin site (see Workstream F).

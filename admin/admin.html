@@ -83,6 +83,9 @@ tr:hover td { background:var(--cream); }
 .pill-inactive  { background:rgba(224,82,82,0.08);  color:var(--red);   border-color:rgba(224,82,82,0.2); }
 .pill-admin     { background:rgba(184,149,90,0.12); color:var(--gold);  border-color:rgba(184,149,90,0.3); }
 .pill-staff     { background:rgba(26,31,46,0.08);   color:var(--navy);  border-color:rgba(26,31,46,0.15); }
+.pill-approved  { background:rgba(46,134,222,0.1);  color:#2e86de;      border-color:rgba(46,134,222,0.25); }
+.pill-fulfilled { background:rgba(39,174,96,0.1);   color:var(--green); border-color:rgba(39,174,96,0.25); }
+.pill-rejected  { background:rgba(224,82,82,0.1);   color:var(--red);   border-color:rgba(224,82,82,0.25); }
 
 /* ── BUTTONS ── */
 .btn { padding:8px 16px; border-radius:7px; border:none; font-family:'DM Sans',sans-serif; font-size:0.75rem; font-weight:500; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
@@ -204,6 +207,9 @@ textarea { resize:vertical; min-height:70px; }
     <button class="nav-item" data-page="trips">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>Trips
     </button>
+    <button class="nav-item" data-page="products">
+      <svg viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>Products
+    </button>
     <button class="nav-item" data-page="vouchers">
       <svg viewBox="0 0 24 24"><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6M2 7h20v5H2z"/><path d="M12 22V7M12 7a2.5 2.5 0 1 1-2.5-2.5C11 4.5 12 7 12 7ZM12 7a2.5 2.5 0 1 0 2.5-2.5C13 4.5 12 7 12 7Z"/></svg>Vouchers
     </button>
@@ -262,19 +268,13 @@ textarea { resize:vertical; min-height:70px; }
             <input type="text" id="mb-search" placeholder="Search name or email…" oninput="filterMembers()">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           </div>
-          <select class="filter-select" id="mb-tier-filter" onchange="filterMembers()">
-            <option value="">All Tiers</option>
-            <option value="explorer">Explorer</option>
-            <option value="premier">Premier</option>
-            <option value="elite">Elite</option>
-          </select>
         </div>
         <div id="mb-count" style="font-size:0.75rem;color:var(--smoke);"></div>
       </div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Tier</th><th>Points</th><th>Bookings</th><th>Total Spent</th><th>Joined</th><th>Actions</th></tr></thead>
-          <tbody id="members-body"><tr><td colspan="9" class="loading">Loading…</td></tr></tbody>
+          <thead><tr><th>Name</th><th>Email</th><th>Phone</th><th>Points</th><th>Bookings</th><th>Total Spent</th><th>Joined</th><th>Actions</th></tr></thead>
+          <tbody id="members-body"><tr><td colspan="8" class="loading">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -347,18 +347,49 @@ textarea { resize:vertical; min-height:70px; }
             <input type="text" id="tr-search" placeholder="Search trips…" oninput="filterTrips()">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           </div>
-          <select class="filter-select" id="tr-tier-filter" onchange="filterTrips()">
-            <option value="">All Tiers</option>
-            <option value="explorer">Explorer</option>
-            <option value="premier">Premier</option>
-            <option value="elite">Elite</option>
-          </select>
         </div>
       </div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Title</th><th>Duration</th><th>Price (RM)</th><th>Min Tier</th><th>Max Pax</th><th>Departures</th><th>Status</th><th>Actions</th></tr></thead>
-          <tbody id="trips-body"><tr><td colspan="8" class="loading">Loading…</td></tr></tbody>
+          <thead><tr><th>Title</th><th>Duration</th><th>Price (RM)</th><th>Max Pax</th><th>Departures</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="trips-body"><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRODUCTS -->
+  <div class="page" id="page-products">
+    <div class="page-header">
+      <div><h1>Products</h1><p>Catalogue shown to members in the Rewards Store — points cost and/or MYR price.</p></div>
+      <button class="btn btn-primary" onclick="openProductModal()">+ New Product</button>
+    </div>
+    <div class="card">
+      <div class="card-header"><div class="card-title">Catalogue</div></div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Product</th><th>Points</th><th>Price (RM)</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="products-body"><tr><td colspan="5" class="loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card" style="margin-top:18px;">
+      <div class="card-header">
+        <div class="card-title">Redemption Requests</div>
+        <select class="filter-select" id="prq-filter" onchange="renderProductRequestsTable()">
+          <option value="open">Open (pending / approved)</option>
+          <option value="pending">Pending</option>
+          <option value="approved">Approved</option>
+          <option value="fulfilled">Fulfilled</option>
+          <option value="rejected">Rejected</option>
+          <option value="cancelled">Cancelled</option>
+          <option value="">All</option>
+        </select>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Member</th><th>Product</th><th>Method</th><th>Qty</th><th>Amount</th><th>Requested</th><th>Status</th><th>Actions</th></tr></thead>
+          <tbody id="product-requests-body"><tr><td colspan="8" class="loading">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -540,18 +571,14 @@ textarea { resize:vertical; min-height:70px; }
       <div class="field"><label>Passport No.</label><input type="text" id="mm-passport"></div>
     </div>
 
-    <!-- Membership Tier -->
+    <!-- Points & Access -->
     <div class="modal-section" id="mm-tier-section">
-      <div class="modal-section-title">Membership Tier</div>
-      <div class="tier-selector" id="mm-tier-selector">
-        <div class="tier-opt" data-tier="explorer" onclick="selectMemberTier(this)"><span>🌿</span>Explorer</div>
-        <div class="tier-opt" data-tier="premier"  onclick="selectMemberTier(this)"><span>✦</span>Premier</div>
-        <div class="tier-opt" data-tier="elite"    onclick="selectMemberTier(this)"><span>👑</span>Elite</div>
-      </div>
-      <div style="display:flex;align-items:center;gap:12px;margin-top:12px;">
-        <div class="field" id="mm-points-section" style="flex:1;">
-          <label>Tier Points</label>
-          <input type="number" id="mm-points" min="0" placeholder="0">
+      <div class="modal-section-title">Points &amp; Access</div>
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <div class="field" id="mm-reward-points-section" style="flex:1;">
+          <label>Redeemable Points</label>
+          <input type="number" id="mm-reward-points" min="0" placeholder="0">
+          <div class="field-hint" style="font-size:0.68rem;color:#c5bdb4;margin-top:3px;">Balance the member spends in the Rewards Store. Bookings auto-credit 1 point per RM when confirmed.</div>
         </div>
         <div class="field" id="mm-position-section" style="flex:1;">
           <label>Grant Admin Panel Access</label>
@@ -677,9 +704,6 @@ textarea { resize:vertical; min-height:70px; }
       </div>
       <div class="field"><label>Duration (days)</label><input type="number" id="tm-duration" min="1" value="7"></div>
       <div class="field"><label>Price (RM)</label><input type="number" id="tm-price" min="0" step="0.01" value="0"></div>
-      <div class="field"><label>Min Tier</label>
-        <select id="tm-tier"><option value="explorer">Explorer</option><option value="premier">Premier</option><option value="elite">Elite</option></select>
-      </div>
       <div class="field"><label>Max Pax</label><input type="number" id="tm-pax" min="1" value="12"></div>
       <div class="field" id="tm-cost-field" style="display:none;">
         <label>Cost Price (RM, per person)</label>
@@ -694,6 +718,42 @@ textarea { resize:vertical; min-height:70px; }
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('trip-modal')">Cancel</button>
       <button class="btn btn-primary" id="btn-save-trip" onclick="saveTrip()">Save Trip</button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════
+     PRODUCT MODAL
+════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="product-modal">
+  <div class="modal">
+    <h2 id="product-modal-title">New Product</h2>
+    <div class="form-grid">
+      <div class="field full"><label>Product Name</label><input type="text" id="pdm-name" placeholder="Leather luggage tag"></div>
+      <div class="field full"><label>Description</label><textarea id="pdm-desc" placeholder="Short description members will see…"></textarea></div>
+      <div class="field full">
+        <label>Photo</label>
+        <div id="pdm-image-preview-wrap" style="display:none;margin-bottom:8px;">
+          <img id="pdm-image-preview" src="" style="width:100%;max-height:160px;object-fit:cover;border-radius:8px;border:1px solid var(--border);">
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <input type="file" id="pdm-image-file" accept="image/*" style="display:none;" onchange="handleProductImageSelect(event)">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('pdm-image-file').click()">📷 Choose Photo</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="btn-remove-product-image" style="display:none;" onclick="removeProductImage()">✕ Remove</button>
+          <span id="pdm-image-status" style="font-size:0.72rem;color:var(--smoke);"></span>
+        </div>
+      </div>
+      <div class="field"><label>Points Cost</label><input type="number" id="pdm-points" min="0" placeholder="Leave blank if not redeemable"></div>
+      <div class="field"><label>Price (RM)</label><input type="number" id="pdm-price" min="0" step="0.01" placeholder="Leave blank if not for sale"></div>
+      <div class="field"><label>Sort Order</label><input type="number" id="pdm-sort" value="0"></div>
+      <div class="field" style="flex-direction:row;align-items:center;gap:10px;">
+        <input type="checkbox" id="pdm-active" checked style="width:auto;padding:0;accent-color:var(--navy);">
+        <label for="pdm-active" style="text-transform:none;letter-spacing:0;font-size:0.82rem;color:var(--text);">Active (visible to members)</label>
+      </div>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-ghost" onclick="closeModal('product-modal')">Cancel</button>
+      <button class="btn btn-primary" id="btn-save-product" onclick="saveProduct()">Save Product</button>
     </div>
   </div>
 </div>
@@ -918,10 +978,12 @@ let allBookings=[], allTrips=[], allMembers=[], allRevenue=[], allTripCosts={}, 
 let allReferralPromotions=[], allReferrals=[], allLuckyDraws=[];
 let currentAdminId = null;
 let currentUserIsAdmin = false, currentUserIsStaff = false;
-let editingMemberId=null, editingMemberTier='explorer';
+let editingMemberId=null;
 let editingBookingId=null, addBookingMemberId=null;
 let editingTripId=null, editingBsmId=null;
 let tripImageFile=null, tripImageRemoved=false;
+let allProducts=[], allProductRequests=[];
+let editingProductId=null, productImageFile=null, productImageRemoved=false;
 
 // ── NAVIGATION ─────────────────────────────────────────────
 document.getElementById('sidebar-nav').addEventListener('click', function(e) {
@@ -966,10 +1028,11 @@ async function init() {
     document.getElementById('nav-revenue')?.remove();
   }
   document.getElementById('admin-email').textContent = session.user.email;
-  const loaders = [loadBookings(), loadTrips(), loadMembers(), loadVouchers(), loadReferralPromotions(), loadReferrals(), loadLuckyDraws()];
+  const loaders = [loadBookings(), loadTrips(), loadMembers(), loadVouchers(), loadReferralPromotions(), loadReferrals(), loadLuckyDraws(), loadProducts(), loadProductRequests()];
   if (currentUserIsAdmin) loaders.push(loadTripCosts(), loadRevenue());
   await Promise.all(loaders);
   renderDashboard(); renderMembersTable(); renderAdminsTable(); renderBookingsTable(); renderTripsTable(); renderVouchersTable();
+  renderProductsTable(); renderProductRequestsTable();
   renderReferralsPage(); renderLuckyDrawsPage();
   if (currentUserIsAdmin) renderRevenuePage();
 }
@@ -1007,6 +1070,15 @@ async function loadLuckyDraws() {
 async function loadTrips() {
   const { data } = await sb.from('trips').select('*').order('price_usd');
   allTrips = data || [];
+}
+async function loadProducts() {
+  const { data } = await sb.from('products').select('*')
+    .order('sort_order', { ascending: true }).order('name', { ascending: true });
+  allProducts = data || [];
+}
+async function loadProductRequests() {
+  const { data } = await sb.from('product_requests').select('*').order('created_at', { ascending: false });
+  allProductRequests = data || [];
 }
 async function loadMembers() {
   const { data } = await sb.rpc('get_admin_members').order('joined_at', { ascending: false });
@@ -1065,9 +1137,8 @@ function renderDashboard() {
 // ── MEMBERS TABLE ──────────────────────────────────────────
 function filterMembers() {
   const q=document.getElementById('mb-search').value.toLowerCase();
-  const tf=document.getElementById('mb-tier-filter').value;
   // Exclude admins and staff from members list — they live in the Admins tab
-  const filtered=allMembers.filter(m=>!m.is_admin&&!m.is_staff&&`${m.first_name||''} ${m.last_name||''} ${m.email||''} ${m.contact_email||''} ${m.phone||''}`.toLowerCase().includes(q)&&(!tf||m.tier===tf));
+  const filtered=allMembers.filter(m=>!m.is_admin&&!m.is_staff&&`${m.first_name||''} ${m.last_name||''} ${m.email||''} ${m.contact_email||''} ${m.phone||''}`.toLowerCase().includes(q));
   document.getElementById('mb-count').textContent=`${filtered.length} members`;
   renderMembersRows(filtered);
 }
@@ -1082,8 +1153,7 @@ function renderMembersRows(list) {
         <td><strong>${m.first_name||''} ${m.last_name||''}</strong></td>
         <td style="color:var(--smoke);font-size:0.78rem;">${m.contact_email||m.email||''}</td>
         <td style="color:var(--smoke);font-size:0.78rem;">${m.phone||''}</td>
-        <td><span class="pill pill-${m.tier}">${cap(m.tier)}</span></td>
-        <td>${(m.tier_points||0).toLocaleString()}</td>
+        <td>${(m.reward_points||0).toLocaleString()}</td>
         <td>${m.total_bookings||0}</td>
         <td style="color:var(--gold);font-weight:500;">RM ${Number(m.total_spent||0).toLocaleString()}</td>
         <td style="font-size:0.75rem;color:var(--smoke);">${fmtDate(m.joined_at)}</td>
@@ -1092,7 +1162,7 @@ function renderMembersRows(list) {
           <button class="btn btn-danger btn-sm" onclick="deleteMember('${m.id}','${(m.first_name||'')+" "+(m.last_name||'')}')">Delete</button>
         </div></td>
       </tr>`).join('')
-    : '<tr><td colspan="9" class="empty">No members found.</td></tr>';
+    : '<tr><td colspan="8" class="empty">No members found.</td></tr>';
 }
 
 // ── ADMINS TABLE (admin position + staff position) ─────────
@@ -1174,21 +1244,16 @@ async function openMemberModal(id) {
   document.getElementById('mm-dob').value         = m.date_of_birth || '';
   document.getElementById('mm-nationality').value = m.nationality   || '';
   document.getElementById('mm-passport').value    = m.passport_no   || '';
-  document.getElementById('mm-points').value      = m.tier_points   || 0;
   document.getElementById('mm-position').value    = m.is_admin ? 'admin' : m.is_staff ? 'staff' : 'member';
+  // reward_points fetched directly (independent of the admin_members view)
+  const { data: rpRow } = await sb.from('profiles').select('reward_points').eq('id', id).single();
+  document.getElementById('mm-reward-points').value = rpRow?.reward_points ?? 0;
 
-  // Set tier selector — hide for admin/staff accounts
-  editingMemberTier = m.tier || 'explorer';
-  document.querySelectorAll('#mm-tier-selector .tier-opt').forEach(opt => {
-    opt.classList.toggle('selected', opt.getAttribute('data-tier') === editingMemberTier);
-  });
   const isAdminPanelAccount = m.is_admin || m.is_staff;
-  // Hide tier and points for admin/staff accounts
+  // Points section is for regular members only, not admin/staff accounts
   const tierSection = document.getElementById('mm-tier-section');
-  const ptsSection  = document.getElementById('mm-points-section');
   const bkSection   = document.getElementById('mm-bookings-section');
   if (tierSection) tierSection.style.display = isAdminPanelAccount ? 'none' : 'block';
-  if (ptsSection)  ptsSection.style.display  = isAdminPanelAccount ? 'none' : 'block';
   if (bkSection)   bkSection.style.display   = isAdminPanelAccount ? 'none' : 'block';
 
   // Only a true admin can grant admin/staff position, and only on a plain member
@@ -1228,12 +1293,6 @@ async function loadMemberBookings(memberId, firstName) {
     </div>`).join('');
 }
 
-function selectMemberTier(el) {
-  document.querySelectorAll('#mm-tier-selector .tier-opt').forEach(o=>o.classList.remove('selected'));
-  el.classList.add('selected');
-  editingMemberTier = el.getAttribute('data-tier');
-}
-
 async function saveMember() {
   const btn = document.getElementById('btn-save-member');
   btn.disabled=true; btn.textContent='Saving…';
@@ -1253,10 +1312,9 @@ async function saveMember() {
     is_admin:      position === 'admin',
     is_staff:      position === 'staff',
   };
-  // Only update tier & points for regular members, not admin/staff accounts
+  // Redeemable points are for regular members only, not admin/staff accounts
   if (!isAdminPanelAccount) {
-    updates.tier = editingMemberTier;
-    updates.tier_points = parseInt(document.getElementById('mm-points').value)||0;
+    updates.reward_points = parseInt(document.getElementById('mm-reward-points').value)||0;
   }
   const { error } = await sb.from('profiles').update(updates).eq('id', editingMemberId);
   if (error) { showToast('Error: '+error.message, true); btn.disabled=false; btn.textContent='Save All Changes'; return; }
@@ -1439,8 +1497,7 @@ async function updateBookingStatus() {
 // ── TRIPS TABLE ────────────────────────────────────────────
 function filterTrips() {
   const q=document.getElementById('tr-search').value.toLowerCase();
-  const tf=document.getElementById('tr-tier-filter').value;
-  const filtered=allTrips.filter(t=>t.title.toLowerCase().includes(q)&&(!tf||t.min_tier===tf));
+  const filtered=allTrips.filter(t=>t.title.toLowerCase().includes(q));
   renderTripsRows(filtered);
 }
 function renderTripsTable() { renderTripsRows(allTrips); }
@@ -1450,7 +1507,6 @@ function renderTripsRows(list) {
         <td><strong>${t.title}</strong><br><span style="font-size:0.7rem;color:var(--smoke);">${t.slug}</span></td>
         <td>${t.duration_days}d</td>
         <td style="color:var(--gold);font-weight:500;">RM ${Number(t.price_usd).toLocaleString()}</td>
-        <td><span class="pill pill-${t.min_tier}">${cap(t.min_tier)}</span></td>
         <td>${t.max_pax}</td>
         <td style="font-size:0.75rem;color:var(--smoke);">${(t.departure_dates||[]).slice(0,2).map(d=>fmtDate(d)).join(', ')||'—'}</td>
         <td><span class="pill pill-${t.is_active?'active':'inactive'}">${t.is_active?'Active':'Hidden'}</span></td>
@@ -1459,7 +1515,7 @@ function renderTripsRows(list) {
           <button class="btn btn-danger btn-sm" onclick="deleteTrip('${t.id}')">Delete</button>
         </div></td>
       </tr>`).join('')
-    : '<tr><td colspan="8" class="empty">No trips found.</td></tr>';
+    : '<tr><td colspan="7" class="empty">No trips found.</td></tr>';
 }
 
 // ── TRIP MODAL ─────────────────────────────────────────────
@@ -1477,7 +1533,6 @@ function openTripModal(id) {
     document.getElementById('tm-summary').value = t.summary||'';
     document.getElementById('tm-duration').value= t.duration_days;
     document.getElementById('tm-price').value   = t.price_usd;
-    document.getElementById('tm-tier').value    = t.min_tier;
     document.getElementById('tm-pax').value     = t.max_pax;
     document.getElementById('tm-dates').value   = (t.departure_dates||[]).join(', ');
     document.getElementById('tm-active').checked= t.is_active;
@@ -1487,7 +1542,6 @@ function openTripModal(id) {
     ['tm-title','tm-slug','tm-summary','tm-dates','tm-cost'].forEach(i=>document.getElementById(i).value='');
     document.getElementById('tm-duration').value=7;
     document.getElementById('tm-price').value=0;
-    document.getElementById('tm-tier').value='explorer';
     document.getElementById('tm-pax').value=12;
     document.getElementById('tm-active').checked=true;
   }
@@ -1534,7 +1588,6 @@ async function saveTrip() {
     summary:document.getElementById('tm-summary').value.trim(),
     duration_days:parseInt(document.getElementById('tm-duration').value),
     price_usd:parseFloat(document.getElementById('tm-price').value),
-    min_tier:document.getElementById('tm-tier').value,
     max_pax:parseInt(document.getElementById('tm-pax').value),
     departure_dates:dates, is_active:document.getElementById('tm-active').checked,
   };
@@ -1572,6 +1625,159 @@ async function deleteTrip(id) {
   const { error }=await sb.from('trips').delete().eq('id',id);
   if (error) showToast('Error: '+error.message, true);
   else { await loadTrips(); renderTripsTable(); showToast('Trip deleted.'); }
+}
+
+// ── PRODUCTS (admin + staff) ────────────────────────────────
+function renderProductsTable() {
+  document.getElementById('products-body').innerHTML = allProducts.length
+    ? allProducts.map(p=>`<tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px;">
+            ${p.image_url ? `<img src="${p.image_url}" style="width:40px;height:40px;border-radius:6px;object-fit:cover;border:1px solid var(--border);">` : '<span style="font-size:1.3rem;">🎁</span>'}
+            <div><strong>${escapeHtml(p.name)}</strong>${p.description?`<br><span style="font-size:0.7rem;color:var(--smoke);">${escapeHtml(p.description).slice(0,60)}${p.description.length>60?'…':''}</span>`:''}</div>
+          </div>
+        </td>
+        <td>${p.points_cost!=null?`${Number(p.points_cost).toLocaleString()} pts`:'—'}</td>
+        <td>${p.price_myr!=null?`RM ${Number(p.price_myr).toLocaleString()}`:'—'}</td>
+        <td><span class="pill pill-${p.is_active?'active':'inactive'}">${p.is_active?'Active':'Hidden'}</span></td>
+        <td><div class="btn-group">
+          <button class="btn btn-ghost btn-sm" onclick="openProductModal('${p.id}')">Edit</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteProduct('${p.id}')">Delete</button>
+        </div></td>
+      </tr>`).join('')
+    : '<tr><td colspan="5" class="empty">No products yet. Click “+ New Product”.</td></tr>';
+}
+
+function openProductModal(id) {
+  editingProductId = id || null;
+  productImageFile = null; productImageRemoved = false;
+  document.getElementById('pdm-image-file').value = '';
+  document.getElementById('pdm-image-status').textContent = '';
+  document.getElementById('product-modal-title').textContent = id ? 'Edit Product' : 'New Product';
+  let existingImage = '';
+  if (id) {
+    const p = allProducts.find(x=>x.id===id); if (!p) return;
+    document.getElementById('pdm-name').value  = p.name || '';
+    document.getElementById('pdm-desc').value  = p.description || '';
+    document.getElementById('pdm-points').value= p.points_cost ?? '';
+    document.getElementById('pdm-price').value = p.price_myr ?? '';
+    document.getElementById('pdm-sort').value  = p.sort_order ?? 0;
+    document.getElementById('pdm-active').checked = p.is_active;
+    existingImage = p.image_url || '';
+  } else {
+    ['pdm-name','pdm-desc','pdm-points','pdm-price'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('pdm-sort').value = 0;
+    document.getElementById('pdm-active').checked = true;
+  }
+  showProductImagePreview(existingImage);
+  openModal('product-modal');
+}
+
+function showProductImagePreview(url) {
+  const wrap = document.getElementById('pdm-image-preview-wrap');
+  const img  = document.getElementById('pdm-image-preview');
+  const removeBtn = document.getElementById('btn-remove-product-image');
+  if (url) { img.src = url; wrap.style.display = 'block'; removeBtn.style.display = 'inline-flex'; }
+  else     { img.src = ''; wrap.style.display = 'none'; removeBtn.style.display = 'none'; }
+}
+function handleProductImageSelect(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showToast('Please choose an image file.', true); return; }
+  if (file.size > 5 * 1024 * 1024) { showToast('Image must be under 5MB.', true); return; }
+  productImageFile = file;
+  productImageRemoved = false;
+  showProductImagePreview(URL.createObjectURL(file));
+  document.getElementById('pdm-image-status').textContent = file.name;
+}
+function removeProductImage() {
+  productImageFile = null;
+  productImageRemoved = true;
+  document.getElementById('pdm-image-file').value = '';
+  document.getElementById('pdm-image-status').textContent = '';
+  showProductImagePreview('');
+}
+
+async function saveProduct() {
+  const btn = document.getElementById('btn-save-product');
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const name = document.getElementById('pdm-name').value.trim();
+  if (!name) { showToast('Product name is required.', true); btn.disabled=false; btn.textContent='Save Product'; return; }
+  const ptsRaw   = document.getElementById('pdm-points').value.trim();
+  const priceRaw = document.getElementById('pdm-price').value.trim();
+  if (ptsRaw === '' && priceRaw === '') { showToast('Set a points cost, a price, or both.', true); btn.disabled=false; btn.textContent='Save Product'; return; }
+  const payload = {
+    name,
+    description: document.getElementById('pdm-desc').value.trim() || null,
+    points_cost: ptsRaw === '' ? null : parseInt(ptsRaw),
+    price_myr:   priceRaw === '' ? null : parseFloat(priceRaw),
+    sort_order:  parseInt(document.getElementById('pdm-sort').value) || 0,
+    is_active:   document.getElementById('pdm-active').checked,
+  };
+  if (productImageFile) {
+    const ext = (productImageFile.name.split('.').pop() || 'jpg').toLowerCase();
+    const path = `products/${(crypto.randomUUID ? crypto.randomUUID() : Date.now())}.${ext}`;
+    const { error: uploadErr } = await sb.storage.from('trip-images').upload(path, productImageFile);
+    if (uploadErr) { showToast('Image upload failed: '+uploadErr.message, true); btn.disabled=false; btn.textContent='Save Product'; return; }
+    payload.image_url = sb.storage.from('trip-images').getPublicUrl(path).data.publicUrl;
+  } else if (productImageRemoved) {
+    payload.image_url = null;
+  }
+  const { error } = editingProductId
+    ? await sb.from('products').update(payload).eq('id', editingProductId)
+    : await sb.from('products').insert(payload);
+  if (error) { showToast('Error: '+error.message, true); btn.disabled=false; btn.textContent='Save Product'; return; }
+  closeModal('product-modal');
+  await loadProducts(); renderProductsTable();
+  showToast('Product saved ✓');
+  btn.disabled = false; btn.textContent = 'Save Product';
+}
+
+async function deleteProduct(id) {
+  if (!confirm('Delete this product? Existing member requests keep a copy of its name.')) return;
+  const { error } = await sb.from('products').delete().eq('id', id);
+  if (error) showToast('Error: '+error.message, true);
+  else { await loadProducts(); renderProductsTable(); showToast('Product deleted.'); }
+}
+
+// ── PRODUCT REQUESTS ────────────────────────────────────────
+const prqNextStatus = { pending:['approved','rejected'], approved:['fulfilled','rejected'], fulfilled:[], rejected:['pending'], cancelled:[] };
+function renderProductRequestsTable() {
+  const f = document.getElementById('prq-filter').value;
+  let list = allProductRequests;
+  if (f === 'open') list = list.filter(r => r.status === 'pending' || r.status === 'approved');
+  else if (f)       list = list.filter(r => r.status === f);
+  document.getElementById('product-requests-body').innerHTML = list.length
+    ? list.map(r=>{
+        const amount = r.method === 'points'
+          ? `${Number(r.points_cost_snapshot||0).toLocaleString()} pts`
+          : `RM ${Number(r.price_snapshot||0).toLocaleString()}`;
+        const actions = (prqNextStatus[r.status]||[]).map(s =>
+          `<button class="btn btn-ghost btn-sm" onclick="setProductRequestStatus('${r.id}','${s}')">${cap(s)}</button>`).join('');
+        return `<tr>
+          <td><strong>${escapeHtml(r.member_name||'—')}</strong><br><span style="font-size:0.7rem;color:var(--smoke);">${escapeHtml(r.member_email||'')}</span></td>
+          <td>${escapeHtml(r.product_name)}</td>
+          <td>${r.method === 'points' ? 'Points' : 'Cash'}</td>
+          <td>${r.quantity}</td>
+          <td>${amount}</td>
+          <td style="font-size:0.75rem;color:var(--smoke);">${fmtDate(r.created_at)}</td>
+          <td><span class="pill pill-${r.status}">${r.status}</span></td>
+          <td><div class="btn-group">${actions||'<span style="color:var(--smoke);font-size:0.75rem;">—</span>'}</div></td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="8" class="empty">No requests.</td></tr>';
+}
+
+async function setProductRequestStatus(id, status) {
+  const r = allProductRequests.find(x=>x.id===id);
+  if (status === 'fulfilled' && r && r.method === 'points') {
+    if (!confirm(`Mark fulfilled. Remember to deduct ${Number(r.points_cost_snapshot||0)*r.quantity} redeemable points from ${r.member_name||'the member'} in the Members tab — this is not done automatically.`)) return;
+  }
+  const { error } = await sb.from('product_requests')
+    .update({ status, handled_by: currentAdminId, handled_at: new Date().toISOString() }).eq('id', id);
+  if (error) { showToast('Error: '+error.message, true); return; }
+  await loadProductRequests(); renderProductRequestsTable();
+  showToast('Request updated ✓');
 }
 
 // ── VOUCHERS (admin + staff) ─────────────────────────────────
@@ -1898,6 +2104,7 @@ async function deleteReferral(id) {
 function drawStatusPill(s) { return { draft:'pending', pool_built:'active', drawn:'confirmed' }[s] || 'inactive'; }
 function drawStatusLabel(s) { return s === 'pool_built' ? 'Pool Built' : cap(s); }
 function esc(s) { return String(s).replace(/'/g,"\\'"); }
+function escapeHtml(s) { return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 
 function renderLuckyDrawsPage() {
   document.getElementById('draws-body').innerHTML = allLuckyDraws.length

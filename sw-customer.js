@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tc-customer-v1';
+const CACHE_NAME = 'tc-customer-v2';
 const APP_SHELL = [
   'index.html',
   'login.html',
@@ -44,6 +44,24 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
+  // Code assets (i18n.js, page scripts, stylesheets) have no content hash in their
+  // URL, so cache-first would strand every future change until CACHE_NAME is bumped.
+  // Serve these network-first, falling back to cache only when offline.
+  if (req.destination === 'script' || req.destination === 'style' ||
+      /\.(?:js|css)$/i.test(url.pathname)) {
+    event.respondWith(
+      fetch(req)
+        .then((res) => {
+          const copy = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy));
+          return res;
+        })
+        .catch(() => caches.match(req))
+    );
+    return;
+  }
+
+  // Everything else (images, icons, manifest) — cache-first.
   event.respondWith(
     caches.match(req).then(
       (cached) =>

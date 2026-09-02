@@ -11,6 +11,7 @@
 <meta name="apple-mobile-web-app-title" content="TC Admin">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon-admin.png">
 <title>The Travel Chapter — Content Editor</title>
+<meta name="robots" content="noindex, nofollow">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
@@ -306,6 +307,42 @@ function removeGiftImage(i) {
   cmsData['free_gifts'] = built;
   renderEditor('free_gifts');
 }
+function handleAboutSlideSelect(event, i) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showToast('Please choose an image file.', true); return; }
+  if (file.size > 5 * 1024 * 1024) { showToast('Image must be under 5MB.', true); return; }
+  const built = buildContentFromForm('about');
+  built.slides = built.slides || [];
+  built.slides[i] = built.slides[i] || {};
+  built.slides[i]._file = file;
+  built.slides[i]._removed = false;
+  cmsData['about'] = built;
+  renderEditor('about');
+}
+function addAboutSlide() {
+  const built = buildContentFromForm('about');
+  built.slides = built.slides || [];
+  built.slides.push({});
+  cmsData['about'] = built;
+  renderEditor('about');
+}
+function removeAboutSlide(i) {
+  const built = buildContentFromForm('about');
+  built.slides = built.slides || [];
+  built.slides.splice(i, 1);
+  cmsData['about'] = built;
+  renderEditor('about');
+}
+function moveAboutSlide(i, dir) {
+  const built = buildContentFromForm('about');
+  const s = built.slides || [];
+  const j = i + dir;
+  if (j < 0 || j >= s.length) return;
+  [s[i], s[j]] = [s[j], s[i]];
+  cmsData['about'] = built;
+  renderEditor('about');
+}
 
 // ── SAVE ───────────────────────────────────────────────────
 async function saveSection(section) {
@@ -347,6 +384,19 @@ async function saveSection(section) {
       }
       delete item._file; delete item._removed;
     }
+  }
+  if (section === 'about' && content.slides) {
+    for (const s of content.slides) {
+      if (s._file) {
+        const url = await uploadCmsImage(s._file, 'about');
+        if (url === null) { btn.disabled = false; btn.textContent = 'Save Changes'; return; }
+        s.image = url;
+      } else if (s._removed) {
+        s.image = null;
+      }
+      delete s._file; delete s._removed;
+    }
+    content.slides = content.slides.filter(s => s.image);
   }
 
   const { error } = await sb.from('cms_content')
@@ -564,7 +614,10 @@ function renderFreeGiftsForm(d) {
         </div>
         <div class="field"><label>Gift Name</label><input type="text" id="gift_name_${i}" value="${esc(item.name||'')}" placeholder="Leather luggage tag"></div>
         <div class="field"><label>Description</label><textarea id="gift_desc_${i}" rows="3">${esc(item.description||'')}</textarea></div>
-        <div class="field"><label>How to get it (optional badge)</label><input type="text" id="gift_note_${i}" value="${esc(item.note||'')}" placeholder="Free with any booking"></div>
+        <div class="field-row">
+          <div class="field"><label>How to get it (optional badge)</label><input type="text" id="gift_note_${i}" value="${esc(item.note||'')}" placeholder="Free with any booking"></div>
+          <div class="field"><label>Points value (optional)</label><input type="number" id="gift_points_${i}" min="0" step="1" value="${item.points ?? ''}" placeholder="e.g. 500"></div>
+        </div>
         <div class="field-row">
           <div class="field"><label>Emoji (shown if no photo)</label><input type="text" id="gift_emoji_${i}" value="${esc(item.emoji||'')}" placeholder="🎁"></div>
           <div class="field">
@@ -599,6 +652,27 @@ function renderAboutForm(d) {
       <div class="field"><label>Badge Value</label><input type="text" id="about_badge_val" value="${esc(d.badge_value||'')}"></div>
       <div class="field"><label>Badge Label</label><input type="text" id="about_badge_lbl" value="${esc(d.badge_label||'')}"></div>
     </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span>🖼️</span> Left-side Slideshow</div>
+    <div id="about-slide-items">
+    ${(d.slides||[]).map((s,i)=>`
+      <div class="array-item" id="about_slide_${i}">
+        <div class="array-item-header">
+          <div class="array-item-label">Image ${i+1}</div>
+          <div class="array-item-actions">
+            <button class="btn-icon move" onclick="moveAboutSlide(${i},-1)" title="Move up">↑</button>
+            <button class="btn-icon move" onclick="moveAboutSlide(${i},1)" title="Move down">↓</button>
+            <button class="btn-icon" onclick="removeAboutSlide(${i})">✕</button>
+          </div>
+        </div>
+        <div class="field"><label>Photo</label>
+          ${imageUploadField(imagePreviewUrl(s), `handleAboutSlideSelect(event,${i})`, `removeAboutSlide(${i})`)}
+        </div>
+      </div>`).join('')}
+    </div>
+    <button class="btn-add-item" onclick="addAboutSlide()">+ Add Image</button>
+    <div style="font-size:0.72rem;color:var(--smoke);margin-top:8px;">One image = a static picture. Two or more = an auto-rotating slideshow with arrows and dots.</div>
   </div>
   <div class="card">
     <div class="card-title"><span>💡</span> Brand Values</div>
@@ -702,6 +776,12 @@ function renderNavbarForm(d) {
         <span style="font-size:0.78rem;color:var(--smoke);line-height:1.5;">The navigation menu items (Destinations, Trips, Membership, etc.) are fixed in code and translated into English/Chinese/Malay — they aren't editable here, since CMS-authored labels would only ever show in one language.</span>
       </div>
     </div>
+  </div>
+  <div class="card">
+    <div class="card-title"><span>🔗</span> Header Social Links</div>
+    <div class="field"><label>Facebook URL</label><input type="url" id="nav_facebook_url" value="${esc(d.facebook_url||'')}" placeholder="https://www.facebook.com/yourpage"></div>
+    <div class="field"><label>Instagram URL</label><input type="url" id="nav_instagram_url" value="${esc(d.instagram_url||'')}" placeholder="https://www.instagram.com/yourhandle"></div>
+    <div style="font-size:0.72rem;color:var(--smoke);margin-top:8px;">Shown as the Facebook / Instagram icons in the site header. Leave a field blank to hide that icon.</div>
   </div>`;
 }
 
@@ -735,17 +815,22 @@ function buildContentFromForm(section) {
     case 'featured_trips':
       return { ...d, eyebrow:v('ft_eyebrow'), heading:v('ft_heading'), heading_italic:v('ft_heading_italic'), subtext:v('ft_subtext') };
     case 'free_gifts': {
-      const items = (d.items||[]).map((item,i)=>({
-        name:v(`gift_name_${i}`), description:v(`gift_desc_${i}`), note:v(`gift_note_${i}`),
-        emoji:v(`gift_emoji_${i}`),
-        image:item.image, _file:item._file, _removed:item._removed
-      }));
+      const items = (d.items||[]).map((item,i)=>{
+        const p = v(`gift_points_${i}`);
+        return {
+          name:v(`gift_name_${i}`), description:v(`gift_desc_${i}`), note:v(`gift_note_${i}`),
+          points: p === '' || p == null ? null : Number(p),
+          emoji:v(`gift_emoji_${i}`),
+          image:item.image, _file:item._file, _removed:item._removed
+        };
+      });
       return { ...d, eyebrow:v('gift_eyebrow'), heading:v('gift_heading'), heading_italic:v('gift_heading_italic'), subtext:v('gift_subtext'), items };
     }
     case 'about': {
       const paragraphs = (d.paragraphs||[]).map((_,i)=>v(`about_para_${i}`));
       const values = (d.values||[]).map((_,i)=>({ icon:v(`val_icon_${i}`), title:v(`val_title_${i}`), desc:v(`val_desc_${i}`) }));
-      return { ...d, eyebrow:v('about_eyebrow'), heading:v('about_heading'), heading_italic:v('about_heading_italic'), subtext:v('about_subtext'), paragraphs, badge_value:v('about_badge_val'), badge_label:v('about_badge_lbl'), values };
+      const slides = (d.slides||[]).map(s=>({ image:s.image, _file:s._file, _removed:s._removed }));
+      return { ...d, eyebrow:v('about_eyebrow'), heading:v('about_heading'), heading_italic:v('about_heading_italic'), subtext:v('about_subtext'), paragraphs, badge_value:v('about_badge_val'), badge_label:v('about_badge_lbl'), values, slides };
     }
     case 'testimonials': {
       const items = (d.items||[]).map((_,i)=>({
@@ -765,8 +850,8 @@ function buildContentFromForm(section) {
     case 'footer':
       return { ...d, tagline:v('footer_tagline'), copyright:v('footer_copyright'), location_badge:v('footer_location_badge') };
     case 'navbar':
-      // links intentionally left untouched — not editable here, see renderNavbarForm's info note
-      return { ...d, logo:v('nav_logo') };
+      // menu links intentionally left untouched — not editable here, see renderNavbarForm's info note
+      return { ...d, logo:v('nav_logo'), facebook_url:v('nav_facebook_url').trim(), instagram_url:v('nav_instagram_url').trim() };
     default: return d;
   }
 }

@@ -1,0 +1,7 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /dashboard.html
+Disallow: /login.html
+
+Sitemap: https://thetravelchapter.my/sitemap.xml

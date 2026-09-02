@@ -11,6 +11,8 @@
 <meta name="apple-mobile-web-app-title" content="Travel Chapter">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon-customer.png">
 <title>The Travel Chapter — Member Portal</title>
+<meta name="robots" content="noindex, nofollow">
+<meta name="description" content="Member sign-in for The Travel Chapter.">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="i18n.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
@@ -657,6 +659,11 @@ function showToast(msg, err) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(() => t.classList.remove('show'), 3500);
 }
+
+// Open the Join Us tab straight away when linked as login.html?tab=register
+// (the header "Register" button). Harmless if a session already exists —
+// routeSession() redirects away before this matters.
+if (new URLSearchParams(location.search).get('tab') === 'register') showForm('register');
 
 // ── PWA: service worker registration
 if ('serviceWorker' in navigator) {

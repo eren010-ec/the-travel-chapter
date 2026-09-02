@@ -1,6 +1,10 @@
-const CACHE_NAME = 'tc-customer-v2';
+const CACHE_NAME = 'tc-customer-v11';
 const APP_SHELL = [
   'index.html',
+  'trips.html',
+  'free-gifts.html',
+  'about.html',
+  'contact.html',
   'login.html',
   'dashboard.html',
   'manifest-customer.json',

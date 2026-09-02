@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="the-travel-chapter-icon.png">
+<link rel="manifest" href="manifest-customer.json">
+<meta name="theme-color" content="#1a1f2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Travel Chapter">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon-customer.png">
+<title>The Travel Chapter — Contact</title>
+<meta name="description" content="Get in touch with The Travel Chapter. Tell us about the journey you have in mind and our team will help you plan the perfect trip.">
+<link rel="canonical" href="https://thetravelchapter.my/contact.html">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="The Travel Chapter">
+<meta property="og:locale" content="en_MY">
+<meta property="og:title" content="The Travel Chapter — Contact">
+<meta property="og:description" content="Get in touch with The Travel Chapter. Tell us about the journey you have in mind and our team will help you plan the perfect trip.">
+<meta property="og:url" content="https://thetravelchapter.my/contact.html">
+<meta property="og:image" content="https://thetravelchapter.my/the-travel-chapter-logo.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="The Travel Chapter — Contact">
+<meta name="twitter:description" content="Get in touch with The Travel Chapter. Tell us about the journey you have in mind and our team will help you plan the perfect trip.">
+<meta name="twitter:image" content="https://thetravelchapter.my/the-travel-chapter-logo.jpg">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="i18n.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --cream:  #faf7f2;
+  --cream2: #f2ede4;
+  --navy:   #1a1f2e;
+  --navy2:  #252b3b;
+  --gold:   #b8955a;
+  --gold2:  #d4aa70;
+  --smoke:  #6b7280;
+  --border: #e5ddd0;
+  --white:  #ffffff;
+  --text:   #1a1f2e;
+}
+html { scroll-behavior: smooth; }
+body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--text); overflow-x:hidden; }
+
+/* ── NAVBAR ── */
+.navbar {
+  position: fixed; top:0; left:0; right:0; z-index:100;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 6%; height:72px;
+  background:rgba(250,247,242,0.92);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(16px);
+  transition:box-shadow 0.3s;
+}
+.navbar.scrolled { box-shadow:0 4px 24px rgba(26,31,46,0.08); }
+.nav-logo { display:flex; align-items:center; gap:10px; text-decoration:none; min-width:0; }
+.nav-logo-img { height:40px; width:auto; object-fit:contain; flex-shrink:0; }
+.nav-logo-text { font-family:'DM Sans',sans-serif; font-size:0.92rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold); min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.nav-links { display:flex; align-items:center; gap:36px; list-style:none; }
+.nav-links a { font-size:0.82rem; letter-spacing:0.04em; color:var(--smoke); text-decoration:none; transition:color 0.2s; }
+.nav-links a:hover { color:var(--navy); }
+.nav-links a.active { color:var(--navy); font-weight:500; }
+.nav-cta { display:flex; align-items:center; gap:12px; }
+.nav-social { display:flex; align-items:center; gap:4px; }
+.nav-social-link { display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:6px; color:var(--smoke); transition:color 0.2s, background 0.2s; }
+.nav-social-link:hover { color:var(--navy); background:var(--cream2); }
+.nav-social-link svg { width:16px; height:16px; }
+.btn-nav-ghost { padding:9px 20px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--smoke); font-family:'DM Sans',sans-serif; font-size:0.8rem; font-weight:400; letter-spacing:0.05em; text-decoration:none; transition:all 0.2s; }
+.btn-nav-ghost:hover { border-color:var(--navy); color:var(--navy); }
+.btn-nav-primary { padding:9px 20px; border:none; border-radius:6px; background:var(--navy); color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.8rem; font-weight:500; letter-spacing:0.05em; text-decoration:none; transition:all 0.2s; }
+.btn-nav-primary:hover { background:var(--navy2); box-shadow:0 4px 14px rgba(26,31,46,0.2); }
+.lang-switch { display:flex; align-items:center; gap:2px; background:var(--cream2); border:1px solid var(--border); border-radius:6px; padding:2px; }
+.lang-btn { padding:5px 9px; border:none; background:transparent; border-radius:4px; font-family:'DM Sans',sans-serif; font-size:0.68rem; font-weight:500; letter-spacing:0.03em; color:var(--smoke); cursor:pointer; transition:all 0.2s; }
+.lang-btn:hover { color:var(--navy); }
+.lang-btn.active { background:var(--navy); color:var(--white); }
+
+/* ── CONTACT ── */
+.contact-page { padding:132px 6% 100px; max-width:1240px; margin:0 auto; }
+.contact-grid { display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:start; }
+.section-eyebrow { font-size:0.68rem; letter-spacing:0.3em; text-transform:uppercase; color:var(--gold); margin-bottom:14px; display:flex; align-items:center; gap:10px; }
+.section-eyebrow::before { content:''; width:24px; height:1px; background:var(--gold); }
+.section-title { font-family:'Cormorant Garamond',serif; font-size:2.8rem; font-weight:300; color:var(--navy); line-height:1.2; margin-bottom:16px; }
+.section-title em { font-style:italic; color:var(--gold); }
+.contact-sub { font-size:0.9rem; color:var(--smoke); line-height:1.8; margin-top:8px; max-width:400px; }
+.contact-info { display:flex; flex-direction:column; gap:24px; margin-top:36px; }
+.contact-item { display:flex; gap:16px; align-items:flex-start; }
+.contact-icon { width:42px; height:42px; border-radius:10px; background:var(--cream2); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
+.contact-label { font-size:0.68rem; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--smoke); }
+.contact-value { display:block; font-size:0.88rem; color:var(--navy); margin-top:3px; text-decoration:none; }
+a.contact-value:hover { color:var(--gold); }
+
+.contact-form { display:flex; flex-direction:column; gap:14px; }
+.form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+.field { display:flex; flex-direction:column; gap:5px; }
+.field.full { grid-column:1/-1; }
+.contact-form label { font-size:0.67rem; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--smoke); }
+.contact-form input, .contact-form select, .contact-form textarea { padding:12px 14px; background:var(--cream); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.88rem; font-weight:300; outline:none; transition:border-color 0.2s, background 0.2s; width:100%; }
+.contact-form input:focus, .contact-form select:focus, .contact-form textarea:focus { border-color:var(--gold); background:var(--white); }
+.contact-form input::placeholder, .contact-form textarea::placeholder { color:#c5bdb4; }
+.contact-form textarea { resize:vertical; min-height:130px; }
+.btn-submit-contact { padding:14px 32px; border:none; border-radius:8px; background:var(--navy); color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; box-shadow:0 4px 14px rgba(26,31,46,0.15); margin-top:4px; }
+.btn-submit-contact:hover { background:var(--navy2); box-shadow:0 6px 20px rgba(26,31,46,0.25); transform:translateY(-1px); }
+.btn-submit-contact[disabled] { opacity:0.55; cursor:default; transform:none; box-shadow:none; }
+.cf-status { font-size:0.82rem; line-height:1.6; min-height:1.2em; }
+.cf-status.ok  { color:#1f7a4d; }
+.cf-status.err { color:#c0392b; }
+
+/* ── SCROLL REVEAL ── */
+.reveal { opacity:0; transform:translateY(24px); transition:opacity 0.6s ease, transform 0.6s ease; }
+.reveal.visible { opacity:1; transform:translateY(0); }
+
+/* ── FOOTER ── */
+footer { background:var(--navy); padding:56px 6% 32px; }
+.footer-grid { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:48px; margin-bottom:48px; }
+.footer-brand { display:flex; align-items:center; gap:10px; font-family:'DM Sans',sans-serif; font-size:0.88rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold2); margin-bottom:14px; }
+.footer-brand-img { height:32px; width:auto; object-fit:contain; flex-shrink:0; }
+.footer-desc { font-size:0.8rem; color:rgba(255,255,255,0.35); line-height:1.7; max-width:260px; }
+.footer-col-title { font-size:0.65rem; font-weight:500; letter-spacing:0.18em; text-transform:uppercase; color:rgba(255,255,255,0.35); margin-bottom:16px; }
+.footer-links { list-style:none; display:flex; flex-direction:column; gap:10px; }
+.footer-links a { font-size:0.8rem; color:rgba(255,255,255,0.45); text-decoration:none; transition:color 0.2s; }
+.footer-links a:hover { color:var(--gold2); }
+.footer-bottom { display:flex; align-items:center; justify-content:space-between; padding-top:28px; border-top:1px solid rgba(255,255,255,0.06); font-size:0.75rem; color:rgba(255,255,255,0.25); flex-wrap:wrap; gap:12px; }
+
+/* ── RESPONSIVE ── */
+@media(max-width:1024px) {
+  .contact-grid { grid-template-columns:1fr; gap:48px; }
+  .section-title { font-size:2.3rem; }
+  .footer-grid { grid-template-columns:1fr 1fr; }
+}
+@media(max-width:768px) {
+  .nav-links { display:none; }
+  .nav-social { display:none; }
+  .contact-page { padding:110px 5% 72px; }
+  .form-row { grid-template-columns:1fr; }
+  .footer-grid { grid-template-columns:1fr; gap:32px; }
+}
+@media(max-width:400px) {
+  .navbar { padding:0 4%; }
+  .nav-logo-text { font-size:0.72rem; letter-spacing:0.08em; }
+  .nav-logo-img { height:32px; }
+  .btn-nav-primary, .btn-nav-ghost { padding:8px 12px; font-size:0.74rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar" id="navbar">
+  <a href="index.html" class="nav-logo" id="nav-logo"><img src="the-travel-chapter-icon.png" alt="The Travel Chapter" class="nav-logo-img"><span class="nav-logo-text" id="nav-logo-text">The Travel Chapter</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html" data-i18n="nav.home">Home</a></li>
+    <li><a href="trips.html" data-i18n="nav.trips">Trips</a></li>
+    <li><a href="free-gifts.html" data-i18n="nav.free_gifts">Free Gifts</a></li>
+    <li><a href="about.html" data-i18n="nav.about">About</a></li>
+    <li><a href="contact.html" class="active" data-i18n="nav.contact">Contact</a></li>
+  </ul>
+  <div class="nav-cta">
+    <div class="nav-social">
+      <a href="https://www.facebook.com/thetravelchapter" id="nav-fb" class="nav-social-link" target="_blank" rel="noopener" aria-label="Facebook">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.073C24 5.404 18.627 0 12 0S0 5.404 0 12.073c0 6.026 4.388 11.02 10.125 11.927v-8.44H7.078v-3.487h3.047V9.41c0-3.017 1.792-4.684 4.533-4.684 1.313 0 2.686.235 2.686.235v2.966h-1.513c-1.49 0-1.955.93-1.955 1.886v2.26h3.328l-.532 3.487h-2.796v8.44C19.612 23.094 24 18.1 24 12.073Z"/></svg>
+      </a>
+      <a href="https://www.instagram.com/thetravelchapter" id="nav-ig" class="nav-social-link" target="_blank" rel="noopener" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069ZM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0Zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324ZM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881Z"/></svg>
+      </a>
+    </div>
+    <div class="lang-switch">
+      <button class="lang-btn" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="zh">中文</button>
+      <button class="lang-btn" data-lang="ms">BM</button>
+    </div>
+    <a href="login.html" class="btn-nav-ghost" data-i18n="nav.login">Login</a>
+    <a href="login.html?tab=register" class="btn-nav-primary" data-i18n="nav.register">Register</a>
+  </div>
+</nav>
+
+<!-- ── CONTACT ── -->
+<section class="contact-page">
+  <div class="contact-grid">
+
+    <!-- Left: intro + details -->
+    <div class="reveal">
+      <div class="section-eyebrow" id="con-eyebrow" data-i18n="contact.eyebrow">Get in Touch</div>
+      <h1 class="section-title" id="con-heading" data-i18n="contact.heading" data-i18n-html>Let's Plan Your<br><em>Journey</em></h1>
+      <p class="contact-sub" id="con-subtext" data-i18n="contact.subtext">Have a destination in mind? Want to know more about our membership? Our team is happy to help you find the perfect trip.</p>
+
+      <div class="contact-info">
+        <div class="contact-item">
+          <div class="contact-icon">📧</div>
+          <div>
+            <div class="contact-label" data-i18n="contact.email_label">Email Us</div>
+            <a class="contact-value" id="con-email" href="mailto:hello@thetravelchapter.com">hello@thetravelchapter.com</a>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-icon">📞</div>
+          <div>
+            <div class="contact-label" data-i18n="contact.phone_label">Call Us</div>
+            <a class="contact-value" id="con-phone" href="tel:+60312345678">+60 3 1234 5678</a>
+          </div>
+        </div>
+        <div class="contact-item">
+          <div class="contact-icon">📍</div>
+          <div>
+            <div class="contact-label" data-i18n="contact.address_label">Visit Us</div>
+            <div class="contact-value" id="con-address">Kuala Lumpur, Malaysia</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: form -->
+    <div class="reveal">
+      <form class="contact-form" id="contact-form" novalidate>
+        <div class="form-row">
+          <div class="field">
+            <label for="cf-first" data-i18n="contact.form.first_name">First Name</label>
+            <input type="text" id="cf-first" autocomplete="given-name" required maxlength="100" placeholder="Jane" data-i18n-placeholder="contact.form.first_name_ph">
+          </div>
+          <div class="field">
+            <label for="cf-last" data-i18n="contact.form.last_name">Last Name</label>
+            <input type="text" id="cf-last" autocomplete="family-name" required maxlength="100" placeholder="Smith" data-i18n-placeholder="contact.form.last_name_ph">
+          </div>
+        </div>
+        <div class="field full">
+          <label for="cf-email" data-i18n="contact.form.email">Email Address</label>
+          <input type="email" id="cf-email" autocomplete="email" required maxlength="320" placeholder="jane@example.com" data-i18n-placeholder="contact.form.email_ph">
+        </div>
+        <div class="field full">
+          <label for="cf-interest" data-i18n="contact.form.interested">Interested In</label>
+          <select id="cf-interest">
+            <option value="" data-i18n="contact.form.select_placeholder">Select a destination or trip…</option>
+            <option data-i18n="trips.card1.name">Kyoto in Autumn</option>
+            <option data-i18n="trips.card2.name">Amalfi by Yacht</option>
+            <option data-i18n="trips.card3.name">Marrakech &amp; Beyond</option>
+            <option data-i18n="trips.card4.name">Mekong River Journey</option>
+            <option data-i18n="trips.card5.name">Patagonia Wilderness</option>
+            <option data-i18n="trips.card6.name">Elite Japan Immersion</option>
+            <option data-i18n="contact.form.custom_option">Custom / Other</option>
+          </select>
+        </div>
+        <div class="field full">
+          <label for="cf-message" data-i18n="contact.form.message">Your Message</label>
+          <textarea id="cf-message" required maxlength="5000" placeholder="Tell us about your dream trip…" data-i18n-placeholder="contact.form.message_placeholder"></textarea>
+        </div>
+        <button type="submit" class="btn-submit-contact" id="cf-submit" data-i18n="contact.form.submit">Send Message</button>
+        <p class="cf-status" id="cf-status" role="status" aria-live="polite"></p>
+      </form>
+    </div>
+
+  </div>
+</section>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand"><img src="the-travel-chapter-icon.png" alt="The Travel Chapter" class="footer-brand-img">The Travel Chapter</div>
+      <p class="footer-desc" id="footer-tagline">Curating extraordinary journeys for discerning travellers since 2012. Based in Kuala Lumpur, travelling the world.</p>
+    </div>
+    <div>
+      <div class="footer-col-title" data-i18n="footer.explore_title">Explore</div>
+      <ul class="footer-links">
+        <li><a href="index.html#destinations" data-i18n="footer.link_destinations">Destinations</a></li>
+        <li><a href="trips.html" data-i18n="footer.link_trips">Featured Trips</a></li>
+        <li><a href="free-gifts.html" data-i18n="footer.link_free_gifts">Free Gifts</a></li>
+        <li><a href="about.html" data-i18n="footer.link_about">Our Story</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title" data-i18n="footer.members_title">Members</div>
+      <ul class="footer-links">
+        <li><a href="login.html" data-i18n="footer.link_signin">Sign In</a></li>
+        <li><a href="dashboard.html" data-i18n="footer.link_dashboard">Dashboard</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title" data-i18n="footer.contact_title">Contact</div>
+      <ul class="footer-links">
+        <li><a href="mailto:hello@thetravelchapter.com">hello@thetravelchapter.com</a></li>
+        <li><a href="tel:+60312345678">+60 3 1234 5678</a></li>
+        <li><a href="contact.html" data-i18n="footer.link_message">Send a Message</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span id="footer-copyright">© 2026 The Travel Chapter. All rights reserved.</span>
+    <span id="footer-location">Crafted with care in Kuala Lumpur 🇲🇾</span>
+  </div>
+</footer>
+
+<script>
+// Apply translations before anything below reads DOM text.
+TC_I18N.applyStatic();
+
+// ── CONFIG ──────────────────────────────────────────────────
+const SUPABASE_URL  = 'https://nkrpkfqibsudqsonljve.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_8mbRk904S5zktFv6UIlRUg_gp1PFAWm';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// ── CMS: contact details + interest options + footer ────────
+let cmsTripOptions = null;
+
+function applyNavSocial(d) {
+  d = d || {};
+  [['facebook_url', 'nav-fb'], ['instagram_url', 'nav-ig']].forEach(([key, id]) => {
+    const el = document.getElementById(id);
+    if (!el || d[key] === undefined) return;   // never saved -> keep the hard-coded href
+    if (d[key]) { el.href = d[key]; el.style.display = ''; }
+    else { el.style.display = 'none'; }         // saved blank -> hide the icon
+  });
+}
+
+async function loadContact() {
+  const { data, error } = await sb.from('cms_content')
+    .select('section, content').in('section', ['contact', 'footer', 'navbar']);
+  if (error) { console.warn('contact CMS load failed:', error.message); return; }
+  const rows = {};
+  (data || []).forEach(r => { rows[r.section] = r.content || {}; });
+
+  applyNavSocial(rows.navbar);
+
+  const d = rows.contact || {};
+  if (d.email) {
+    const el = document.getElementById('con-email');
+    el.textContent = d.email; el.href = 'mailto:' + d.email;
+  }
+  if (d.phone) {
+    const el = document.getElementById('con-phone');
+    el.textContent = d.phone; el.href = 'tel:' + String(d.phone).replace(/[^\d+]/g, '');
+  }
+  if (d.address) document.getElementById('con-address').textContent = d.address;
+
+  if (Array.isArray(d.trip_options) && d.trip_options.length) {
+    cmsTripOptions = d.trip_options;
+    renderInterestOptions();
+  }
+
+  const f = rows.footer || {};
+  if (f.tagline)        document.getElementById('footer-tagline').textContent = f.tagline;
+  if (f.copyright)      document.getElementById('footer-copyright').textContent = f.copyright;
+  if (f.location_badge) document.getElementById('footer-location').textContent = f.location_badge;
+}
+
+// Rebuild the "Interested In" <select> from the CMS list, keeping the current pick.
+function renderInterestOptions() {
+  if (!cmsTripOptions) return;
+  const sel = document.getElementById('cf-interest');
+  const current = sel.value;
+  sel.innerHTML = `<option value="">${TC_I18N.t('contact.form.select_placeholder')}</option>`
+    + cmsTripOptions.map(o => `<option>${o.replace(/</g, '&lt;')}</option>`).join('');
+  if ([...sel.options].some(o => o.value === current)) sel.value = current;
+}
+
+// ── Navbar shadow on scroll
+const navbarEl = document.getElementById('navbar');
+let scrollTicking = false;
+window.addEventListener('scroll', () => {
+  if (!scrollTicking) {
+    requestAnimationFrame(() => { navbarEl.classList.toggle('scrolled', window.scrollY > 40); scrollTicking = false; });
+    scrollTicking = true;
+  }
+}, { passive: true });
+
+// ── Scroll reveal
+const revObs = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revObs.unobserve(e.target); } });
+}, { threshold: 0.1 });
+document.querySelectorAll('.reveal').forEach(el => revObs.observe(el));
+
+// ── Contact form → public.contact_messages ─────────────────
+const form      = document.getElementById('contact-form');
+const statusEl  = document.getElementById('cf-status');
+const submitBtn = document.getElementById('cf-submit');
+const EMAIL_RE  = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+function showStatus(msg, kind) {
+  statusEl.textContent = msg;
+  statusEl.className = 'cf-status ' + (kind === 'ok' ? 'ok' : kind === 'err' ? 'err' : '');
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const first    = document.getElementById('cf-first').value.trim();
+  const last     = document.getElementById('cf-last').value.trim();
+  const email    = document.getElementById('cf-email').value.trim();
+  const interest = document.getElementById('cf-interest').value.trim();
+  const message  = document.getElementById('cf-message').value.trim();
+
+  if (!first || !last || !email || !message) { showStatus(TC_I18N.t('contact_form.err_required'), 'err'); return; }
+  if (!EMAIL_RE.test(email))                  { showStatus(TC_I18N.t('contact_form.err_email'), 'err'); return; }
+
+  const label = submitBtn.textContent;
+  submitBtn.disabled = true;
+  submitBtn.textContent = TC_I18N.t('contact_form.sending');
+  showStatus('', '');
+
+  const { error } = await sb.from('contact_messages').insert({
+    name: `${first} ${last}`,
+    email,
+    phone: null,
+    interest: interest || null,
+    message
+  });
+
+  submitBtn.disabled = false;
+  submitBtn.textContent = label;
+
+  if (error) {
+    console.warn('contact_messages insert failed:', error.message);
+    showStatus(TC_I18N.t('contact_form.err_send'), 'err');
+    return;
+  }
+  form.reset();
+  renderInterestOptions();
+  showStatus(TC_I18N.t('contact_form.success'), 'ok');
+});
+
+// Re-translate the placeholder option + submit label on a language switch.
+TC_I18N.onChange(() => {
+  renderInterestOptions();
+  if (!submitBtn.disabled) submitBtn.textContent = TC_I18N.t('contact.form.submit');
+});
+
+loadContact();
+
+// ── PWA: service worker registration
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw-customer.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>

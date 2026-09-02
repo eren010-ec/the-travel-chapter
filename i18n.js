@@ -21,9 +21,11 @@
       'journal.chapter_word6': 'Six', 'journal.chapter_word7': 'Seven', 'journal.chapter_word8': 'Eight', 'journal.chapter_word9': 'Nine', 'journal.chapter_word10': 'Ten',
 
       // ── index.html: nav ──
+      'nav.home': 'Home',
       'nav.destinations': 'Destinations', 'nav.trips': 'Trips', 'nav.rewards': 'Rewards',
       'nav.free_gifts': 'Free Gifts',
       'nav.about': 'About', 'nav.contact': 'Contact', 'nav.signin': 'Sign In',
+      'nav.login': 'Login', 'nav.register': 'Register',
 
       // ── free-gifts.html ──
       'gifts.eyebrow': 'With Our Compliments',
@@ -31,6 +33,9 @@
       'gifts.subtext': 'A little something extra for our travellers. Explore the gifts you can receive with The Travel Chapter.',
       'gifts.empty': 'Our gift collection is being refreshed — please check back soon.',
       'gifts.cta': 'Talk to Us',
+      'gifts.filter_points': 'Reward points', 'gifts.filter_min': 'Min', 'gifts.filter_max': 'Max',
+      'gifts.filter_clear': 'Clear', 'gifts.points_suffix': 'pts',
+      'gifts.filter_none': 'No gifts in that points range.',
 
       // ── index.html: hero / journal intro ──
       'hero.eyebrow': 'Curated Journeys',
@@ -74,6 +79,14 @@
       'trips.heading': 'Featured <em>Trips</em>',
       'trips.subtext': 'Each journey is crafted with intention — expert guides, intimate group sizes and access to experiences no ordinary tourist agency can offer.',
       'trips.book_now': 'Book Now', 'trips.per_person': '/ person', 'trips.max': 'Max', 'trips.days': 'days', 'trips.from': 'From',
+      'trips_page.eyebrow': 'Every Journey', 'trips_page.heading': 'All <em>Trips</em>',
+      'trips_page.subtext': 'The complete collection of Travel Chapter journeys — browse every departure we currently have open.',
+      'trips_page.empty': 'New journeys are being planned — please check back soon.',
+      'trips_page.departures': 'Departures', 'trips_page.pax': 'Group size',
+      'trips_page.filter_search_ph': 'Search trips…', 'trips_page.filter_month_any': 'Any month',
+      'trips_page.filter_dest_all': 'All destinations', 'trips_page.filter_cat_all': 'All categories',
+      'trips_page.filter_clear': 'Clear', 'trips_page.filter_none': 'No trips match your filters.',
+      'trips_page.filter_count': '{n} trips',
       'trips.card1.name': 'Kyoto in Autumn', 'trips.card1.desc': "Chase the crimson maple leaves through Kyoto's finest temples and hidden gardens.", 'trips.card1.duration': '8 days', 'trips.card1.pax': 'Max 10', 'trips.card1.window': 'Oct – Nov',
       'trips.card2.name': 'Amalfi by Yacht', 'trips.card2.desc': 'A private yacht journey along the Amalfi Coast — secluded coves, fresh seafood and golden sunsets.', 'trips.card2.duration': '6 days', 'trips.card2.pax': 'Max 8', 'trips.card2.window': 'Jun – Jul',
       'trips.card3.name': 'Marrakech & Beyond', 'trips.card3.desc': 'Imperial cities, Sahara desert camps and Atlas mountain villages — Morocco in full depth.', 'trips.card3.duration': '9 days', 'trips.card3.pax': 'Max 14', 'trips.card3.window': 'Sep – Oct',
@@ -97,6 +110,7 @@
 
       // ── index.html: about ──
       'about.eyebrow': 'Our Story',
+      'about_page.lead': 'The people, the philosophy and the promise behind every journey we craft.',
       'about.heading': 'Travel with<br><em>Purpose</em>',
       'about.badge_val': '12+', 'about.badge_lbl': 'Years curating<br>journeys',
       'about.p1': 'The Travel Chapter was born from a simple belief — that travel should be more than a checklist. It should leave you changed, connected and hungry for more.',
@@ -133,6 +147,16 @@
       'contact.form.message': 'Your Message', 'contact.form.message_placeholder': 'Tell us about your dream trip…',
       'contact.form.submit': 'Send Message', 'contact.form.custom_option': 'Custom / Other',
       'contact.form.first_name_ph': 'Jane', 'contact.form.last_name_ph': 'Smith', 'contact.form.email_ph': 'jane@example.com',
+
+      // ── contact.html: message form ──
+      'contact_form.title': 'Send Us a Message',
+      'contact_form.note': 'We usually reply within one business day.',
+      'contact_form.name': 'Name', 'contact_form.email': 'Email', 'contact_form.phone': 'Contact Number',
+      'contact_form.message': 'Message', 'contact_form.submit': 'Send Message', 'contact_form.sending': 'Sending…',
+      'contact_form.success': "Thanks — we've received your message and will be in touch soon.",
+      'contact_form.err_required': 'Please fill in your name, email and message.',
+      'contact_form.err_email': 'Please enter a valid email address.',
+      'contact_form.err_send': 'Something went wrong sending your message. Please try again, or email us directly.',
 
       // ── index.html: footer ──
       'footer.tagline': 'Curating extraordinary journeys for discerning travellers since 2012. Based in Kuala Lumpur, travelling the world.',
@@ -254,13 +278,17 @@
       'journal.chapter_word1': '一', 'journal.chapter_word2': '二', 'journal.chapter_word3': '三', 'journal.chapter_word4': '四', 'journal.chapter_word5': '五',
       'journal.chapter_word6': '六', 'journal.chapter_word7': '七', 'journal.chapter_word8': '八', 'journal.chapter_word9': '九', 'journal.chapter_word10': '十',
 
-      'nav.destinations': '目的地', 'nav.trips': '行程', 'nav.rewards': '奖励', 'nav.free_gifts': '免费礼品', 'nav.about': '关于我们', 'nav.contact': '联系我们', 'nav.signin': '登录',
+      'nav.home': '首页', 'nav.destinations': '目的地', 'nav.trips': '行程', 'nav.rewards': '奖励', 'nav.free_gifts': '免费礼品', 'nav.about': '关于我们', 'nav.contact': '联系我们', 'nav.signin': '登录',
+      'nav.login': '登录', 'nav.register': '注册',
 
       'gifts.eyebrow': '诚挚赠礼',
       'gifts.heading': '免费<em>礼品</em>',
       'gifts.subtext': '为每一位旅人准备的小心意。了解您在 The Travel Chapter 可获得的礼品。',
       'gifts.empty': '礼品系列正在更新中，敬请稍后再来。',
       'gifts.cta': '联系我们',
+      'gifts.filter_points': '奖励积分', 'gifts.filter_min': '最少', 'gifts.filter_max': '最多',
+      'gifts.filter_clear': '清除', 'gifts.points_suffix': '分',
+      'gifts.filter_none': '该积分范围内没有礼品。',
 
       'hero.eyebrow': '精心策划的旅程',
       'hero.heading': '超越平凡<br>探索<em>非凡</em>',
@@ -298,6 +326,14 @@
       'trips.heading': '精选<em>行程</em>',
       'trips.subtext': '每一段旅程都用心打造——专业向导、小巧团体规模，以及一般旅行社无法提供的独特体验。',
       'trips.book_now': '立即预订', 'trips.per_person': '/ 每人', 'trips.max': '最多', 'trips.days': '天', 'trips.from': '起价',
+      'trips_page.eyebrow': '每一段旅程', 'trips_page.heading': '全部<em>行程</em>',
+      'trips_page.subtext': 'The Travel Chapter 所有旅程的完整合集——浏览我们目前开放的每一个出发日期。',
+      'trips_page.empty': '新的旅程正在筹划中——请稍后再来查看。',
+      'trips_page.departures': '出发日期', 'trips_page.pax': '团体规模',
+      'trips_page.filter_search_ph': '搜索行程…', 'trips_page.filter_month_any': '任何月份',
+      'trips_page.filter_dest_all': '所有目的地', 'trips_page.filter_cat_all': '所有类别',
+      'trips_page.filter_clear': '清除', 'trips_page.filter_none': '没有符合筛选条件的行程。',
+      'trips_page.filter_count': '{n} 个行程',
       'trips.card1.name': '京都赏秋', 'trips.card1.desc': '穿梭京都最美的寺庙与隐秘花园，追逐火红的枫叶。', 'trips.card1.duration': '8天', 'trips.card1.pax': '最多10人', 'trips.card1.window': '10月 – 11月',
       'trips.card2.name': '阿马尔菲游艇之旅', 'trips.card2.desc': '沿阿马尔菲海岸的私人游艇之旅——静谧海湾、新鲜海鲜与金色日落。', 'trips.card2.duration': '6天', 'trips.card2.pax': '最多8人', 'trips.card2.window': '6月 – 7月',
       'trips.card3.name': '马拉喀什深度之旅', 'trips.card3.desc': '帝王之城、撒哈拉沙漠营地与阿特拉斯山村——深度探索摩洛哥。', 'trips.card3.duration': '9天', 'trips.card3.pax': '最多14人', 'trips.card3.window': '9月 – 10月',
@@ -319,6 +355,7 @@
       'rewards.card3_perk2': '积分永不过期',
 
       'about.eyebrow': '我们的故事',
+      'about_page.lead': '每一段旅程背后的团队、理念与承诺。',
       'about.heading': '带着<em>初心</em><br>去旅行',
       'about.badge_val': '12+', 'about.badge_lbl': '年策划<br>旅程经验',
       'about.p1': 'The Travel Chapter 源于一个简单的信念——旅行不该只是一份清单，而应让你有所改变、有所连结、意犹未尽。',
@@ -352,6 +389,16 @@
       'contact.form.message': '您的留言', 'contact.form.message_placeholder': '告诉我们您梦想中的旅程…',
       'contact.form.submit': '发送讯息', 'contact.form.custom_option': '自定义 / 其他',
       'contact.form.first_name_ph': 'Jane', 'contact.form.last_name_ph': 'Smith', 'contact.form.email_ph': 'jane@example.com',
+
+      // ── contact.html: message form ──
+      'contact_form.title': '给我们留言',
+      'contact_form.note': '我们通常在一个工作日内回复。',
+      'contact_form.name': '姓名', 'contact_form.email': '电邮', 'contact_form.phone': '联络电话',
+      'contact_form.message': '留言', 'contact_form.submit': '发送讯息', 'contact_form.sending': '发送中…',
+      'contact_form.success': '谢谢——我们已收到您的讯息，将尽快与您联系。',
+      'contact_form.err_required': '请填写您的姓名、电邮和留言。',
+      'contact_form.err_email': '请输入有效的电邮地址。',
+      'contact_form.err_send': '发送讯息时出错。请重试，或直接发送电邮给我们。',
 
       'footer.tagline': '自2012年起，为品味独到的旅行者策划非凡旅程。总部位于吉隆坡，足迹遍及世界。',
       'footer.explore_title': '探索', 'footer.members_title': '会员', 'footer.contact_title': '联系方式',
@@ -468,13 +515,17 @@
       'journal.chapter_word1': 'Satu', 'journal.chapter_word2': 'Dua', 'journal.chapter_word3': 'Tiga', 'journal.chapter_word4': 'Empat', 'journal.chapter_word5': 'Lima',
       'journal.chapter_word6': 'Enam', 'journal.chapter_word7': 'Tujuh', 'journal.chapter_word8': 'Lapan', 'journal.chapter_word9': 'Sembilan', 'journal.chapter_word10': 'Sepuluh',
 
-      'nav.destinations': 'Destinasi', 'nav.trips': 'Percutian', 'nav.rewards': 'Ganjaran', 'nav.free_gifts': 'Hadiah Percuma', 'nav.about': 'Tentang Kami', 'nav.contact': 'Hubungi Kami', 'nav.signin': 'Log Masuk',
+      'nav.home': 'Utama', 'nav.destinations': 'Destinasi', 'nav.trips': 'Percutian', 'nav.rewards': 'Ganjaran', 'nav.free_gifts': 'Hadiah Percuma', 'nav.about': 'Tentang Kami', 'nav.contact': 'Hubungi Kami', 'nav.signin': 'Log Masuk',
+      'nav.login': 'Log Masuk', 'nav.register': 'Daftar',
 
       'gifts.eyebrow': 'Sebagai Penghargaan Kami',
       'gifts.heading': 'Hadiah <em>Percuma</em>',
       'gifts.subtext': 'Sesuatu yang istimewa untuk pengembara kami. Terokai hadiah yang anda boleh terima bersama The Travel Chapter.',
       'gifts.empty': 'Koleksi hadiah kami sedang dikemas kini — sila kembali semula tidak lama lagi.',
       'gifts.cta': 'Hubungi Kami',
+      'gifts.filter_points': 'Mata ganjaran', 'gifts.filter_min': 'Min', 'gifts.filter_max': 'Maks',
+      'gifts.filter_clear': 'Kosongkan', 'gifts.points_suffix': 'mata',
+      'gifts.filter_none': 'Tiada hadiah dalam julat mata itu.',
 
       'hero.eyebrow': 'Perjalanan Terancang',
       'hero.heading': 'Mengembara Melangkaui<br>yang <em>Biasa</em>',
@@ -511,6 +562,14 @@
       'trips.heading': 'Percutian <em>Pilihan</em>',
       'trips.subtext': 'Setiap perjalanan dirancang dengan teliti — pemandu pakar, kumpulan kecil dan akses kepada pengalaman yang tidak ditawarkan agensi pelancongan biasa.',
       'trips.book_now': 'Tempah Sekarang', 'trips.per_person': '/ seorang', 'trips.max': 'Maks', 'trips.days': 'hari', 'trips.from': 'Dari',
+      'trips_page.eyebrow': 'Setiap Perjalanan', 'trips_page.heading': 'Semua <em>Percutian</em>',
+      'trips_page.subtext': 'Koleksi lengkap perjalanan Travel Chapter — lihat setiap pelepasan yang kami buka sekarang.',
+      'trips_page.empty': 'Perjalanan baharu sedang dirancang — sila semak semula tidak lama lagi.',
+      'trips_page.departures': 'Pelepasan', 'trips_page.pax': 'Saiz kumpulan',
+      'trips_page.filter_search_ph': 'Cari percutian…', 'trips_page.filter_month_any': 'Mana-mana bulan',
+      'trips_page.filter_dest_all': 'Semua destinasi', 'trips_page.filter_cat_all': 'Semua kategori',
+      'trips_page.filter_clear': 'Kosongkan', 'trips_page.filter_none': 'Tiada percutian sepadan dengan penapis anda.',
+      'trips_page.filter_count': '{n} percutian',
       'trips.card1.name': 'Kyoto Musim Luruh', 'trips.card1.desc': 'Kejar daun maple merah menyala di kuil-kuil terbaik dan taman tersembunyi Kyoto.', 'trips.card1.duration': '8 hari', 'trips.card1.pax': 'Maks 10', 'trips.card1.window': 'Okt – Nov',
       'trips.card2.name': 'Amalfi dengan Yacht', 'trips.card2.desc': 'Perjalanan yacht peribadi di sepanjang Pantai Amalfi — teluk tersembunyi, makanan laut segar dan senja keemasan.', 'trips.card2.duration': '6 hari', 'trips.card2.pax': 'Maks 8', 'trips.card2.window': 'Jun – Jul',
       'trips.card3.name': 'Marrakech & Sekitarnya', 'trips.card3.desc': 'Bandar diraja, khemah gurun Sahara dan perkampungan Pergunungan Atlas — Maghribi secara mendalam.', 'trips.card3.duration': '9 hari', 'trips.card3.pax': 'Maks 14', 'trips.card3.window': 'Sep – Okt',
@@ -532,6 +591,7 @@
       'rewards.card3_perk2': 'Mata anda tidak pernah luput',
 
       'about.eyebrow': 'Kisah Kami',
+      'about_page.lead': 'Insan, falsafah dan janji di sebalik setiap perjalanan yang kami rancang.',
       'about.heading': 'Mengembara dengan<br><em>Tujuan</em>',
       'about.badge_val': '12+', 'about.badge_lbl': 'Tahun merancang<br>perjalanan',
       'about.p1': 'The Travel Chapter lahir daripada kepercayaan mudah — bahawa perjalanan sepatutnya lebih daripada sekadar senarai semak. Ia harus mengubah anda, menghubungkan anda, dan membuatkan anda dahagakan lebih.',
@@ -565,6 +625,16 @@
       'contact.form.message': 'Mesej Anda', 'contact.form.message_placeholder': 'Ceritakan tentang percutian impian anda…',
       'contact.form.submit': 'Hantar Mesej', 'contact.form.custom_option': 'Lain-lain / Tersuai',
       'contact.form.first_name_ph': 'Jane', 'contact.form.last_name_ph': 'Smith', 'contact.form.email_ph': 'jane@example.com',
+
+      // ── contact.html: message form ──
+      'contact_form.title': 'Hantar Mesej kepada Kami',
+      'contact_form.note': 'Kami biasanya membalas dalam satu hari bekerja.',
+      'contact_form.name': 'Nama', 'contact_form.email': 'E-mel', 'contact_form.phone': 'Nombor Telefon',
+      'contact_form.message': 'Mesej', 'contact_form.submit': 'Hantar Mesej', 'contact_form.sending': 'Menghantar…',
+      'contact_form.success': 'Terima kasih — kami telah menerima mesej anda dan akan menghubungi anda tidak lama lagi.',
+      'contact_form.err_required': 'Sila isi nama, e-mel dan mesej anda.',
+      'contact_form.err_email': 'Sila masukkan alamat e-mel yang sah.',
+      'contact_form.err_send': 'Sesuatu tidak kena semasa menghantar mesej anda. Sila cuba lagi, atau e-mel kami terus.',
 
       'footer.tagline': 'Merancang perjalanan luar biasa untuk pengembara bercita rasa tinggi sejak 2012. Berpangkalan di Kuala Lumpur, mengembara ke seluruh dunia.',
       'footer.explore_title': 'Terokai', 'footer.members_title': 'Ahli', 'footer.contact_title': 'Hubungi',

@@ -623,6 +623,64 @@ Re-runnable. Apply **after** the Workstream T migration (it re-adds `reward_poin
 
 ---
 
+## Workstream V — Marketing pages split out, working contact form, search filters, SEO, editable social/slideshow (added 2026-09-02)
+
+> **SHIPPED 2026-09-02** — commit `6b6464c` on `main`, pushed; customer site (`thetravelchapter.my`) auto-deployed and verified live; admin site (`quietmeridian-4471`) redeployed via `netlify deploy --dir=admin --no-build` with a personal-access-token (`--auth`) and verified live. Both DB migrations (`20260902000000`, `20260902010000`) applied to production via the Supabase SQL editor + one manual RLS-policy fix (see below).
+
+A long session of incremental user requests. Everything below is live on both sites.
+
+### Pages restructured
+- **`index.html`** lost three sections: the merged Contact/CTA banner (Workstream ? "combine contact with CTA"), the "Member Rewards" section from Workstream U, and the About section. It's now hero → destinations grid → testimonials → footer. ~343 lines removed.
+- **New standalone pages** (same navbar/footer/i18n as `free-gifts.html`): `trips.html` (all active trips), `about.html` (the old About section), `contact.html` (contact form + details). Each is its own `<title>`, in `sw-customer.js` APP_SHELL, and in `sitemap.xml`.
+- **Header nav** on all 5 customer pages: "Sign In" button → **Login** (ghost, → `login.html`) + **Register** (filled, → `login.html?tab=register`). `login.html` reads `?tab=register` and opens the Join Us tab on load. Added **Facebook + Instagram icons** (`.nav-social`, hidden ≤768px) — see "editable" note below. New i18n: `nav.login`, `nav.register`.
+- Nav "Destinations" item → **Home**; "Rewards" item removed from nav + footer on every page. "About"/"Contact"/"Trips"/"Featured Trips" links repointed to the new pages.
+
+### Contact form → `public.contact_messages` (NEW table)
+- `contact.html` two-column layout (intro + email/phone/address on the left, form on the right: First Name / Last Name / Email / **Interested In** select / Message). Inserts via the anon supabase-js client (`return=minimal` — a `.select()`/`return=representation` insert 500s on anon because RETURNING is checked against the admin-only SELECT policy; this bit me during verification, not a real bug).
+- **`admin/admin.html`** — new **Messages** tab (`data-page="messages"`, `#page-messages`): filter (open/new/read/handled/archived), status flow `new→read→handled→archived` (+ reopen), a view modal (shows the "Interested In" value), a `mailto:` reply button, a sidebar unread badge, and a "New Messages" dashboard stat. Loader fails soft if the table is missing.
+- **Migration `supabase/migrations/20260902000000_contact_messages.sql`** — APPLIED. Table: `name, email, phone, interest, message, status, created_at, handled_by/at`. RLS: anon+authenticated INSERT (`with check (true)` — the original strict `status='new' and handled_* is null` check was fine for `return=minimal` inserts, relaxed to `(true)` after debugging and the file updated to match); admin/staff SELECT+UPDATE via `is_admin_or_staff()`; admin DELETE. **Note:** when the SQL editor first ran the file it silently did NOT create the INSERT policy (RLS on, no policy → every insert 42501); a follow-up `create policy … with check (true)` fixed it. If re-applying from scratch, verify `pg_policy` has the INSERT ('a') policy.
+
+### Search / filter bars
+- **`trips.html`** filter bar: keyword search (title/summary/region/category) · **Month** (`Jan–Dec`, matches `departure_dates`, month names localised via `Intl`) · **Destination** · **Category** · Clear, + a live result count. Destination/Category `<select>`s populate from the distinct `region`/`category` values on loaded trips (show only "All …" until data exists).
+- **Migration `supabase/migrations/20260902010000_trips_category_region.sql`** — APPLIED. Adds nullable `trips.category` + `trips.region` (+ indexes). **`admin/admin.html`** Trips editor gained **Category** and **Destination / Region** text fields (in `openTripModal`, `saveTrip` payload, and shown under the trip title in the table).
+- **`free-gifts.html`** reward-points range filter: `[Min] – [Max]` number inputs + Clear; each gift card shows an "N pts" tag. The bar is hidden until ≥1 gift exists. **`admin/admin-cms.html`** Free Gifts editor gained a **Points value** field per gift (`gift_points_${i}`, stored as `item.points` in the `free_gifts` cms_content JSON — no DB migration). Gifts with no points count as "free" (shown only when the range starts at 0).
+
+### About left-side slideshow (CMS-editable)
+- `about.html` — the stacked placeholder boxes replaced with `#about-slideshow`: reads image URLs from `about.slides` (array of `{image}`), 1 image = static, 2+ = auto-rotating (5s, pause on hover) with ‹ › arrows + dots. The "12+ Years" badge overlays it. Fallback = gradient + 🌍 when no slides.
+- **`admin/admin-cms.html`** About editor — new **"Left-side Slideshow"** card: add/remove/reorder image slots (same upload widget as Free Gifts, bucket `trip-images`, folder `about/`). Wired through `buildContentFromForm` case `about` (`slides`) + `saveSection` (uploads `_file`, drops removed/empty entries).
+
+### Editable header social links
+- Facebook / Instagram URLs are stored on the `navbar` cms_content row (`facebook_url`, `instagram_url`). **`admin/admin-cms.html`** Navigation section → new **"Header Social Links"** card (2 URL fields, "leave blank to hide").
+- Each of the 5 pages: `applyNavSocial(d)` — key filled → set `href`; key saved blank → hide the icon; key absent (never saved) → keep the hard-coded fallback URL (`facebook.com/thetravelchapter` / `instagram.com/thetravelchapter` — **still the placeholder handles as of this session**). `index.html` calls it from `applyNavbar`; the 4 standalone pages each got a small `loadNav()` (`contact.html` folds `navbar` into its existing `.in([...])` fetch).
+
+### SEO (was: nothing but a `<title>` on every page)
+- **`index.html`, `trips.html`, `free-gifts.html`, `about.html`, `contact.html`** — per-page `<meta name="description">`, `<link rel="canonical">` (→ `https://thetravelchapter.my/…`), Open Graph (`og:type/site_name/locale/title/description/url/image`) and Twitter Card (`summary_large_image`). OG image = `the-travel-chapter-logo.jpg` (a dedicated 1200×630 would be better — follow-up).
+- **`index.html`** — `TravelAgency` JSON-LD (name, url, logo, KL/MY address, `sameAs` → the placeholder FB/IG URLs).
+- **NEW `robots.txt`** (allow all, `Disallow: /admin/`, `/dashboard.html`, `/login.html`, sitemap ref) + **NEW `sitemap.xml`** (the 5 public pages). Both served from repo root by the customer site.
+- `<meta name="robots" content="noindex, nofollow">` added to `login.html`, `dashboard.html`, and all three `admin/*.html`.
+- SEO text is static English only (crawlers don't run the i18n JS). Not CMS-editable — a per-page meta-description field in the CMS is a possible follow-up.
+
+### i18n
+New keys across EN/ZH/MS: `nav.login`, `nav.register`; `trips_page.filter_*` (search_ph, month_any, dest_all, cat_all, clear, none, count); `contact_form.*` (title, note, name, email, phone, message, submit, sending, success, err_required, err_email, err_send); `about_page.lead`; `gifts.filter_*` + `gifts.points_suffix`. (Locale key-parity not re-counted this session — added in matching triples.)
+
+### Service workers
+`sw-customer.js` `CACHE_NAME` → **v11** (bumped several times through the session), APP_SHELL now includes `trips.html`, `about.html`, `contact.html`. `sw-admin.js` → **v2**.
+
+### Deploy notes for this session
+- **GitHub push worked first try** — no `a1thetravelchapter-jpg` 403 this time (see [[project_github_account_mismatch]] — still worth watching).
+- **Netlify CLI is logged into the WRONG account again** — `netlify api listSites` showed `bola-bola-live` / `sun-baccarat` / `orvixhr` etc., not `thetravelchapter` / `quietmeridian-4471`. The admin deploy only worked with an explicit `--auth <personal-access-token>` for the correct account, **and** `--no-build` (a plain `netlify deploy --dir=admin` triggered `@netlify/build` which 403'd on "fetching extensions"). Command that worked: `netlify deploy --prod --dir=admin --site c5f73ef7-2043-4f04-8611-702f5a4e773b --auth <PAT> --no-build`. Drag-and-drop of the `admin/` folder in the Netlify UI is the reliable fallback.
+- `supabase db push` / `migration repair` / `netlify deploy` were all blocked by this session's Claude Code permission classifier — the user ran the SQL and the admin deploy themselves.
+
+### Still needs the user's input (content, not code)
+1. Real Facebook / Instagram URLs — Content editor → **Navigation** → Header Social Links (currently placeholder handles, also in the homepage JSON-LD).
+2. About slideshow photos — Content editor → **About** → Left-side Slideshow (shows 🌍 fallback until added).
+3. Free Gifts content + a Points value per gift — Content editor → **Free Gifts** (page is empty, points filter hidden).
+4. Category / Region on trips — **Trips** editor (filter dropdowns are empty until set).
+5. Send a test message through the live contact form, confirm it lands in the Messages tab.
+6. (Optional) dedicated 1200×630 social-share image.
+
+---
+
 ## Task checklist
 
 - [x] Open all 6 pages in a real browser, confirm logo renders correctly (sizing/placement) — done 2026-07-26 at desktop size.
@@ -656,3 +714,7 @@ Re-runnable. Apply **after** the Workstream T migration (it re-adds `reward_poin
 - [x] **4 dead `admin-cms.html` fields — fixed 2026-08-13 (Workstream P).** Hero secondary CTA and CTA Banner secondary CTA now wired up and rendering real saved content; Navbar brand-name text now actually reads `d.logo`; Navbar nav-links array editor removed (replaced with an explanatory note — nav is intentionally static/trilingual, not CMS-editable). Verified locally via hard reload + DOM inspection. Not yet pushed.
 - [x] **Member's registration email edit UI — fixed 2026-08-13 (Workstream P).** Added an Email field to `dashboard.html`'s My Profile page, and a separate "Contact Email" field (`#mm-contact-email`, distinct from the login-email `#mm-email`) to `admin/admin.html`'s member-edit modal. Not verified live (no test login credentials this session) — verified by code review, follows the exact pattern of the adjacent working fields. Not yet pushed.
 - [x] **`storage.trip-images` public-listing finding — fixed 2026-08-13 (Workstream P).** Confirmed nothing in the app relies on bucket listing, then dropped the `public read trip images` SELECT policy directly on production via SQL Editor (confirmed 4→3 policies, admin/staff policies untouched). This was a live DB change, already in effect — not gated by the pending git push.
+- [x] **Workstream V (2026-09-02) — SHIPPED.** Marketing pages split (`trips.html`/`about.html`/`contact.html`), working contact form → `contact_messages` + admin Messages tab, trips search/month/destination/category filter, free-gifts points-range filter, About left-side CMS slideshow, editable header FB/IG links, full SEO baseline (meta/OG/JSON-LD + `robots.txt` + `sitemap.xml`). Commit `6b6464c`, both sites live. Migrations `20260902000000` + `20260902010000` applied to prod (contact_messages INSERT policy needed a manual follow-up `create policy … with check (true)`).
+- [ ] Follow-up (content, no code): real FB/IG URLs in CMS → Navigation → Header Social Links (placeholder handles live now, also in homepage JSON-LD); About slideshow photos; Free Gifts items + Points values; Category/Region on trips.
+- [ ] Follow-up (optional): dedicated 1200×630 social-share image (OG currently uses `the-travel-chapter-logo.jpg`); per-page meta-description fields in the CMS if editors want to control SEO copy.
+- [ ] Note for next admin deploy: Netlify CLI was mis-logged-in again this session — used `netlify deploy --prod --dir=admin --site c5f73ef7-2043-4f04-8611-702f5a4e773b --auth <PAT> --no-build` (the `--no-build` matters; plain deploy 403s on "fetching extensions"). UI drag-and-drop of `admin/` also works.

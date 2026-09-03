@@ -57,10 +57,10 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 }
 .navbar.scrolled { box-shadow:0 4px 24px rgba(26,31,46,0.08); }
 .nav-logo { display:flex; align-items:center; gap:10px; text-decoration:none; min-width:0; }
-.nav-logo-img { height:40px; width:auto; object-fit:contain; flex-shrink:0; }
+.nav-logo-img { height:54px; width:auto; object-fit:contain; flex-shrink:0; }
 .nav-logo-text { font-family:'DM Sans',sans-serif; font-size:0.92rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold); min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .nav-links { display:flex; align-items:center; gap:36px; list-style:none; }
-.nav-links a { font-size:0.82rem; letter-spacing:0.04em; color:var(--smoke); text-decoration:none; transition:color 0.2s; }
+.nav-links a { font-size:0.98rem; letter-spacing:0.03em; color:var(--smoke); text-decoration:none; transition:color 0.2s; }
 .nav-links a:hover { color:var(--navy); }
 .nav-links a.active { color:var(--navy); font-weight:500; }
 .nav-cta { display:flex; align-items:center; gap:12px; }
@@ -73,6 +73,58 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 .btn-nav-primary { padding:9px 20px; border:none; border-radius:6px; background:var(--navy); color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.8rem; font-weight:500; letter-spacing:0.05em; text-decoration:none; transition:all 0.2s; }
 .btn-nav-primary:hover { background:var(--navy2); box-shadow:0 4px 14px rgba(26,31,46,0.2); }
 .lang-switch { display:flex; align-items:center; gap:2px; background:var(--cream2); border:1px solid var(--border); border-radius:6px; padding:2px; }
+/* ── MOBILE NAV (hamburger dropdown + single language toggle) ── */
+.nav-toggle { display:none; background:var(--cream2); border:1px solid var(--border); border-radius:6px; width:40px; height:40px; padding:0; cursor:pointer; align-items:center; justify-content:center; color:var(--navy); flex-shrink:0; }
+.nav-toggle svg { width:20px; height:20px; }
+.nav-lang-toggle { display:none; }
+.nav-links-cta { display:none; }
+.nav-lang { position:relative; }
+.nav-lang-menu { display:none; }
+@media(max-width:860px) {
+  .nav-links {
+    position:absolute; top:100%; left:0; right:0;
+    display:flex; flex-direction:column; align-items:stretch; gap:0;
+    background:rgba(250,247,242,0.98); border-bottom:1px solid var(--border);
+    backdrop-filter:blur(16px);
+    max-height:0; overflow:hidden; opacity:0; pointer-events:none;
+    transition:max-height 0.32s ease, opacity 0.2s ease;
+  }
+  .navbar.menu-open .nav-links { max-height:75vh; opacity:1; pointer-events:auto; }
+  .nav-links li { list-style:none; }
+  .nav-links a { display:block; padding:15px 7%; font-size:0.95rem; color:var(--navy); border-bottom:1px solid var(--border); }
+  .nav-links li:last-child a { border-bottom:none; }
+  .nav-social { display:none !important; }
+  .lang-switch { display:none; }
+  .nav-lang-toggle {
+    display:inline-flex; align-items:center; justify-content:center;
+    min-width:40px; height:40px; padding:0 10px;
+    border:1px solid var(--border); border-radius:6px; background:var(--cream2);
+    color:var(--navy); font-family:'DM Sans',sans-serif; font-size:0.72rem; font-weight:600; letter-spacing:0.04em;
+    cursor:pointer; flex-shrink:0;
+  }
+  .nav-toggle { display:flex; }
+  .nav-cta { gap:8px; }
+  .nav-logo { flex-shrink:0; }
+  .nav-logo-text { font-size:0.72rem; letter-spacing:0.07em; }
+  .nav-logo-img { height:44px; }
+  .nav-cta .btn-nav-ghost, .nav-cta .btn-nav-primary { display:none; }
+  .nav-links-cta { display:block; padding:6px 0; }
+  .nav-cta-row { display:flex; gap:10px; padding:12px 7%; }
+  .nav-cta-row a { border-bottom:none; }
+  .nav-cta-row .btn-nav-ghost, .nav-cta-row .btn-nav-primary { flex:1; text-align:center; padding:12px 12px; font-size:0.82rem; }
+  .nav-cta-row .btn-nav-ghost { color:var(--smoke); }
+  .nav-cta-row .btn-nav-primary { color:var(--white); background:var(--navy); }
+  .nav-lang-menu:not([hidden]) { display:block; position:absolute; top:calc(100% + 8px); right:0; background:var(--white); border:1px solid var(--border); border-radius:10px; box-shadow:0 14px 40px rgba(26,31,46,0.16); overflow:hidden; min-width:168px; z-index:120; }
+  .nav-lang-menu button { display:block; width:100%; text-align:left; padding:12px 16px; border:none; background:transparent; font-family:'DM Sans',sans-serif; font-size:0.86rem; color:var(--navy); cursor:pointer; }
+  .nav-lang-menu button:hover { background:var(--cream2); }
+  .nav-lang-menu button.active { color:var(--gold); font-weight:600; }
+  .btn-nav-ghost, .btn-nav-primary { padding:9px 14px; font-size:0.76rem; }
+}
+@media(max-width:400px) {
+  .nav-cta { gap:6px; }
+  .btn-nav-ghost, .btn-nav-primary { padding:8px 10px; font-size:0.72rem; }
+  .nav-lang-toggle, .nav-toggle { min-width:36px; width:36px; height:36px; }
+}
 .lang-btn { padding:5px 9px; border:none; background:transparent; border-radius:4px; font-family:'DM Sans',sans-serif; font-size:0.68rem; font-weight:500; letter-spacing:0.03em; color:var(--smoke); cursor:pointer; transition:all 0.2s; }
 .lang-btn:hover { color:var(--navy); }
 .lang-btn.active { background:var(--navy); color:var(--white); }
@@ -146,7 +198,6 @@ footer { background:var(--navy); padding:56px 6% 32px; }
   .page-head h1 { font-size:2.8rem; }
 }
 @media(max-width:768px) {
-  .nav-links { display:none; }
   .nav-social { display:none; }
   .about-values { grid-template-columns:1fr; }
   .page-head { padding:130px 5% 64px; }
@@ -156,7 +207,7 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 @media(max-width:400px) {
   .navbar { padding:0 4%; }
   .nav-logo-text { font-size:0.72rem; letter-spacing:0.08em; }
-  .nav-logo-img { height:32px; }
+  .nav-logo-img { height:44px; }
   .btn-nav-primary, .btn-nav-ghost { padding:8px 12px; font-size:0.74rem; }
 }
 </style>
@@ -172,6 +223,10 @@ footer { background:var(--navy); padding:56px 6% 32px; }
     <li><a href="free-gifts.html" data-i18n="nav.free_gifts">Free Gifts</a></li>
     <li><a href="about.html" class="active" data-i18n="nav.about">About</a></li>
     <li><a href="contact.html" data-i18n="nav.contact">Contact</a></li>
+    <li class="nav-links-cta"><div class="nav-cta-row">
+      <a href="login.html" class="btn-nav-ghost" data-i18n="nav.login">Login</a>
+      <a href="login.html?tab=register" class="btn-nav-primary" data-i18n="nav.register">Register</a>
+    </div></li>
   </ul>
   <div class="nav-cta">
     <div class="nav-social">
@@ -187,8 +242,19 @@ footer { background:var(--navy); padding:56px 6% 32px; }
       <button class="lang-btn" data-lang="zh">中文</button>
       <button class="lang-btn" data-lang="ms">BM</button>
     </div>
+    <div class="nav-lang" id="nav-lang">
+      <button class="nav-lang-toggle" id="nav-lang-toggle" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Change language">EN</button>
+      <div class="nav-lang-menu" id="nav-lang-menu" hidden>
+        <button type="button" data-lang="en">English</button>
+        <button type="button" data-lang="zh">中文</button>
+        <button type="button" data-lang="ms">Bahasa Melayu</button>
+      </div>
+    </div>
     <a href="login.html" class="btn-nav-ghost" data-i18n="nav.login">Login</a>
     <a href="login.html?tab=register" class="btn-nav-primary" data-i18n="nav.register">Register</a>
+    <button class="nav-toggle" id="nav-toggle" type="button" aria-label="Menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
   </div>
 </nav>
 
@@ -460,6 +526,49 @@ loadAbout();
 loadFooter();
 
 // ── PWA: service worker registration
+// ── Mobile nav: hamburger dropdown + language picker
+(function initMobileNav() {
+  const bar = document.getElementById('navbar');
+  const toggle = document.getElementById('nav-toggle');
+  if (bar && toggle) {
+    const close = () => { bar.classList.remove('menu-open'); toggle.setAttribute('aria-expanded', 'false'); };
+    toggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = bar.classList.toggle('menu-open');
+      toggle.setAttribute('aria-expanded', String(open));
+    });
+    bar.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', close));
+    document.addEventListener('click', (e) => { if (!bar.contains(e.target)) close(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+  }
+  const langBtn = document.getElementById('nav-lang-toggle');
+  const langMenu = document.getElementById('nav-lang-menu');
+  if (langBtn && langMenu && window.TC_I18N) {
+    const LABEL = { en: 'EN', zh: '中', ms: 'BM' };
+    const closeMenu = () => { langMenu.hidden = true; langBtn.setAttribute('aria-expanded', 'false'); };
+    const paint = () => {
+      langBtn.textContent = LABEL[TC_I18N.lang] || 'EN';
+      langMenu.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.getAttribute('data-lang') === TC_I18N.lang));
+    };
+    paint();
+    langBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const willOpen = langMenu.hidden;
+      langMenu.hidden = !willOpen;
+      langBtn.setAttribute('aria-expanded', String(willOpen));
+    });
+    langMenu.querySelectorAll('button[data-lang]').forEach(b => {
+      b.addEventListener('click', () => {
+        document.querySelector('.lang-btn[data-lang="' + b.getAttribute('data-lang') + '"]')?.click();
+        closeMenu();
+      });
+    });
+    document.addEventListener('click', (e) => { if (!e.target.closest('#nav-lang')) closeMenu(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
+    if (TC_I18N.onChange) TC_I18N.onChange(paint);
+  }
+})();
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw-customer.js').catch(() => {});

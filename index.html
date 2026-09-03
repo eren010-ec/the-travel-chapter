@@ -79,10 +79,10 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 }
 .navbar.scrolled { box-shadow:0 4px 24px rgba(26,31,46,0.08); }
 .nav-logo { display:flex; align-items:center; gap:10px; text-decoration:none; min-width:0; }
-.nav-logo-img { height:40px; width:auto; object-fit:contain; flex-shrink:0; }
+.nav-logo-img { height:54px; width:auto; object-fit:contain; flex-shrink:0; }
 .nav-logo-text { font-family:'DM Sans',sans-serif; font-size:0.92rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold); min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .nav-links { display:flex; align-items:center; gap:36px; list-style:none; }
-.nav-links a { font-size:0.82rem; letter-spacing:0.04em; color:var(--smoke); text-decoration:none; transition:color 0.2s; }
+.nav-links a { font-size:0.98rem; letter-spacing:0.03em; color:var(--smoke); text-decoration:none; transition:color 0.2s; }
 .nav-links a:hover { color:var(--navy); }
 .nav-cta { display:flex; align-items:center; gap:12px; }
 .nav-social { display:flex; align-items:center; gap:4px; }
@@ -94,6 +94,58 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 .btn-nav-primary { padding:9px 20px; border:none; border-radius:6px; background:var(--navy); color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.8rem; font-weight:500; letter-spacing:0.05em; text-decoration:none; transition:all 0.2s; }
 .btn-nav-primary:hover { background:var(--navy2); box-shadow:0 4px 14px rgba(26,31,46,0.2); }
 .lang-switch { display:flex; align-items:center; gap:2px; background:var(--cream2); border:1px solid var(--border); border-radius:6px; padding:2px; }
+/* ── MOBILE NAV (hamburger dropdown + single language toggle) ── */
+.nav-toggle { display:none; background:var(--cream2); border:1px solid var(--border); border-radius:6px; width:40px; height:40px; padding:0; cursor:pointer; align-items:center; justify-content:center; color:var(--navy); flex-shrink:0; }
+.nav-toggle svg { width:20px; height:20px; }
+.nav-lang-toggle { display:none; }
+.nav-links-cta { display:none; }
+.nav-lang { position:relative; }
+.nav-lang-menu { display:none; }
+@media(max-width:860px) {
+  .nav-links {
+    position:absolute; top:100%; left:0; right:0;
+    display:flex; flex-direction:column; align-items:stretch; gap:0;
+    background:rgba(250,247,242,0.98); border-bottom:1px solid var(--border);
+    backdrop-filter:blur(16px);
+    max-height:0; overflow:hidden; opacity:0; pointer-events:none;
+    transition:max-height 0.32s ease, opacity 0.2s ease;
+  }
+  .navbar.menu-open .nav-links { max-height:75vh; opacity:1; pointer-events:auto; }
+  .nav-links li { list-style:none; }
+  .nav-links a { display:block; padding:15px 7%; font-size:0.95rem; color:var(--navy); border-bottom:1px solid var(--border); }
+  .nav-links li:last-child a { border-bottom:none; }
+  .nav-social { display:none !important; }
+  .lang-switch { display:none; }
+  .nav-lang-toggle {
+    display:inline-flex; align-items:center; justify-content:center;
+    min-width:40px; height:40px; padding:0 10px;
+    border:1px solid var(--border); border-radius:6px; background:var(--cream2);
+    color:var(--navy); font-family:'DM Sans',sans-serif; font-size:0.72rem; font-weight:600; letter-spacing:0.04em;
+    cursor:pointer; flex-shrink:0;
+  }
+  .nav-toggle { display:flex; }
+  .nav-cta { gap:8px; }
+  .nav-logo { flex-shrink:0; }
+  .nav-logo-text { font-size:0.72rem; letter-spacing:0.07em; }
+  .nav-logo-img { height:44px; }
+  .nav-cta .btn-nav-ghost, .nav-cta .btn-nav-primary { display:none; }
+  .nav-links-cta { display:block; padding:6px 0; }
+  .nav-cta-row { display:flex; gap:10px; padding:12px 7%; }
+  .nav-cta-row a { border-bottom:none; }
+  .nav-cta-row .btn-nav-ghost, .nav-cta-row .btn-nav-primary { flex:1; text-align:center; padding:12px 12px; font-size:0.82rem; }
+  .nav-cta-row .btn-nav-ghost { color:var(--smoke); }
+  .nav-cta-row .btn-nav-primary { color:var(--white); background:var(--navy); }
+  .nav-lang-menu:not([hidden]) { display:block; position:absolute; top:calc(100% + 8px); right:0; background:var(--white); border:1px solid var(--border); border-radius:10px; box-shadow:0 14px 40px rgba(26,31,46,0.16); overflow:hidden; min-width:168px; z-index:120; }
+  .nav-lang-menu button { display:block; width:100%; text-align:left; padding:12px 16px; border:none; background:transparent; font-family:'DM Sans',sans-serif; font-size:0.86rem; color:var(--navy); cursor:pointer; }
+  .nav-lang-menu button:hover { background:var(--cream2); }
+  .nav-lang-menu button.active { color:var(--gold); font-weight:600; }
+  .btn-nav-ghost, .btn-nav-primary { padding:9px 14px; font-size:0.76rem; }
+}
+@media(max-width:400px) {
+  .nav-cta { gap:6px; }
+  .btn-nav-ghost, .btn-nav-primary { padding:8px 10px; font-size:0.72rem; }
+  .nav-lang-toggle, .nav-toggle { min-width:36px; width:36px; height:36px; }
+}
 .lang-btn { padding:5px 9px; border:none; background:transparent; border-radius:4px; font-family:'DM Sans',sans-serif; font-size:0.68rem; font-weight:500; letter-spacing:0.03em; color:var(--smoke); cursor:pointer; transition:all 0.2s; }
 .lang-btn:hover { color:var(--navy); }
 .lang-btn.active { background:var(--navy); color:var(--white); }
@@ -118,8 +170,8 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 .hero-inner {
   position:relative; z-index:1; width:90%; max-width:1200px;
   margin:0 auto; padding:120px 0 80px;
-  display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:center;
 }
+.hero-text { max-width:640px; }
 .hero-eyebrow { font-size:0.7rem; letter-spacing:0.35em; text-transform:uppercase; color:var(--gold2); margin-bottom:22px; display:flex; align-items:center; gap:10px; }
 .hero-eyebrow::before { content:''; width:30px; height:1px; background:var(--gold2); }
 .hero-text h1 { font-family:'Cormorant Garamond',serif; font-size:4rem; font-weight:300; line-height:1.1; color:var(--white); margin-bottom:22px; }
@@ -130,41 +182,6 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 .btn-hero-primary:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(184,149,90,0.45); }
 .btn-hero-ghost { padding:14px 30px; border-radius:6px; border:1px solid rgba(255,255,255,0.2); color:rgba(255,255,255,0.8); font-family:'DM Sans',sans-serif; font-size:0.84rem; font-weight:400; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; text-decoration:none; display:inline-block; transition:all 0.25s; background:transparent; }
 .btn-hero-ghost:hover { background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.4); }
-.hero-stats { display:flex; gap:36px; margin-top:48px; padding-top:36px; border-top:1px solid rgba(255,255,255,0.08); }
-.hero-stat-val { font-family:'Cormorant Garamond',serif; font-size:2rem; font-weight:300; color:var(--white); display:block; }
-.hero-stat-lbl { font-size:0.7rem; letter-spacing:0.12em; text-transform:uppercase; color:rgba(255,255,255,0.35); margin-top:2px; }
-
-/* Hero visual */
-.hero-visual { position:relative; }
-.hero-card-stack { position:relative; height:460px; }
-.hero-card {
-  position:absolute; border-radius:16px; overflow:hidden;
-  box-shadow:0 24px 60px rgba(0,0,0,0.4);
-  transition:transform 0.4s ease;
-}
-.hero-card-main {
-  width:300px; height:360px; top:20px; left:40px;
-  background:linear-gradient(160deg,#1a3a2a,#2d6a4f);
-  display:flex; flex-direction:column; justify-content:flex-end; padding:24px;
-}
-.hero-card-secondary {
-  width:200px; height:240px; top:160px; left:200px;
-  background:linear-gradient(160deg,#1a2a3a,#1e6091);
-  display:flex; flex-direction:column; justify-content:flex-end; padding:18px;
-  z-index:2;
-}
-.hero-card-emoji { font-size:3rem; margin-bottom:12px; }
-.hero-card-title { font-family:'Cormorant Garamond',serif; font-size:1.1rem; font-weight:300; color:var(--white); }
-.hero-card-sub { font-size:0.7rem; color:rgba(255,255,255,0.5); margin-top:4px; }
-.hero-card-price { font-size:0.9rem; color:var(--gold2); font-weight:500; margin-top:8px; }
-.hero-floating-badge {
-  position:absolute; top:0; right:0;
-  background:var(--white); border-radius:12px; padding:14px 18px;
-  box-shadow:0 12px 40px rgba(0,0,0,0.2);
-  font-size:0.78rem; color:var(--navy); font-weight:500;
-  display:flex; align-items:center; gap:8px;
-}
-.hero-floating-badge .dot { width:8px; height:8px; border-radius:50%; background:#27ae60; flex-shrink:0; }
 
 /* ── SECTION COMMONS ── */
 section { padding:100px 6%; }
@@ -252,25 +269,31 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 
 /* ── RESPONSIVE ── */
 @media(max-width:1024px) {
-  .hero-inner { grid-template-columns:1fr; gap:48px; }
-  .hero-visual { display:none; }
   .hero-text h1 { font-size:3rem; }
   .destinations-grid { grid-template-columns:repeat(2,1fr); }
   .footer-grid { grid-template-columns:1fr 1fr; }
 }
 @media(max-width:768px) {
-  section { padding:70px 5%; }
+  section { padding:64px 16px; }
+  #destinations { padding-left:16px; padding-right:16px; }
   .section-title { font-size:2.2rem; }
-  .destinations-grid,.testimonials-grid { grid-template-columns:1fr; }
-  .nav-links { display:none; }
+  .destinations-grid,.testimonials-grid { grid-template-columns:1fr; gap:18px; }
   .nav-social { display:none; }
   .hero-text h1 { font-size:2.4rem; }
+  .trip-body { padding:20px 18px 22px; }
   .footer-grid { grid-template-columns:1fr; gap:32px; }
+}
+@media(max-width:480px) {
+  section { padding:56px 12px; }
+  #destinations { padding-left:12px; padding-right:12px; }
+  .trip-foot { flex-direction:column; align-items:stretch; gap:14px; }
+  .trip-actions { width:100%; }
+  .btn-trip { flex:1; text-align:center; }
 }
 @media(max-width:400px) {
   .navbar { padding:0 4%; }
   .nav-logo-text { font-size:0.72rem; letter-spacing:0.08em; }
-  .nav-logo-img { height:32px; }
+  .nav-logo-img { height:40px; }
   .btn-nav-primary, .btn-nav-ghost { padding:8px 12px; font-size:0.74rem; }
 }
 </style>
@@ -286,6 +309,10 @@ footer { background:var(--navy); padding:56px 6% 32px; }
     <li><a href="free-gifts.html" data-i18n="nav.free_gifts">Free Gifts</a></li>
     <li><a href="about.html" data-i18n="nav.about">About</a></li>
     <li><a href="contact.html" data-i18n="nav.contact">Contact</a></li>
+    <li class="nav-links-cta"><div class="nav-cta-row">
+      <a href="login.html" class="btn-nav-ghost" data-i18n="nav.login">Login</a>
+      <a href="login.html?tab=register" class="btn-nav-primary" data-i18n="nav.register">Register</a>
+    </div></li>
   </ul>
   <div class="nav-cta">
     <div class="nav-social">
@@ -301,8 +328,19 @@ footer { background:var(--navy); padding:56px 6% 32px; }
       <button class="lang-btn" data-lang="zh">中文</button>
       <button class="lang-btn" data-lang="ms">BM</button>
     </div>
+    <div class="nav-lang" id="nav-lang">
+      <button class="nav-lang-toggle" id="nav-lang-toggle" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Change language">EN</button>
+      <div class="nav-lang-menu" id="nav-lang-menu" hidden>
+        <button type="button" data-lang="en">English</button>
+        <button type="button" data-lang="zh">中文</button>
+        <button type="button" data-lang="ms">Bahasa Melayu</button>
+      </div>
+    </div>
     <a href="login.html" class="btn-nav-ghost" data-i18n="nav.login">Login</a>
     <a href="login.html?tab=register" class="btn-nav-primary" data-i18n="nav.register">Register</a>
+    <button class="nav-toggle" id="nav-toggle" type="button" aria-label="Menu" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+    </button>
   </div>
 </nav>
 
@@ -318,30 +356,6 @@ footer { background:var(--navy); padding:56px 6% 32px; }
       <div class="hero-actions">
         <a href="#trips" class="btn-hero-primary" id="hero-cta-primary" data-i18n="hero.cta_primary">Explore Trips</a>
         <a href="#" class="btn-hero-ghost" id="hero-cta-secondary" style="display:none;"></a>
-      </div>
-      <div class="hero-stats" id="hero-stats">
-        <div><span class="hero-stat-val">48+</span><span class="hero-stat-lbl">Destinations</span></div>
-        <div><span class="hero-stat-val">1,200+</span><span class="hero-stat-lbl">Happy Travellers</span></div>
-        <div><span class="hero-stat-val">12yr</span><span class="hero-stat-lbl">Experience</span></div>
-      </div>
-    </div>
-    <div class="hero-visual reveal">
-      <div class="hero-card-stack">
-        <div class="hero-card hero-card-main" id="hero-card-main">
-          <div class="hero-card-emoji" id="hero-card-emoji">🍁</div>
-          <div class="hero-card-title" id="hero-card-title">Kyoto in Autumn</div>
-          <div class="hero-card-sub" id="hero-card-sub">Japan · 8 Days</div>
-          <div class="hero-card-price" id="hero-card-price">From RM 3,200</div>
-        </div>
-        <div class="hero-card hero-card-secondary" id="hero-card-secondary">
-          <div class="hero-card-emoji" style="font-size:2rem;" id="hero-card2-emoji">⛵</div>
-          <div class="hero-card-title" style="font-size:0.9rem;" id="hero-card2-title">Amalfi by Yacht</div>
-          <div class="hero-card-sub" id="hero-card2-sub">Italy · 6 Days</div>
-        </div>
-        <div class="hero-floating-badge">
-          <div class="dot"></div>
-          <span id="hero-floating-badge-text">3 new trips this month</span>
-        </div>
       </div>
     </div>
   </div>
@@ -536,25 +550,15 @@ function applyHero(d) {
     if (d.cta_secondary_label) { p2.textContent=d.cta_secondary_label; p2.href=d.cta_secondary_href||'#'; p2.style.display=''; }
     else { p2.style.display='none'; }
   }
-  if(d.stats) {
-    const el = document.getElementById('hero-stats');
-    if(el) el.innerHTML = d.stats.map(s=>`<div><span class="hero-stat-val">${s.value}</span><span class="hero-stat-lbl">${s.label}</span></div>`).join('');
+  // Optional editable background photo (CMS: hero.background_image) — a dark overlay
+  // gradient is layered on top so the heading stays readable.
+  const heroEl = document.getElementById('hero');
+  if (heroEl && d.background_image) {
+    heroEl.style.backgroundImage =
+      `linear-gradient(135deg, rgba(20,24,34,0.82) 0%, rgba(30,42,58,0.72) 50%, rgba(20,24,34,0.9) 100%), url('${d.background_image}')`;
+    heroEl.style.backgroundSize = 'cover';
+    heroEl.style.backgroundPosition = 'center';
   }
-  if(d.featured_card) {
-    txt('hero-card-emoji', d.featured_card.emoji);
-    txt('hero-card-title', d.featured_card.title);
-    txt('hero-card-sub', d.featured_card.subtitle);
-    txt('hero-card-price', d.featured_card.price);
-    const mainCard = document.getElementById('hero-card-main');
-    const emojiEl = document.getElementById('hero-card-emoji');
-    if (mainCard) {
-      mainCard.style.background = d.featured_card.image
-        ? `linear-gradient(to top, rgba(26,31,46,0.75), rgba(26,31,46,0.15) 55%, rgba(26,31,46,0.05)), url('${d.featured_card.image}') center/cover no-repeat`
-        : '';
-    }
-    if (emojiEl) emojiEl.style.display = d.featured_card.image ? 'none' : '';
-  }
-  txt('hero-floating-badge-text', d.floating_badge);
 }
 
 function applyDestinations(d) {
@@ -639,9 +643,10 @@ function renderDbTrips(data) {
         <div class="trip-body">
           ${t.title ? `<h3 class="trip-name">${esc(t.title)}</h3>` : ''}
           ${t.summary ? `<p class="trip-desc">${esc(t.summary)}</p>` : ''}
-          <div class="trip-meta">
+          ${(t.region || t.duration_days) ? `<div class="trip-meta">
+            ${t.region ? `<div class="trip-meta-row"><span>◍</span><span>${esc(t.region)}</span></div>` : ''}
             ${t.duration_days ? `<div class="trip-meta-row"><span>◷</span><span>${t.duration_days} ${esc(L.days)}</span></div>` : ''}
-          </div>
+          </div>` : ''}
           <div class="trip-foot">
             <span class="trip-price">${hasPrice
               ? `${esc(L.from)} RM ${price} <small>${esc(L.per)}</small>`
@@ -654,42 +659,6 @@ function renderDbTrips(data) {
         </div>
       </article>`;
   }).join('');
-  syncHeroCardsToTrips(data);
-}
-function syncHeroCardsToTrips(data) {
-  const [t1, t2] = data;
-  if (t1) {
-    const thumb = TRIP_THUMBS[0];
-    const mainCard = document.getElementById('hero-card-main');
-    const emojiEl = document.getElementById('hero-card-emoji');
-    txt('hero-card-title', t1.title);
-    txt('hero-card-sub', `${t1.duration_days} ${TC_I18N.t('trips.days')}`);
-    txt('hero-card-price', `${TC_I18N.t('trips.from')} RM ${Number(t1.price_usd).toLocaleString()}`);
-    if (t1.cover_image) {
-      mainCard.style.background = `linear-gradient(to top, rgba(26,31,46,0.75), rgba(26,31,46,0.15) 55%, rgba(26,31,46,0.05)), url('${t1.cover_image}') center/cover no-repeat`;
-      if (emojiEl) emojiEl.style.display = 'none';
-    } else {
-      mainCard.style.background = '';
-      if (emojiEl) { emojiEl.style.display = ''; emojiEl.textContent = thumb.emoji; }
-    }
-  }
-  const secondaryCard = document.getElementById('hero-card-secondary');
-  if (t2 && secondaryCard) {
-    secondaryCard.style.display = '';
-    const thumb = TRIP_THUMBS[1 % TRIP_THUMBS.length];
-    txt('hero-card2-title', t2.title);
-    txt('hero-card2-sub', `${t2.duration_days} ${TC_I18N.t('trips.days')}`);
-    const emoji2 = document.getElementById('hero-card2-emoji');
-    if (t2.cover_image) {
-      secondaryCard.style.background = `linear-gradient(to top, rgba(26,31,46,0.75), rgba(26,31,46,0.15) 55%, rgba(26,31,46,0.05)), url('${t2.cover_image}') center/cover no-repeat`;
-      if (emoji2) emoji2.style.display = 'none';
-    } else {
-      secondaryCard.style.background = '';
-      if (emoji2) { emoji2.style.display = ''; emoji2.textContent = thumb.emoji; }
-    }
-  } else if (secondaryCard) {
-    secondaryCard.style.display = 'none';
-  }
 }
 TC_I18N.onChange(() => { if (lastDbTrips) renderDbTrips(lastDbTrips); });
 
@@ -789,6 +758,49 @@ function showToast(msg, err) {
 }
 
 // ── PWA: service worker registration
+// ── Mobile nav: hamburger dropdown + language picker
+(function initMobileNav() {
+  const bar = document.getElementById('navbar');
+  const toggle = document.getElementById('nav-toggle');
+  if (bar && toggle) {
+    const close = () => { bar.classList.remove('menu-open'); toggle.setAttribute('aria-expanded', 'false'); };
+    toggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = bar.classList.toggle('menu-open');
+      toggle.setAttribute('aria-expanded', String(open));
+    });
+    bar.querySelectorAll('.nav-links a').forEach(a => a.addEventListener('click', close));
+    document.addEventListener('click', (e) => { if (!bar.contains(e.target)) close(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+  }
+  const langBtn = document.getElementById('nav-lang-toggle');
+  const langMenu = document.getElementById('nav-lang-menu');
+  if (langBtn && langMenu && window.TC_I18N) {
+    const LABEL = { en: 'EN', zh: '中', ms: 'BM' };
+    const closeMenu = () => { langMenu.hidden = true; langBtn.setAttribute('aria-expanded', 'false'); };
+    const paint = () => {
+      langBtn.textContent = LABEL[TC_I18N.lang] || 'EN';
+      langMenu.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.getAttribute('data-lang') === TC_I18N.lang));
+    };
+    paint();
+    langBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const willOpen = langMenu.hidden;
+      langMenu.hidden = !willOpen;
+      langBtn.setAttribute('aria-expanded', String(willOpen));
+    });
+    langMenu.querySelectorAll('button[data-lang]').forEach(b => {
+      b.addEventListener('click', () => {
+        document.querySelector('.lang-btn[data-lang="' + b.getAttribute('data-lang') + '"]')?.click();
+        closeMenu();
+      });
+    });
+    document.addEventListener('click', (e) => { if (!e.target.closest('#nav-lang')) closeMenu(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeMenu(); });
+    if (TC_I18N.onChange) TC_I18N.onChange(paint);
+  }
+})();
+
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw-customer.js').catch(() => {});

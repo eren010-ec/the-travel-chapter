@@ -98,9 +98,10 @@ textarea { resize:vertical; min-height:80px; line-height:1.6; }
 .emoji-input { flex:1; }
 
 /* IMAGE UPLOAD */
-.image-upload-field { display:flex; align-items:center; gap:12px; }
+.image-upload-field { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
 .image-preview-thumb { width:60px; height:60px; border-radius:8px; object-fit:cover; border:1px solid var(--border); flex-shrink:0; background:var(--cream2); }
-.image-upload-field input[type=file] { flex:1; font-size:0.78rem; }
+.image-upload-field input[type=file] { flex:1; min-width:180px; font-size:0.78rem; }
+.image-upload-hint { font-size:0.72rem; color:var(--smoke); line-height:1.5; }
 
 /* GRADIENT PREVIEW */
 .gradient-field { display:flex; align-items:center; gap:10px; }
@@ -250,22 +251,22 @@ async function uploadCmsImage(file, folder) {
   if (uploadErr) { showToast('Image upload failed: ' + uploadErr.message, true); return null; }
   return sb.storage.from('trip-images').getPublicUrl(path).data.publicUrl;
 }
-function handleHeroImageSelect(event) {
+function handleHeroBgSelect(event) {
   const file = event.target.files[0];
   if (!file) return;
   if (!file.type.startsWith('image/')) { showToast('Please choose an image file.', true); return; }
   if (file.size > 5 * 1024 * 1024) { showToast('Image must be under 5MB.', true); return; }
   const built = buildContentFromForm('hero');
-  built.featured_card._file = file;
-  built.featured_card._removed = false;
+  built._bg_file = file;
+  built._bg_removed = false;
   cmsData['hero'] = built;
   renderEditor('hero');
 }
-function removeHeroImage() {
+function removeHeroBg() {
   const built = buildContentFromForm('hero');
-  built.featured_card._file = null;
-  built.featured_card._removed = true;
-  built.featured_card.image = null;
+  built._bg_file = null;
+  built._bg_removed = true;
+  built.background_image = null;
   cmsData['hero'] = built;
   renderEditor('hero');
 }
@@ -350,16 +351,15 @@ async function saveSection(section) {
   btn.disabled = true; btn.textContent = 'Saving…';
   const content = buildContentFromForm(section);
 
-  if (section === 'hero' && content.featured_card) {
-    const fc = content.featured_card;
-    if (fc._file) {
-      const url = await uploadCmsImage(fc._file, 'hero');
+  if (section === 'hero') {
+    if (content._bg_file) {
+      const url = await uploadCmsImage(content._bg_file, 'hero');
       if (url === null) { btn.disabled = false; btn.textContent = 'Save Changes'; return; }
-      fc.image = url;
-    } else if (fc._removed) {
-      fc.image = null;
+      content.background_image = url;
+    } else if (content._bg_removed) {
+      content.background_image = null;
     }
-    delete fc._file; delete fc._removed;
+    delete content._bg_file; delete content._bg_removed;
   }
   if (section === 'destinations' && content.items) {
     for (const item of content.items) {
@@ -490,31 +490,10 @@ function renderHeroForm(d) {
     </div>
   </div>
   <div class="card">
-    <div class="card-title"><span>📊</span> Stats</div>
-    ${(d.stats||[]).map((s,i)=>`
-    <div class="array-item">
-      <div class="array-item-header"><div class="array-item-label">Stat ${i+1}</div><button class="btn-icon" onclick="removeStat(${i})">✕</button></div>
-      <div class="field-row">
-        <div class="field"><label>Value</label><input type="text" id="stat_val_${i}" value="${esc(s.value||'')}"></div>
-        <div class="field"><label>Label</label><input type="text" id="stat_lbl_${i}" value="${esc(s.label||'')}"></div>
-      </div>
-    </div>`).join('')}
-    <button class="btn-add-item" onclick="addStat()">+ Add Stat</button>
-  </div>
-  <div class="card">
-    <div class="card-title"><span>🃏</span> Featured Card (Hero Visual)</div>
-    <div class="field-row">
-      <div class="field"><label>Emoji / Icon</label><input type="text" id="hero_card_emoji" value="${esc(d.featured_card?.emoji||'')}" placeholder="🍁"></div>
-      <div class="field"><label>Title</label><input type="text" id="hero_card_title" value="${esc(d.featured_card?.title||'')}"></div>
-    </div>
-    <div class="field-row">
-      <div class="field"><label>Subtitle</label><input type="text" id="hero_card_subtitle" value="${esc(d.featured_card?.subtitle||'')}"></div>
-      <div class="field"><label>Price Label</label><input type="text" id="hero_card_price" value="${esc(d.featured_card?.price||'')}"></div>
-    </div>
-    <div class="field"><label>Floating Badge Text</label><input type="text" id="hero_floating_badge" value="${esc(d.floating_badge||'')}" placeholder="3 new trips this month"></div>
+    <div class="card-title"><span>🖼️</span> Background Photo</div>
     <div class="field">
-      <label>Photo (optional — replaces the emoji tile with a real photo)</label>
-      ${imageUploadField(imagePreviewUrl(d.featured_card), 'handleHeroImageSelect(event)', 'removeHeroImage()')}
+      <label>Hero Background Image</label>
+      ${imageUploadField(imagePreviewUrl({ image: d.background_image, _file: d._bg_file, _removed: d._bg_removed }), 'handleHeroBgSelect(event)', 'removeHeroBg()', '1920 × 1080 (16:9), ≥ 1600px wide, JPG under 1 MB — a dark overlay is added automatically. Empty = plain navy gradient.')}
     </div>
   </div>`;
 }
@@ -524,11 +503,12 @@ function imagePreviewUrl(obj) {
   if (!obj._removed && obj.image) return obj.image;
   return '';
 }
-function imageUploadField(previewUrl, onChangeCall, removeFnCall) {
+function imageUploadField(previewUrl, onChangeCall, removeFnCall, hint) {
   return `
     <div class="image-upload-field">
       ${previewUrl ? `<img src="${previewUrl}" class="image-preview-thumb">` : ''}
       <input type="file" accept="image/*" onchange="${onChangeCall}">
+      ${hint ? `<span class="image-upload-hint">${esc(hint)}</span>` : ''}
       ${previewUrl ? `<button type="button" class="btn-icon" onclick="${removeFnCall}" title="Remove photo">✕</button>` : ''}
     </div>`;
 }
@@ -794,15 +774,12 @@ function buildContentFromForm(section) {
 
   switch(section) {
     case 'hero': {
-      const stats = (d.stats||[]).map((_,i)=>({ value:v(`stat_val_${i}`), label:v(`stat_lbl_${i}`) }));
       return { ...d,
         eyebrow:v('hero_eyebrow'), heading:v('hero_heading'), heading_italic:v('hero_heading_italic'),
         subtext:v('hero_subtext'), cta_primary_label:v('hero_cta_primary_label'),
         cta_primary_href:v('hero_cta_primary_href'), cta_secondary_label:v('hero_cta_secondary_label'),
-        cta_secondary_href:v('hero_cta_secondary_href'), stats,
-        featured_card:{ emoji:v('hero_card_emoji'), title:v('hero_card_title'), subtitle:v('hero_card_subtitle'), price:v('hero_card_price'),
-          image:d.featured_card?.image, _file:d.featured_card?._file, _removed:d.featured_card?._removed },
-        floating_badge:v('hero_floating_badge')
+        cta_secondary_href:v('hero_cta_secondary_href'),
+        background_image:d.background_image, _bg_file:d._bg_file, _bg_removed:d._bg_removed
       };
     }
     case 'destinations': {
@@ -867,18 +844,6 @@ function sectionHeaderFields(prefix, d) {
 }
 
 // ── ARRAY HELPERS ──────────────────────────────────────────
-function addStat() {
-  const d = cmsData['hero'] || {};
-  d.stats = [...(d.stats||[]), { value:'', label:'' }];
-  cmsData['hero'] = { ...cmsData['hero'], ...buildContentFromForm('hero'), stats:d.stats };
-  renderEditor('hero');
-}
-function removeStat(i) {
-  const built = buildContentFromForm('hero');
-  built.stats.splice(i,1);
-  cmsData['hero'] = built;
-  renderEditor('hero');
-}
 function addDestination() {
   const built = buildContentFromForm('destinations');
   built.items.push({ name:'', region:'', emoji:'✈️', gradient:'linear-gradient(160deg,#1a3a2a,#2d6a4f)', wide:false });

@@ -780,9 +780,10 @@ textarea { resize:vertical; min-height:70px; }
           <span id="tm-image-status" style="font-size:0.72rem;color:var(--smoke);"></span>
         </div>
       </div>
-      <div class="field"><label>Duration (days)</label><input type="number" id="tm-duration" min="1" value="7"></div>
-      <div class="field"><label>Price (RM)</label><input type="number" id="tm-price" min="0" step="0.01" value="0"></div>
-      <div class="field"><label>Max Pax</label><input type="number" id="tm-pax" min="1" value="12"></div>
+      <div class="field"><label>Duration (days)</label><input type="number" id="tm-duration" min="0" value="7" placeholder="0 = TBA"></div>
+      <div class="field"><label>Price (RM)</label><input type="number" id="tm-price" min="0" step="0.01" value="0" placeholder="0 = TBA"></div>
+      <div class="field"><label>Max Pax</label><input type="number" id="tm-pax" min="0" value="12" placeholder="0 = TBA"></div>
+      <div class="field full"><span style="font-size:0.72rem;color:var(--smoke);">Leave Duration / Price / Max Pax at <strong>0</strong> (or blank) and Departure Dates empty to show the trip as <strong>“TBA”</strong> — it stays listed but not bookable.</span></div>
       <div class="field"><label>Category</label><input type="text" id="tm-category" placeholder="e.g. Cultural, Adventure"></div>
       <div class="field"><label>Destination / Region</label><input type="text" id="tm-region" placeholder="e.g. Japan, Morocco"></div>
       <div class="field" id="tm-cost-field" style="display:none;">
@@ -1830,9 +1831,9 @@ async function saveTrip() {
     summary:document.getElementById('tm-summary').value.trim(),
     description:document.getElementById('tm-description').value.trim() || null,
     itinerary:document.getElementById('tm-itinerary').value.trim() || null,
-    duration_days:parseInt(document.getElementById('tm-duration').value),
-    price_usd:parseFloat(document.getElementById('tm-price').value),
-    max_pax:parseInt(document.getElementById('tm-pax').value),
+    duration_days:parseInt(document.getElementById('tm-duration').value) || 0,
+    price_usd:parseFloat(document.getElementById('tm-price').value) || 0,
+    max_pax:parseInt(document.getElementById('tm-pax').value) || 0,
     category:document.getElementById('tm-category').value.trim() || null,
     region:document.getElementById('tm-region').value.trim() || null,
     departure_dates:dates, is_active:document.getElementById('tm-active').checked,

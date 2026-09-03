@@ -681,6 +681,49 @@ New keys across EN/ZH/MS: `nav.login`, `nav.register`; `trips_page.filter_*` (se
 
 ---
 
+## Workstream W — Trip detail pages, WhatsApp buttons, mobile hamburger nav, editable hero background, admin notification bell (added 2026-09-03)
+
+> **SHIPPED 2026-09-03** — two commits on `main`: `cf47db2` then `4ada99d`. Customer site (`thetravelchapter.my`) auto-deployed and verified live after each push. Admin site (`quietmeridian-4471`) redeployed twice via `netlify deploy --prod --dir=admin --site c5f73ef7-2043-4f04-8611-702f5a4e773b` with `NETLIFY_AUTH_TOKEN=<PAT>` and verified live. **No DB migrations** — `trips.description`/`trips.itinerary` columns already existed; `cms_content` `contact.whatsapp` and `hero.background_image` are just JSON keys.
+
+Another long incremental-request session. Split into two shipped commits.
+
+### Commit `cf47db2` — trip detail pages, WhatsApp, unified cards, admin notification bell
+- **NEW `trip.html`** — per-trip detail page, `?slug=` (or `?id=`; UUID-detected). Cover image hero, facts (price / duration / group size), departure-date chips, **Overview** (`description` → falls back to `summary`), **Itinerary** (rendered `white-space:pre-wrap`, shown only when set), CTA = "Book Now" → `login.html` (`dashboard.html` if a session) or a disabled **"TBA"** `<span>` when `departure_dates` is empty, + a **WhatsApp** button. EN/ZH/BM, full SEO/OG (title/description/image updated from the trip at runtime), "Trip not found" state, SW registered, nav/footer/contact CMS wiring.
+- **`trips.html` + `index.html`** — trip-card button changed from "Book Now" → **"Details"** linking to `trip.html?slug=…`, with a small round green **WhatsApp icon button** beside it in a `.trip-actions` wrapper. WhatsApp number = `cms_content` `contact.whatsapp` → falls back to `contact.phone` → button hidden if neither. Prefilled text uses `trip_page.enquiry_text` with `{trip}` substituted.
+- **`index.html`** — the whole "TRIP DETAILS MODAL" was **removed** (HTML + CSS + `openTripModal`/`closeTripModal` + the Escape-key listener + `memberLoggedIn`/`getSession` + the `FALLBACK_TRIPS` array). `renderDbTrips()` now emits the same `.trip-card` markup as `trips.html` (was a photo-tile `.dest-card`); the 6 hardcoded fake trip cards in the HTML were replaced by 3 **shimmer loading skeletons** (`.trip-card-skeleton` / `.sk`) so a slow DB fetch never flashes placeholder trip names/prices. `loadTrips()` now also runs when the `cms_content` fetch fails (previously it was only called from inside `loadCMS()` and a CMS error left the skeletons forever); on zero active trips it shows a one-line link to `trips.html`.
+- **`trips.html`** cards dropped the Group size / Departures meta rows (kept only duration). Dead `fmtDates()` helper removed.
+- **i18n** (all 3 langs): `trips.tba`, `trips.price_tba`, `trips.details`, `trips.whatsapp`, `trip_page.*` (back, overview, itinerary, departures, duration, price, whatsapp, not_found, enquiry_text). ⚠️ `trip_page.departures` is unused/redundant (trip.html uses the existing `trips_page.departures`) — harmless.
+- **`sw-customer.js`** — `CACHE_NAME` **v11 → v12**, `trip.html` added to APP_SHELL.
+- **`admin/admin.html`** — trip editor gained **Description** + **Itinerary** textareas (load/reset/save wired). **Notification bell**: fixed top-right of every admin page, shakes (`@keyframes notif-ring`) + plays a 2-note **WebAudio chime** while there are unanswered messages (`status` `new`/`read`) or pending bookings (`status='pending'`); re-nudges every ~60s while anything is unhandled (via the existing 60s poll); dropdown breaks it down by type and each row `.click()`s the matching sidebar nav item; per-browser **mute toggle** (`localStorage['tc_notif_muted']`). Audio arms on the first `pointerdown`/`keydown` (browsers block it before a gesture — fine, admins log in first). `refreshNotifications()` called from `renderMessagesTable()`, `renderBookingsTable()`, `init()`, the poll, and `visibilitychange`.
+- **`admin/admin-cms.html`** — **WhatsApp Number** field in the Contact section (`content.whatsapp`, `con_whatsapp`).
+
+### Commit `4ada99d` — mobile nav, hero cleanup, card location + Price TBA, editable hero photo, bigger logo/menu
+- **Trip cards** (both pages): a **location row** (`t.region`, `◍` glyph) renders above duration; a **title-only trip shows "Price TBA"** (price `0`/empty → `hasPrice` false).
+- **Mobile card fill**: `.trips-section` padding tightened; below 480px `.trip-foot` stacks (`flex-direction:column`) so Details spans the row.
+- **Home hero** (`index.html`): removed the floating trip-picture visual (`.hero-visual`/`.hero-card*` markup + CSS + `syncHeroCardsToTrips()` + `applyHero()`'s `stats`/`featured_card` branches) **and** the 48+/1,200+/12yr stats row. `.hero-inner` is no longer a 2-col grid; `.hero-text{max-width:640px}`. Hero background is now an **editable CMS photo** — `cms.hero.background_image`, applied in `applyHero()` as `background-image: linear-gradient(<dark overlay>), url('…')` on `#hero`; empty = the original navy gradient.
+- **Logo** enlarged `40px → 54px` on all 6 customer pages; desktop `.nav-links a` font `0.82rem → 0.98rem`.
+- **Mobile navbar** — new `@media(max-width:860px)` behaviour on all 6 customer pages (`index`, `trips`, `trip`, `about`, `contact`, `free-gifts`), applied via a scripted transform so the block is byte-identical everywhere:
+  - `#nav-toggle` hamburger toggles `.navbar.menu-open`; `.nav-links` becomes an absolute dropdown panel (`max-height` transition). Closes on outside-click / Esc / link-click.
+  - The 3-button `.lang-switch` is hidden; a `#nav-lang` wrapper shows `#nav-lang-toggle` (label EN/中/BM) that opens `#nav-lang-menu` — a dropdown of **English / 中文 / Bahasa Melayu**, each item calls the real hidden `.lang-btn[data-lang=…].click()`. Menu is `hidden`-attr + `:not([hidden])` CSS.
+  - Nav links + a **Login | Register button row** (`.nav-cta-row` inside `<li class="nav-links-cta">`, styled with `.btn-nav-ghost`/`.btn-nav-primary`) live inside the dropdown; the `.nav-cta` Login/Register buttons are hidden on mobile. Had to re-assert `.nav-cta-row .btn-nav-primary{color:var(--white)}` because `.nav-links a{color:var(--navy)}` was winning and rendering "Register" navy-on-navy.
+  - Logo **wordmark stays visible** on mobile (font shrunk to `0.72rem`) — an earlier iteration hid it with `display:none`, which the user rejected.
+  - All the mobile-nav JS is one `initMobileNav()` IIFE inserted before the SW-registration block in each page.
+- **`admin/admin-cms.html`** — Hero section's **Stats** + **Featured Card** editors replaced by a single **Background Photo** upload (`handleHeroBgSelect`/`removeHeroBg`, `_bg_file`/`_bg_removed` → `background_image` via `uploadCmsImage(_, 'hero')`). `imageUploadField()` gained an optional 4th `hint` arg rendered as `.image-upload-hint` beside the file input ("1920 × 1080 (16:9), ≥ 1600px wide, JPG under 1 MB…"). `addStat`/`removeStat` + the hero `stats`/`featured_card` build/save code removed. ⚠️ The old `cms_content` `hero` rows still carry `stats`/`featured_card` JSON — orphaned, harmless.
+
+### Deploy notes for this session
+- **GitHub push worked first try both times** — no `a1thetravelchapter-jpg` 403 (see [[project_github_account_mismatch]]).
+- **Netlify CLI still logged into the wrong account** for the admin site — `netlify api getSite` for `c5f73ef7-…` returns "Not Found" under the browser-OAuth login (`a1.thetravelchapter@gmail.com`), which *can* see the customer site `56615704-…` but not the admin one (it's on account `6a15595aef366f9702f7d5c4`). Fixed with a **personal-access-token** for that account passed as `NETLIFY_AUTH_TOKEN`. See [[project_netlify_account_mismatch]] (updated 2026-09-03).
+- **This session `netlify deploy --prod --dir=admin` ran WITHOUT `--no-build`** and `@netlify/build` completed fine in ~5s (Workstream V needed `--no-build`; not needed this time — no config file, nothing to build). "CDN requesting 0 files" each time = Netlify cross-deploy hash dedup, deploy still went live.
+- `netlify deploy --prod` (production) is **blocked by Claude Code's auto-mode permission classifier** — the user ran the admin deploy themselves via a `!`-prefixed shell both times. Read-only `netlify api getSite` is allowed.
+
+### Still needs the user's input (content / verification, not code)
+1. **WhatsApp number** — Content editor → **Contact** → WhatsApp Number. Until set, the trip-card / trip-page WhatsApp button falls back to the (placeholder) phone number.
+2. **Hero background photo** — Content editor → **Hero** → Background Photo. Empty right now → plain navy gradient.
+3. **Real phone check of the mobile navbar** — the sandbox browser couldn't do a true mobile viewport this session; the hamburger + language dropdown + Login/Register row were verified by forcing the CSS + DOM inspection, not a real device.
+4. Description / Itinerary text per trip — **Trips** editor (new fields; detail page falls back to the summary when blank).
+
+---
+
 ## Task checklist
 
 - [x] Open all 6 pages in a real browser, confirm logo renders correctly (sizing/placement) — done 2026-07-26 at desktop size.
@@ -718,3 +761,5 @@ New keys across EN/ZH/MS: `nav.login`, `nav.register`; `trips_page.filter_*` (se
 - [ ] Follow-up (content, no code): real FB/IG URLs in CMS → Navigation → Header Social Links (placeholder handles live now, also in homepage JSON-LD); About slideshow photos; Free Gifts items + Points values; Category/Region on trips.
 - [ ] Follow-up (optional): dedicated 1200×630 social-share image (OG currently uses `the-travel-chapter-logo.jpg`); per-page meta-description fields in the CMS if editors want to control SEO copy.
 - [ ] Note for next admin deploy: Netlify CLI was mis-logged-in again this session — used `netlify deploy --prod --dir=admin --site c5f73ef7-2043-4f04-8611-702f5a4e773b --auth <PAT> --no-build` (the `--no-build` matters; plain deploy 403s on "fetching extensions"). UI drag-and-drop of `admin/` also works.
+- [x] **Workstream W (2026-09-03) — SHIPPED.** New `trip.html` detail page; trip cards get "Details" + WhatsApp buttons + a location row + "Price TBA" for title-only trips; home cards unified with the Trips page (fake trips → shimmer skeletons, modal removed); home hero stripped of the trip-picture + stats and given an editable CMS background photo; logo + desktop nav text enlarged; **mobile hamburger navbar** (dropdown nav links + language-picker dropdown + Login|Register button row) on all 6 customer pages; admin trip editor + **notification bell/chime** + WhatsApp CMS field + hero Background-Photo CMS field. Commits `cf47db2` + `4ada99d`, both sites live. No DB migrations. Admin deploy this time ran fine **without** `--no-build` (`NETLIFY_AUTH_TOKEN=<PAT>` env var, `netlify deploy --prod --dir=admin --site c5f73ef7-…`).
+- [ ] Follow-up (content/verification, no code): WhatsApp number in CMS → Contact; hero background photo in CMS → Hero; real-device check of the new mobile navbar (sandbox couldn't emulate a phone viewport); Description/Itinerary per trip in the Trips editor.

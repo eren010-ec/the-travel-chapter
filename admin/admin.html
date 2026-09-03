@@ -397,6 +397,19 @@ textarea { resize:vertical; min-height:70px; }
             <input type="text" id="tr-search" placeholder="Search trips…" oninput="filterTrips()">
             <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
           </div>
+          <select class="filter-select" id="tr-status-filter" onchange="filterTrips()">
+            <option value="">All statuses</option>
+            <option value="active">Active</option>
+            <option value="hidden">Hidden</option>
+            <option value="tba">TBA (no price/dates)</option>
+          </select>
+          <select class="filter-select" id="tr-region-filter" onchange="filterTrips()">
+            <option value="">All destinations</option>
+          </select>
+          <select class="filter-select" id="tr-category-filter" onchange="filterTrips()">
+            <option value="">All categories</option>
+          </select>
+          <button class="btn btn-ghost btn-sm" onclick="clearTripFilters()">Clear</button>
         </div>
       </div>
       <div class="tbl-wrap">
@@ -1734,12 +1747,44 @@ async function updateBookingStatus() {
 }
 
 // ── TRIPS TABLE ────────────────────────────────────────────
+function tripIsTba(t) {
+  const hasPrice = Number(t.price_usd) > 0;
+  const hasDates = Array.isArray(t.departure_dates) && t.departure_dates.length > 0;
+  return !hasPrice || !hasDates;
+}
+function fillTripFilterOptions() {
+  const fill = (id, values, allLabel) => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    const cur = sel.value;
+    sel.innerHTML = `<option value="">${allLabel}</option>` +
+      values.map(v => `<option${v === cur ? ' selected' : ''}>${escapeHtml(v)}</option>`).join('');
+  };
+  fill('tr-region-filter',   [...new Set(allTrips.map(t => t.region).filter(Boolean))].sort(),   'All destinations');
+  fill('tr-category-filter', [...new Set(allTrips.map(t => t.category).filter(Boolean))].sort(), 'All categories');
+}
+function clearTripFilters() {
+  ['tr-search', 'tr-status-filter', 'tr-region-filter', 'tr-category-filter']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.value = ''; });
+  filterTrips();
+}
 function filterTrips() {
-  const q=document.getElementById('tr-search').value.toLowerCase();
-  const filtered=allTrips.filter(t=>t.title.toLowerCase().includes(q));
+  const q  = document.getElementById('tr-search').value.toLowerCase();
+  const sf = document.getElementById('tr-status-filter').value;
+  const rf = document.getElementById('tr-region-filter').value;
+  const cf = document.getElementById('tr-category-filter').value;
+  const filtered = allTrips.filter(t => {
+    if (q && !`${t.title || ''} ${t.slug || ''} ${t.region || ''} ${t.category || ''}`.toLowerCase().includes(q)) return false;
+    if (sf === 'active' && !t.is_active) return false;
+    if (sf === 'hidden' && t.is_active) return false;
+    if (sf === 'tba' && !tripIsTba(t)) return false;
+    if (rf && t.region !== rf) return false;
+    if (cf && t.category !== cf) return false;
+    return true;
+  });
   renderTripsRows(filtered);
 }
-function renderTripsTable() { renderTripsRows(allTrips); }
+function renderTripsTable() { fillTripFilterOptions(); filterTrips(); }
 function renderTripsRows(list) {
   document.getElementById('trips-body').innerHTML = list.length
     ? list.map(t=>`<tr>

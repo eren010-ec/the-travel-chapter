@@ -344,8 +344,8 @@ footer { background:var(--navy); padding:56px 6% 32px; }
     <div>
       <div class="footer-col-title" data-i18n="footer.contact_title">Contact</div>
       <ul class="footer-links">
-        <li><a href="mailto:hello@thetravelchapter.com">hello@thetravelchapter.com</a></li>
-        <li><a href="tel:+60312345678">+60 3 1234 5678</a></li>
+        <li><a id="footer-email" href="mailto:hello@thetravelchapter.com">hello@thetravelchapter.com</a></li>
+        <li><a id="footer-phone" href="tel:+60312345678">+60 3 1234 5678</a></li>
         <li><a href="contact.html" data-i18n="footer.link_message">Send a Message</a></li>
       </ul>
     </div>
@@ -408,6 +408,11 @@ async function loadContact() {
   if (f.tagline)        document.getElementById('footer-tagline').textContent = f.tagline;
   if (f.copyright)      document.getElementById('footer-copyright').textContent = f.copyright;
   if (f.location_badge) document.getElementById('footer-location').textContent = f.location_badge;
+
+  const fe = document.getElementById('footer-email');
+  if (fe && d.email) { fe.textContent = d.email; fe.href = 'mailto:' + d.email; }
+  const fp = document.getElementById('footer-phone');
+  if (fp && d.phone) { fp.textContent = d.phone; fp.href = 'tel:' + String(d.phone).replace(/[^\d+]/g, ''); }
 }
 
 // Rebuild the "Interested In" <select> from the CMS list, keeping the current pick.

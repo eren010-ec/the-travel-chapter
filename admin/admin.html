@@ -1234,15 +1234,15 @@ function refreshNotifications() {
     if (!notifMuted) playChime();   // confirm it's back on
   });
 
-  // Poll so the bell stays live even without a page action; re-nudge every ~60s
-  // while anything is still unhandled.
+  // Re-fetch messages/bookings every 60s so the bell stays live without a page action.
   setInterval(async () => {
     try {
       await Promise.all([loadMessages(), loadBookings()]);
       refreshNotifications();
-      if (notifTotal > 0) maybeChime();
     } catch (_) {}
   }, 60000);
+  // Re-nudge the chime every 10s while anything is still unhandled (no network hit).
+  setInterval(() => { if (notifTotal > 0) maybeChime(); }, 10000);
   document.addEventListener('visibilitychange', async () => {
     if (document.visibilityState !== 'visible') return;
     try { await Promise.all([loadMessages(), loadBookings()]); refreshNotifications(); } catch (_) {}

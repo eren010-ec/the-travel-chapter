@@ -289,9 +289,15 @@ footer { background:var(--navy); padding:56px 6% 32px; }
             <input type="text" id="cf-last" autocomplete="family-name" required maxlength="100" placeholder="Smith" data-i18n-placeholder="contact.form.last_name_ph">
           </div>
         </div>
-        <div class="field full">
-          <label for="cf-email" data-i18n="contact.form.email">Email Address</label>
-          <input type="email" id="cf-email" autocomplete="email" required maxlength="320" placeholder="jane@example.com" data-i18n-placeholder="contact.form.email_ph">
+        <div class="form-row">
+          <div class="field">
+            <label for="cf-email" data-i18n="contact.form.email">Email Address</label>
+            <input type="email" id="cf-email" autocomplete="email" required maxlength="320" placeholder="jane@example.com" data-i18n-placeholder="contact.form.email_ph">
+          </div>
+          <div class="field">
+            <label for="cf-phone" data-i18n="contact.form.phone">Phone Number</label>
+            <input type="tel" id="cf-phone" autocomplete="tel" maxlength="30" placeholder="+60 12 345 6789" data-i18n-placeholder="contact.form.phone_ph">
+          </div>
         </div>
         <div class="field full">
           <label for="cf-interest" data-i18n="contact.form.interested">Interested In</label>
@@ -457,6 +463,7 @@ form.addEventListener('submit', async (e) => {
   const first    = document.getElementById('cf-first').value.trim();
   const last     = document.getElementById('cf-last').value.trim();
   const email    = document.getElementById('cf-email').value.trim();
+  const phone    = document.getElementById('cf-phone').value.trim();
   const interest = document.getElementById('cf-interest').value.trim();
   const message  = document.getElementById('cf-message').value.trim();
 
@@ -471,7 +478,7 @@ form.addEventListener('submit', async (e) => {
   const { error } = await sb.from('contact_messages').insert({
     name: `${first} ${last}`,
     email,
-    phone: null,
+    phone: phone || null,
     interest: interest || null,
     message
   });

@@ -1134,31 +1134,28 @@ document.querySelectorAll('.modal-overlay').forEach(o => {
 // Rings (shakes) + chimes while there are messages that haven't been answered
 // (status new/read) or bookings still pending. Recomputed after every
 // messages/bookings render and on a 60s poll, so it clears itself the moment the
-// last item is settled. The chime sounds on each new item and re-nudges every
-// ~60s while anything stays unhandled; a mute toggle is remembered per browser.
+// last item is settled. The chime (admin/notification-bell.mp3) sounds on each new
+// item and re-nudges every 10s while anything stays unhandled; a mute toggle is
+// remembered per browser.
 let notifTotal = 0, prevNotifTotal = 0, lastChimeAt = 0;
 let notifMuted = false;
 try { notifMuted = localStorage.getItem('tc_notif_muted') === '1'; } catch (_) {}
-let notifAudioCtx = null, notifAudioArmed = false;   // browsers need a user gesture before audio
+let notifAudio = null, notifAudioArmed = false;   // browsers need a user gesture before audio
+
+function getNotifAudio() {
+  if (!notifAudio) {
+    notifAudio = new Audio('notification-bell.mp3');
+    notifAudio.preload = 'auto';
+  }
+  return notifAudio;
+}
 
 function playChime() {
   try {
-    notifAudioCtx = notifAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
-    const ctx = notifAudioCtx;
-    if (ctx.state === 'suspended') ctx.resume();   // needs a prior user gesture — admins log in first
-    const now = ctx.currentTime;
-    [[880, 0], [1174.66, 0.13]].forEach(([freq, offset]) => {
-      const osc = ctx.createOscillator();
-      const gain = ctx.createGain();
-      osc.type = 'sine';
-      osc.frequency.value = freq;
-      gain.gain.setValueAtTime(0.0001, now + offset);
-      gain.gain.exponentialRampToValueAtTime(0.16, now + offset + 0.02);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + offset + 0.22);
-      osc.connect(gain).connect(ctx.destination);
-      osc.start(now + offset);
-      osc.stop(now + offset + 0.24);
-    });
+    const a = getNotifAudio();
+    a.currentTime = 0;
+    const p = a.play();
+    if (p && p.catch) p.catch(() => {});
   } catch (_) {}
 }
 
@@ -1209,8 +1206,12 @@ function refreshNotifications() {
   const armAudio = () => {
     notifAudioArmed = true;
     try {
-      notifAudioCtx = notifAudioCtx || new (window.AudioContext || window.webkitAudioContext)();
-      if (notifAudioCtx.state === 'suspended') notifAudioCtx.resume();
+      // Prime playback permission during the gesture so the interval's later .play() is allowed.
+      const a = getNotifAudio();
+      a.muted = true;
+      const p = a.play();
+      if (p && p.then) p.then(() => { a.pause(); a.currentTime = 0; a.muted = false; }).catch(() => { a.muted = false; });
+      else a.muted = false;
     } catch (_) {}
     if (notifTotal > 0) maybeChime();
   };

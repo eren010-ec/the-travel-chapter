@@ -1,8 +1,9 @@
-const CACHE_NAME = 'tc-admin-v2';
+const CACHE_NAME = 'tc-admin-v3';
 const APP_SHELL = [
   'admin.html',
   'admin-login.html',
   'admin-cms.html',
+  'notification-bell.mp3',
   'manifest-admin.json',
   'icons/icon-admin-192.png',
   'icons/icon-admin-512.png',

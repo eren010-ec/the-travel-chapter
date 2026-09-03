@@ -41,6 +41,7 @@
   --border: #e5ddd0;
   --white:  #ffffff;
   --text:   #1a1f2e;
+  --wa:     #25d366;
 }
 html { scroll-behavior: smooth; }
 body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--text); overflow-x:hidden; }
@@ -120,6 +121,10 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 .trip-price small { font-family:'DM Sans',sans-serif; font-size:0.72rem; color:var(--smoke); }
 .btn-trip { padding:10px 20px; border-radius:6px; border:none; background:var(--navy); color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.76rem; font-weight:500; letter-spacing:0.05em; text-decoration:none; transition:all 0.2s; white-space:nowrap; }
 .btn-trip:hover { background:var(--navy2); box-shadow:0 4px 14px rgba(26,31,46,0.2); }
+.trip-actions { display:flex; align-items:center; gap:8px; }
+.btn-wa { display:inline-flex; align-items:center; justify-content:center; width:38px; height:36px; border-radius:6px; background:var(--wa); color:#fff; text-decoration:none; flex-shrink:0; transition:filter 0.2s, box-shadow 0.2s; }
+.btn-wa:hover { filter:brightness(0.94); box-shadow:0 4px 12px rgba(37,211,102,0.3); }
+.btn-wa svg { width:17px; height:17px; fill:currentColor; }
 .trips-empty { max-width:520px; margin:40px auto 0; text-align:center; color:var(--smoke); font-size:0.9rem; line-height:1.8; }
 
 /* ── FOOTER ── */
@@ -284,14 +289,6 @@ const TRIP_THUMBS = [
   { gradient:'linear-gradient(160deg,#1a1a3a,#2d3561)', emoji:'🏯' },
 ];
 
-function fmtDates(arr) {
-  if (!Array.isArray(arr) || !arr.length) return '';
-  return arr.map(d => {
-    const dt = new Date(d);
-    return isNaN(dt) ? d : dt.toLocaleDateString(undefined, { day: 'numeric', month: 'short', year: 'numeric' });
-  }).join(' · ');
-}
-
 // ── Optional CMS override for the page header (reuses the `featured_trips` section) ──
 async function loadHeader() {
   const { data } = await sb.from('cms_content').select('content').eq('section', 'featured_trips').maybeSingle();
@@ -322,11 +319,11 @@ function renderTrips(trips) {
     days: TC_I18N.t('trips.days'),
     from: TC_I18N.t('trips.from'),
     per:  TC_I18N.t('trips.per_person'),
-    max:  TC_I18N.t('trips.max'),
-    book: TC_I18N.t('trips.book_now'),
-    dep:  TC_I18N.t('trips_page.departures'),
-    pax:  TC_I18N.t('trips_page.pax'),
+    details: TC_I18N.t('trips.details'),
+    priceTba: TC_I18N.t('trips.price_tba'),
+    wa:   TC_I18N.t('trips.whatsapp'),
   };
+  const waMsgTpl = TC_I18N.t('trip_page.enquiry_text');
 
   grid.innerHTML = trips.map((t, i) => {
     const thumb = TRIP_THUMBS[i % TRIP_THUMBS.length];
@@ -334,7 +331,11 @@ function renderTrips(trips) {
       ? `<img class="trip-img" src="${esc(t.cover_image)}" alt="${esc(t.title || '')}" loading="lazy">`
       : `<div class="trip-img-fallback">${thumb.emoji}</div>`;
     const price = Number(t.price_usd || 0).toLocaleString();
-    const dates = fmtDates(t.departure_dates);
+    const hasPrice = Number(t.price_usd) > 0;
+    const tripHref = `trip.html?slug=${encodeURIComponent(t.slug || t.id || '')}`;
+    const waHref = waNumber
+      ? `https://wa.me/${waNumber}?text=${encodeURIComponent(waMsgTpl.replace('{trip}', t.title || ''))}`
+      : '';
     return `
       <article class="trip-card reveal">
         ${media}
@@ -343,12 +344,17 @@ function renderTrips(trips) {
           ${t.summary ? `<p class="trip-desc">${esc(t.summary)}</p>` : ''}
           <div class="trip-meta">
             ${t.duration_days ? `<div class="trip-meta-row"><span>◷</span><span>${t.duration_days} ${esc(L.days)}</span></div>` : ''}
-            ${t.max_pax ? `<div class="trip-meta-row"><span>${esc(L.pax)}</span><span>${esc(L.max)} ${t.max_pax}</span></div>` : ''}
-            ${dates ? `<div class="trip-meta-row"><span>${esc(L.dep)}</span><span>${esc(dates)}</span></div>` : ''}
           </div>
           <div class="trip-foot">
-            <span class="trip-price">${esc(L.from)} RM ${price} <small>${esc(L.per)}</small></span>
-            <a class="btn-trip" href="login.html">${esc(L.book)}</a>
+            <span class="trip-price">${hasPrice
+              ? `${esc(L.from)} RM ${price} <small>${esc(L.per)}</small>`
+              : esc(L.priceTba)}</span>
+            <div class="trip-actions">
+              <a class="btn-trip" href="${tripHref}">${esc(L.details)}</a>
+              ${waHref ? `<a class="btn-wa" href="${esc(waHref)}" target="_blank" rel="noopener" aria-label="${esc(L.wa)}">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.477-.907zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.767.967-.94 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg>
+              </a>` : ''}
+            </div>
           </div>
         </div>
       </article>`;
@@ -378,6 +384,15 @@ window.addEventListener('scroll', () => {
     scrollTicking = true;
   }
 }, { passive: true });
+
+// ── Contact CMS content — WhatsApp number for the trip-card WhatsApp button ─────
+let waNumber = '';
+async function loadContact() {
+  const { data } = await sb.from('cms_content').select('content').eq('section', 'contact').maybeSingle();
+  const d = (data && data.content) || {};
+  waNumber = String(d.whatsapp || d.phone || '').replace(/[^\d]/g, '');
+  if (lastTrips.length) applyFilters();   // re-render cards now that the number is known
+}
 
 // ── Footer CMS content (tagline / copyright / location) ─────
 async function loadFooter() {
@@ -479,6 +494,7 @@ async function loadNav() {
 loadNav();
 loadHeader();
 loadFooter();
+loadContact();
 loadTripsAndCache();
 
 // ── PWA: service worker registration

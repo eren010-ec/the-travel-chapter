@@ -1,0 +1,463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/png" href="the-travel-chapter-icon.png">
+<link rel="manifest" href="manifest-customer.json">
+<meta name="theme-color" content="#1a1f2e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Travel Chapter">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon-customer.png">
+<title>The Travel Chapter — Trip</title>
+<meta name="description" content="Trip details — expert-guided, small-group journeys with The Travel Chapter.">
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="The Travel Chapter">
+<meta property="og:title" content="The Travel Chapter — Trip">
+<meta property="og:description" content="Trip details — expert-guided, small-group journeys with The Travel Chapter.">
+<meta property="og:image" content="https://thetravelchapter.my/the-travel-chapter-logo.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="i18n.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --cream:  #faf7f2;
+  --cream2: #f2ede4;
+  --cream3: #ede5d8;
+  --navy:   #1a1f2e;
+  --navy2:  #252b3b;
+  --gold:   #b8955a;
+  --gold2:  #d4aa70;
+  --smoke:  #6b7280;
+  --border: #e5ddd0;
+  --white:  #ffffff;
+  --text:   #1a1f2e;
+  --wa:     #25d366;
+}
+html { scroll-behavior: smooth; }
+body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--text); overflow-x:hidden; }
+
+/* ── NAVBAR ── */
+.navbar {
+  position: fixed; top:0; left:0; right:0; z-index:100;
+  display:flex; align-items:center; justify-content:space-between;
+  padding:0 6%; height:72px;
+  background:rgba(250,247,242,0.92);
+  border-bottom:1px solid var(--border);
+  backdrop-filter:blur(16px);
+  transition:box-shadow 0.3s;
+}
+.navbar.scrolled { box-shadow:0 4px 24px rgba(26,31,46,0.08); }
+.nav-logo { display:flex; align-items:center; gap:10px; text-decoration:none; min-width:0; }
+.nav-logo-img { height:40px; width:auto; object-fit:contain; flex-shrink:0; }
+.nav-logo-text { font-family:'DM Sans',sans-serif; font-size:0.92rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold); min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.nav-links { display:flex; align-items:center; gap:36px; list-style:none; }
+.nav-links a { font-size:0.82rem; letter-spacing:0.04em; color:var(--smoke); text-decoration:none; transition:color 0.2s; }
+.nav-links a:hover { color:var(--navy); }
+.nav-links a.active { color:var(--navy); font-weight:500; }
+.nav-cta { display:flex; align-items:center; gap:12px; }
+.nav-social { display:flex; align-items:center; gap:4px; }
+.nav-social-link { display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:6px; color:var(--smoke); transition:color 0.2s, background 0.2s; }
+.nav-social-link:hover { color:var(--navy); background:var(--cream2); }
+.nav-social-link svg { width:16px; height:16px; }
+.btn-nav-ghost { padding:9px 20px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--smoke); font-family:'DM Sans',sans-serif; font-size:0.8rem; font-weight:400; letter-spacing:0.05em; text-decoration:none; transition:all 0.2s; }
+.btn-nav-ghost:hover { border-color:var(--navy); color:var(--navy); }
+.btn-nav-primary { padding:9px 20px; border:none; border-radius:6px; background:var(--navy); color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.8rem; font-weight:500; letter-spacing:0.05em; text-decoration:none; transition:all 0.2s; }
+.btn-nav-primary:hover { background:var(--navy2); box-shadow:0 4px 14px rgba(26,31,46,0.2); }
+.lang-switch { display:flex; align-items:center; gap:2px; background:var(--cream2); border:1px solid var(--border); border-radius:6px; padding:2px; }
+.lang-btn { padding:5px 9px; border:none; background:transparent; border-radius:4px; font-family:'DM Sans',sans-serif; font-size:0.68rem; font-weight:500; letter-spacing:0.03em; color:var(--smoke); cursor:pointer; transition:all 0.2s; }
+.lang-btn:hover { color:var(--navy); }
+.lang-btn.active { background:var(--navy); color:var(--white); }
+
+/* ── TRIP ── */
+.trip-wrap { max-width:920px; margin:0 auto; padding:104px 6% 100px; }
+.trip-back { display:inline-flex; align-items:center; gap:6px; font-size:0.8rem; letter-spacing:0.04em; color:var(--smoke); text-decoration:none; margin-bottom:24px; transition:color 0.2s; }
+.trip-back:hover { color:var(--navy); }
+
+.trip-hero { position:relative; border-radius:18px; overflow:hidden; background:var(--cream2); min-height:320px; display:flex; align-items:flex-end; }
+.trip-hero img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
+.trip-hero-fallback { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:5rem; background:linear-gradient(160deg,#2d3561,#1a2a3a); }
+.trip-hero-overlay { position:relative; z-index:1; width:100%; padding:56px 34px 30px; background:linear-gradient(to top, rgba(20,24,34,0.82) 0%, rgba(20,24,34,0.25) 60%, transparent 100%); }
+.trip-eyebrow { font-size:0.68rem; letter-spacing:0.32em; text-transform:uppercase; color:var(--gold2); margin-bottom:12px; }
+.trip-title { font-family:'Cormorant Garamond',serif; font-size:2.9rem; font-weight:300; line-height:1.12; color:var(--white); }
+
+.trip-facts { display:flex; flex-wrap:wrap; gap:10px 26px; margin:28px 0 6px; padding-bottom:26px; border-bottom:1px solid var(--border); }
+.trip-fact { display:flex; flex-direction:column; gap:3px; }
+.trip-fact-lbl { font-size:0.66rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--smoke); }
+.trip-fact-val { font-family:'Cormorant Garamond',serif; font-size:1.35rem; color:var(--navy); }
+.trip-fact-val small { font-family:'DM Sans',sans-serif; font-size:0.72rem; color:var(--smoke); }
+
+.trip-section { margin-top:34px; }
+.trip-section h2 { font-family:'Cormorant Garamond',serif; font-size:1.7rem; font-weight:400; color:var(--navy); margin-bottom:14px; }
+.trip-section p { font-size:0.92rem; line-height:1.85; color:var(--smoke); }
+.trip-prose { font-size:0.92rem; line-height:1.85; color:var(--smoke); white-space:pre-wrap; }
+.trip-departures { display:flex; flex-wrap:wrap; gap:8px; }
+.trip-dep-chip { padding:8px 14px; border:1px solid var(--border); border-radius:999px; background:var(--white); font-size:0.8rem; color:var(--navy); }
+
+.trip-cta-bar { margin-top:44px; padding-top:28px; border-top:1px solid var(--border); display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+.btn-book { padding:14px 34px; border-radius:8px; border:none; background:var(--navy); color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.8rem; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; text-decoration:none; transition:all 0.2s; }
+.btn-book:hover { background:var(--navy2); box-shadow:0 4px 14px rgba(26,31,46,0.2); }
+.btn-book.is-tba { background:var(--cream3); color:var(--smoke); cursor:default; pointer-events:none; }
+.btn-wa { display:inline-flex; align-items:center; gap:9px; padding:14px 22px; border-radius:8px; background:var(--wa); color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.8rem; font-weight:500; letter-spacing:0.06em; text-decoration:none; transition:filter 0.2s, box-shadow 0.2s; }
+.btn-wa:hover { filter:brightness(0.94); box-shadow:0 4px 14px rgba(37,211,102,0.3); }
+.btn-wa svg { width:18px; height:18px; fill:currentColor; }
+
+.trip-missing { max-width:520px; margin:60px auto; text-align:center; color:var(--smoke); font-size:0.95rem; line-height:1.8; }
+.trip-missing a { color:var(--gold); }
+
+/* ── FOOTER ── */
+footer { background:var(--navy); padding:56px 6% 32px; }
+.footer-grid { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:48px; margin-bottom:48px; }
+.footer-brand { display:flex; align-items:center; gap:10px; font-family:'DM Sans',sans-serif; font-size:0.88rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold2); margin-bottom:14px; }
+.footer-brand-img { height:32px; width:auto; object-fit:contain; flex-shrink:0; }
+.footer-desc { font-size:0.8rem; color:rgba(255,255,255,0.35); line-height:1.7; max-width:260px; }
+.footer-col-title { font-size:0.65rem; font-weight:500; letter-spacing:0.18em; text-transform:uppercase; color:rgba(255,255,255,0.35); margin-bottom:16px; }
+.footer-links { list-style:none; display:flex; flex-direction:column; gap:10px; }
+.footer-links a { font-size:0.8rem; color:rgba(255,255,255,0.45); text-decoration:none; transition:color 0.2s; }
+.footer-links a:hover { color:var(--gold2); }
+.footer-bottom { display:flex; align-items:center; justify-content:space-between; padding-top:28px; border-top:1px solid rgba(255,255,255,0.06); font-size:0.75rem; color:rgba(255,255,255,0.25); flex-wrap:wrap; gap:12px; }
+
+/* ── RESPONSIVE ── */
+@media(max-width:1024px) { .footer-grid { grid-template-columns:1fr 1fr; } }
+@media(max-width:768px) {
+  .nav-links { display:none; }
+  .nav-social { display:none; }
+  .trip-wrap { padding:96px 5% 80px; }
+  .trip-title { font-size:2.2rem; }
+  .trip-hero-overlay { padding:44px 22px 24px; }
+  .footer-grid { grid-template-columns:1fr; gap:32px; }
+}
+@media(max-width:400px) {
+  .navbar { padding:0 4%; }
+  .nav-logo-text { font-size:0.72rem; letter-spacing:0.08em; }
+  .nav-logo-img { height:32px; }
+  .btn-nav-primary, .btn-nav-ghost { padding:8px 12px; font-size:0.74rem; }
+  .trip-cta-bar { flex-direction:column; align-items:stretch; }
+  .btn-book, .btn-wa { text-align:center; justify-content:center; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── NAVBAR ── -->
+<nav class="navbar" id="navbar">
+  <a href="index.html" class="nav-logo" id="nav-logo"><img src="the-travel-chapter-icon.png" alt="The Travel Chapter" class="nav-logo-img"><span class="nav-logo-text" id="nav-logo-text">The Travel Chapter</span></a>
+  <ul class="nav-links">
+    <li><a href="index.html" data-i18n="nav.home">Home</a></li>
+    <li><a href="trips.html" class="active" data-i18n="nav.trips">Trips</a></li>
+    <li><a href="free-gifts.html" data-i18n="nav.free_gifts">Free Gifts</a></li>
+    <li><a href="about.html" data-i18n="nav.about">About</a></li>
+    <li><a href="contact.html" data-i18n="nav.contact">Contact</a></li>
+  </ul>
+  <div class="nav-cta">
+    <div class="nav-social">
+      <a href="https://www.facebook.com/thetravelchapter" id="nav-fb" class="nav-social-link" target="_blank" rel="noopener" aria-label="Facebook">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M24 12.073C24 5.404 18.627 0 12 0S0 5.404 0 12.073c0 6.026 4.388 11.02 10.125 11.927v-8.44H7.078v-3.487h3.047V9.41c0-3.017 1.792-4.684 4.533-4.684 1.313 0 2.686.235 2.686.235v2.966h-1.513c-1.49 0-1.955.93-1.955 1.886v2.26h3.328l-.532 3.487h-2.796v8.44C19.612 23.094 24 18.1 24 12.073Z"/></svg>
+      </a>
+      <a href="https://www.instagram.com/thetravelchapter" id="nav-ig" class="nav-social-link" target="_blank" rel="noopener" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069ZM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0Zm0 5.838a6.162 6.162 0 1 0 0 12.324 6.162 6.162 0 0 0 0-12.324ZM12 16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.406-11.845a1.44 1.44 0 1 0 0 2.881 1.44 1.44 0 0 0 0-2.881Z"/></svg>
+      </a>
+    </div>
+    <div class="lang-switch">
+      <button class="lang-btn" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="zh">中文</button>
+      <button class="lang-btn" data-lang="ms">BM</button>
+    </div>
+    <a href="login.html" class="btn-nav-ghost" data-i18n="nav.login">Login</a>
+    <a href="login.html?tab=register" class="btn-nav-primary" data-i18n="nav.register">Register</a>
+  </div>
+</nav>
+
+<!-- ── TRIP ── -->
+<main class="trip-wrap">
+  <a href="trips.html" class="trip-back" id="trip-back" data-i18n="trip_page.back">← All trips</a>
+
+  <div id="trip-content" hidden>
+    <div class="trip-hero">
+      <img id="trip-img" alt="" hidden>
+      <div class="trip-hero-fallback" id="trip-img-fallback">🧭</div>
+      <div class="trip-hero-overlay">
+        <div class="trip-eyebrow" id="trip-eyebrow" data-i18n="trips.eyebrow">Our Journeys</div>
+        <h1 class="trip-title" id="trip-title"></h1>
+      </div>
+    </div>
+
+    <div class="trip-facts" id="trip-facts"></div>
+
+    <div class="trip-section" id="trip-overview-sec">
+      <h2 data-i18n="trip_page.overview">Overview</h2>
+      <p id="trip-overview"></p>
+    </div>
+
+    <div class="trip-section" id="trip-itinerary-sec" hidden>
+      <h2 data-i18n="trip_page.itinerary">Itinerary</h2>
+      <div class="trip-prose" id="trip-itinerary"></div>
+    </div>
+
+    <div class="trip-section" id="trip-departures-sec" hidden>
+      <h2 data-i18n="trips_page.departures">Departures</h2>
+      <div class="trip-departures" id="trip-departures"></div>
+    </div>
+
+    <div class="trip-cta-bar">
+      <a class="btn-book" id="trip-book" href="login.html" data-i18n="trips.book_now">Book Now</a>
+      <a class="btn-wa" id="trip-wa" href="#" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.477-.907zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.767.967-.94 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg>
+        <span data-i18n="trip_page.whatsapp">WhatsApp</span>
+      </a>
+    </div>
+  </div>
+
+  <p class="trip-missing" id="trip-missing" hidden></p>
+</main>
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand"><img src="the-travel-chapter-icon.png" alt="The Travel Chapter" class="footer-brand-img">The Travel Chapter</div>
+      <p class="footer-desc" id="footer-tagline">Curating extraordinary journeys for discerning travellers since 2012. Based in Kuala Lumpur, travelling the world.</p>
+    </div>
+    <div>
+      <div class="footer-col-title" data-i18n="footer.explore_title">Explore</div>
+      <ul class="footer-links">
+        <li><a href="index.html#destinations" data-i18n="footer.link_destinations">Destinations</a></li>
+        <li><a href="trips.html" data-i18n="footer.link_trips">Featured Trips</a></li>
+        <li><a href="free-gifts.html" data-i18n="footer.link_free_gifts">Free Gifts</a></li>
+        <li><a href="about.html" data-i18n="footer.link_about">Our Story</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title" data-i18n="footer.members_title">Members</div>
+      <ul class="footer-links">
+        <li><a href="login.html" data-i18n="footer.link_signin">Sign In</a></li>
+        <li><a href="dashboard.html" data-i18n="footer.link_dashboard">Dashboard</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-col-title" data-i18n="footer.contact_title">Contact</div>
+      <ul class="footer-links">
+        <li><a href="mailto:hello@thetravelchapter.com">hello@thetravelchapter.com</a></li>
+        <li><a href="tel:+60312345678">+60 3 1234 5678</a></li>
+        <li><a href="contact.html" data-i18n="footer.link_message">Send a Message</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <span id="footer-copyright">© 2026 The Travel Chapter. All rights reserved.</span>
+    <span id="footer-location">Crafted with care in Kuala Lumpur 🇲🇾</span>
+  </div>
+</footer>
+
+<script>
+TC_I18N.applyStatic();
+
+// ── CONFIG ──────────────────────────────────────────────────
+const SUPABASE_URL  = 'https://nkrpkfqibsudqsonljve.supabase.co';
+const SUPABASE_ANON = 'sb_publishable_8mbRk904S5zktFv6UIlRUg_gp1PFAWm';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+const LOCALE = { en: 'en-GB', zh: 'zh-CN', ms: 'ms-MY' };
+
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function setText(id, txt) {
+  const el = document.getElementById(id);
+  if (el) { el.textContent = txt; el.removeAttribute('data-i18n'); el.removeAttribute('data-i18n-html'); }
+}
+function fmtDate(d) {
+  const dt = new Date(d);
+  const loc = LOCALE[TC_I18N.lang] || 'en-GB';
+  return isNaN(dt) ? d : dt.toLocaleDateString(loc, { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+const params  = new URLSearchParams(location.search);
+const tripKey = (params.get('slug') || params.get('id') || '').trim();
+
+let currentTrip = null;
+let memberLoggedIn = false;
+let waNumber = '';
+
+sb.auth.getSession().then(({ data: { session } }) => {
+  memberLoggedIn = !!session;
+  if (currentTrip) applyBookCta(currentTrip);
+});
+
+// ── RENDER ──────────────────────────────────────────────────
+function renderTrip(t) {
+  currentTrip = t;
+  document.title = `${t.title || 'Trip'} — The Travel Chapter`;
+  const desc = t.summary || 'Trip details — expert-guided, small-group journeys with The Travel Chapter.';
+  document.querySelector('meta[name="description"]').setAttribute('content', desc);
+  const setMeta = (p, v) => { const m = document.querySelector(`meta[property="${p}"]`); if (m) m.setAttribute('content', v); };
+  setMeta('og:title', `${t.title || 'Trip'} — The Travel Chapter`);
+  setMeta('og:description', desc);
+  if (t.cover_image) setMeta('og:image', t.cover_image);
+
+  setText('trip-title', t.title || '');
+  if (t.region || t.category) setText('trip-eyebrow', [t.region, t.category].filter(Boolean).join(' · '));
+
+  const img = document.getElementById('trip-img');
+  const fb  = document.getElementById('trip-img-fallback');
+  if (t.cover_image) {
+    img.src = t.cover_image; img.alt = t.title || ''; img.hidden = false; fb.hidden = true;
+  } else {
+    img.hidden = true; fb.hidden = false;
+  }
+
+  // ── Facts row
+  const L = {
+    from: TC_I18N.t('trips.from'), per: TC_I18N.t('trips.per_person'),
+    priceTba: TC_I18N.t('trips.price_tba'), days: TC_I18N.t('trips.days'),
+    max: TC_I18N.t('trips.max'), durLbl: TC_I18N.t('trip_page.duration'),
+    priceLbl: TC_I18N.t('trip_page.price'), paxLbl: TC_I18N.t('trips_page.pax'),
+  };
+  const hasPrice = Number(t.price_usd) > 0;
+  const facts = [];
+  facts.push(`<div class="trip-fact"><span class="trip-fact-lbl">${esc(L.priceLbl)}</span><span class="trip-fact-val">${
+    hasPrice ? `${esc(L.from)} RM ${Number(t.price_usd).toLocaleString()} <small>${esc(L.per)}</small>` : esc(L.priceTba)
+  }</span></div>`);
+  if (t.duration_days) facts.push(`<div class="trip-fact"><span class="trip-fact-lbl">${esc(L.durLbl)}</span><span class="trip-fact-val">${t.duration_days} ${esc(L.days)}</span></div>`);
+  if (t.max_pax) facts.push(`<div class="trip-fact"><span class="trip-fact-lbl">${esc(L.paxLbl)}</span><span class="trip-fact-val">${esc(L.max)} ${t.max_pax}</span></div>`);
+  document.getElementById('trip-facts').innerHTML = facts.join('');
+
+  // ── Overview (description falls back to summary)
+  const overview = (t.description && t.description.trim()) || t.summary || '';
+  if (overview) {
+    document.getElementById('trip-overview').textContent = overview;
+  } else {
+    document.getElementById('trip-overview-sec').hidden = true;
+  }
+
+  // ── Itinerary (optional)
+  if (t.itinerary && t.itinerary.trim()) {
+    document.getElementById('trip-itinerary').textContent = t.itinerary.trim();
+    document.getElementById('trip-itinerary-sec').hidden = false;
+  }
+
+  // ── Departures (optional)
+  const deps = Array.isArray(t.departure_dates) ? t.departure_dates.filter(Boolean) : [];
+  if (deps.length) {
+    document.getElementById('trip-departures').innerHTML =
+      deps.map(d => `<span class="trip-dep-chip">${esc(fmtDate(d))}</span>`).join('');
+    document.getElementById('trip-departures-sec').hidden = false;
+  }
+
+  applyBookCta(t);
+  applyWhatsApp(t);
+
+  document.getElementById('trip-content').hidden = false;
+  document.getElementById('trip-missing').hidden = true;
+}
+
+function applyBookCta(t) {
+  const cta = document.getElementById('trip-book');
+  const hasDepartures = Array.isArray(t.departure_dates) && t.departure_dates.filter(Boolean).length > 0;
+  cta.removeAttribute('data-i18n');
+  if (hasDepartures) {
+    cta.classList.remove('is-tba');
+    cta.removeAttribute('aria-disabled');
+    cta.textContent = TC_I18N.t('trips.book_now');
+    cta.href = memberLoggedIn ? 'dashboard.html' : 'login.html';
+  } else {
+    cta.classList.add('is-tba');
+    cta.setAttribute('aria-disabled', 'true');
+    cta.textContent = TC_I18N.t('trips.tba');
+    cta.removeAttribute('href');
+  }
+}
+
+function applyWhatsApp(t) {
+  const el = document.getElementById('trip-wa');
+  if (!el) return;
+  if (!waNumber) { el.style.display = 'none'; return; }
+  el.style.display = '';
+  const msg = TC_I18N.t('trip_page.enquiry_text').replace('{trip}', t.title || '');
+  el.href = `https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`;
+}
+
+function showMissing() {
+  const el = document.getElementById('trip-missing');
+  el.textContent = TC_I18N.t('trip_page.not_found');
+  el.hidden = false;
+  document.getElementById('trip-content').hidden = true;
+  document.title = TC_I18N.t('trip_page.not_found') + ' — The Travel Chapter';
+}
+
+// ── LOAD ────────────────────────────────────────────────────
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function loadTrip() {
+  if (!tripKey) { showMissing(); return; }
+  let q = sb.from('trips').select('*').eq('is_active', true).limit(1);
+  q = UUID_RE.test(tripKey) ? q.eq('id', tripKey) : q.eq('slug', tripKey);
+  const { data, error } = await q;
+  if (error) console.warn('trip load failed:', error.message);
+  const t = Array.isArray(data) && data[0];
+  if (!t) { showMissing(); return; }
+  renderTrip(t);
+}
+
+async function loadContact() {
+  const { data } = await sb.from('cms_content').select('content').eq('section', 'contact').maybeSingle();
+  const d = (data && data.content) || {};
+  waNumber = String(d.whatsapp || d.phone || '').replace(/[^\d]/g, '');
+  if (currentTrip) applyWhatsApp(currentTrip);
+}
+
+async function loadFooter() {
+  const { data } = await sb.from('cms_content').select('content').eq('section', 'footer').maybeSingle();
+  const d = (data && data.content) || {};
+  if (d.tagline)        document.getElementById('footer-tagline').textContent = d.tagline;
+  if (d.copyright)      document.getElementById('footer-copyright').textContent = d.copyright;
+  if (d.location_badge) document.getElementById('footer-location').textContent = d.location_badge;
+}
+
+function applyNavSocial(d) {
+  d = d || {};
+  [['facebook_url', 'nav-fb'], ['instagram_url', 'nav-ig']].forEach(([key, id]) => {
+    const el = document.getElementById(id);
+    if (!el || d[key] === undefined) return;
+    if (d[key]) { el.href = d[key]; el.style.display = ''; }
+    else { el.style.display = 'none'; }
+  });
+}
+async function loadNav() {
+  const { data } = await sb.from('cms_content').select('content').eq('section', 'navbar').maybeSingle();
+  applyNavSocial((data && data.content) || {});
+}
+
+// Re-translate the dynamic parts when the language changes.
+TC_I18N.onChange(() => { if (currentTrip) renderTrip(currentTrip); else showMissing(); });
+
+// ── Navbar shadow on scroll
+const navbarEl = document.getElementById('navbar');
+let scrollTicking = false;
+window.addEventListener('scroll', () => {
+  if (!scrollTicking) {
+    requestAnimationFrame(() => { navbarEl.classList.toggle('scrolled', window.scrollY > 40); scrollTicking = false; });
+    scrollTicking = true;
+  }
+}, { passive: true });
+
+loadNav();
+loadFooter();
+loadContact();
+loadTrip();
+
+// ── PWA: service worker registration
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw-customer.js').catch(() => {});
+  });
+}
+</script>
+</body>
+</html>

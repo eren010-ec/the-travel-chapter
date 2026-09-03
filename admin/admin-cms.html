@@ -747,6 +747,7 @@ function renderContactForm(d) {
     <div class="card-title"><span>📬</span> Contact Details</div>
     <div class="field"><label>Email Address</label><input type="email" id="con_email" value="${esc(d.email||'')}"></div>
     <div class="field"><label>Phone Number</label><input type="text" id="con_phone" value="${esc(d.phone||'')}"></div>
+    <div class="field"><label>WhatsApp Number</label><input type="text" id="con_whatsapp" value="${esc(d.whatsapp||'')}" placeholder="e.g. 60123456789 (country code, no + or spaces)"><div class="field-hint">Powers the WhatsApp button on trip cards and trip detail pages. Leave blank to hide it (the Phone Number is used as a fallback).</div></div>
     <div class="field"><label>Office Address</label><input type="text" id="con_address" value="${esc(d.address||'')}"></div>
   </div>
   <div class="card">
@@ -845,7 +846,7 @@ function buildContentFromForm(section) {
         cta_secondary_label:v('cta_secondary_label'), cta_secondary_href:v('cta_secondary_href') };
     case 'contact':
       return { ...d, eyebrow:v('con_eyebrow'), heading:v('con_heading'), heading_italic:v('con_heading_italic'),
-        subtext:v('con_subtext'), email:v('con_email'), phone:v('con_phone'), address:v('con_address'),
+        subtext:v('con_subtext'), email:v('con_email'), phone:v('con_phone'), whatsapp:v('con_whatsapp'), address:v('con_address'),
         trip_options:v('con_trip_options').split('\n').map(s=>s.trim()).filter(Boolean) };
     case 'footer':
       return { ...d, tagline:v('footer_tagline'), copyright:v('footer_copyright'), location_badge:v('footer_location_badge') };

@@ -62,6 +62,7 @@
   --border: #e5ddd0;
   --white:  #ffffff;
   --text:   #1a1f2e;
+  --wa:     #25d366;
 }
 html { scroll-behavior: smooth; }
 body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--text); overflow-x:hidden; }
@@ -175,49 +176,43 @@ section { padding:100px 6%; }
 .section-header { margin-bottom:56px; }
 .section-header-split { display:flex; align-items:flex-end; justify-content:space-between; gap:32px; margin-bottom:56px; flex-wrap:wrap; }
 
-/* ── DESTINATIONS + TRIPS (merged: each card is a real trip, styled as a photo card) ── */
-#destinations { background:var(--white); }
-.destinations-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
-.dest-card {
-  border-radius:14px; overflow:hidden; position:relative;
-  height:320px; cursor:pointer; transition:transform 0.3s;
+/* ── DESTINATIONS + TRIPS (each card is a real trip — same card as the Trips page) ── */
+#destinations { background:var(--cream); }
+.destinations-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:26px; }
+.trip-card {
+  background:var(--white); border:1px solid var(--border); border-radius:16px;
+  overflow:hidden; display:flex; flex-direction:column;
+  text-decoration:none; color:inherit;
+  transition:transform 0.3s ease, box-shadow 0.3s ease;
 }
-.dest-card:hover { transform:translateY(-4px); }
-.dest-card:hover .dest-overlay { opacity:1; }
-.dest-card-bg { width:100%; height:100%; display:flex; align-items:center; justify-content:center; font-size:5rem; }
-.dest-overlay {
-  position:absolute; inset:0; opacity:0; transition:opacity 0.3s;
-  background:linear-gradient(to top, rgba(26,31,46,0.9) 0%, rgba(26,31,46,0.3) 60%, transparent 100%);
-  display:flex; flex-direction:column; justify-content:flex-end; padding:24px;
-}
-.dest-always { position:absolute; bottom:0; left:0; right:0; padding:24px; background:linear-gradient(to top, rgba(26,31,46,0.85) 0%, transparent 100%); }
-.dest-name { font-family:'Cormorant Garamond',serif; font-size:1.4rem; font-weight:300; color:var(--white); }
-.dest-country { font-size:0.72rem; letter-spacing:0.1em; text-transform:uppercase; color:rgba(255,255,255,0.6); margin-top:3px; }
-.dest-price { font-size:0.78rem; color:var(--gold); font-weight:500; margin-top:4px; }
-.dest-price span { color:rgba(255,255,255,0.6); font-weight:300; }
-.dest-card-wide { grid-column:span 2; }
+.trip-card:hover { transform:translateY(-4px); box-shadow:0 16px 40px rgba(26,31,46,0.1); }
+.trip-img { width:100%; aspect-ratio:16/11; object-fit:cover; background:var(--cream2); display:block; }
+.trip-img-fallback { width:100%; aspect-ratio:16/11; display:flex; align-items:center; justify-content:center; font-size:3.4rem; background:linear-gradient(160deg,#2d3561,#1a2a3a); }
+.trip-body { padding:24px 24px 26px; display:flex; flex-direction:column; gap:12px; flex:1; }
+.trip-name { font-family:'Cormorant Garamond',serif; font-size:1.55rem; font-weight:400; color:var(--navy); line-height:1.25; }
+.trip-desc { font-size:0.86rem; color:var(--smoke); line-height:1.7; }
+.trip-meta { display:flex; flex-direction:column; gap:7px; margin-top:2px; font-size:0.78rem; color:var(--smoke); }
+.trip-meta-row { display:flex; gap:8px; }
+.trip-meta-row span:first-child { color:var(--gold); flex-shrink:0; }
+.trip-foot { margin-top:auto; padding-top:16px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.trip-price { font-family:'Cormorant Garamond',serif; font-size:1.35rem; color:var(--navy); }
+.trip-price small { font-family:'DM Sans',sans-serif; font-size:0.72rem; color:var(--smoke); }
+.trip-actions { display:flex; align-items:center; gap:8px; }
+.btn-trip { padding:10px 20px; border-radius:6px; border:none; background:var(--navy); color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.76rem; font-weight:500; letter-spacing:0.05em; text-decoration:none; transition:all 0.2s; white-space:nowrap; }
+.btn-trip:hover { background:var(--navy2); box-shadow:0 4px 14px rgba(26,31,46,0.2); }
+.btn-wa { display:inline-flex; align-items:center; justify-content:center; width:38px; height:36px; border-radius:6px; background:var(--wa); color:#fff; text-decoration:none; flex-shrink:0; transition:filter 0.2s, box-shadow 0.2s; }
+.btn-wa:hover { filter:brightness(0.94); box-shadow:0 4px 12px rgba(37,211,102,0.3); }
+.btn-wa svg { width:17px; height:17px; fill:currentColor; }
+/* Loading skeletons — shown until loadTrips() swaps in the real DB rows. */
+.trip-card-skeleton { pointer-events:none; }
+.trip-card-skeleton .trip-body { gap:14px; }
+.sk { display:block; background:linear-gradient(90deg,#e9e3d5 25%,#f3eee3 37%,#e9e3d5 63%); background-size:400% 100%; animation:sk-shimmer 1.4s ease infinite; border-radius:6px; }
+@keyframes sk-shimmer { 0% { background-position:100% 0; } 100% { background-position:-100% 0; } }
+.trip-card-skeleton .sk-img { width:100%; aspect-ratio:16/11; border-radius:0; }
+.trip-card-skeleton .sk-line { height:13px; }
+.trips-inline-empty { grid-column:1/-1; text-align:center; color:var(--smoke); font-size:0.9rem; line-height:1.8; }
+.trips-inline-empty a { color:var(--gold); text-decoration:none; }
 
-/* ── TRIP DETAIL MODAL ── */
-.trip-modal-overlay { position:fixed; inset:0; background:rgba(26,31,46,0.75); display:none; align-items:center; justify-content:center; z-index:1000; padding:24px; }
-.trip-modal-overlay.open { display:flex; }
-.trip-modal { background:var(--white); border-radius:16px; max-width:460px; width:100%; max-height:90vh; overflow-y:auto; }
-.trip-modal-img { height:220px; background-size:cover; background-position:center; display:flex; align-items:center; justify-content:center; font-size:4rem; position:relative; }
-.trip-modal-close {
-  position:absolute; top:14px; right:14px; width:32px; height:32px; border-radius:50%;
-  background:rgba(26,31,46,0.55); color:var(--white); border:none; cursor:pointer;
-  font-size:1rem; line-height:1; display:flex; align-items:center; justify-content:center; transition:background 0.2s;
-}
-.trip-modal-close:hover { background:rgba(26,31,46,0.8); }
-.trip-modal-body { padding:28px; }
-.trip-modal-title { font-family:'Cormorant Garamond',serif; font-size:1.6rem; font-weight:400; color:var(--navy); }
-.trip-modal-price { font-size:1.05rem; color:var(--gold); font-weight:500; margin-top:6px; }
-.trip-modal-price span { font-size:0.72rem; color:var(--smoke); font-weight:300; }
-.trip-modal-desc { font-size:0.85rem; color:var(--smoke); line-height:1.75; margin-top:14px; }
-.trip-modal-cta {
-  display:block; margin-top:22px; padding:13px; border-radius:8px; background:var(--navy); color:var(--white);
-  text-align:center; text-decoration:none; font-size:0.75rem; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; transition:background 0.2s;
-}
-.trip-modal-cta:hover { background:var(--navy2); }
 
 /* ── TESTIMONIALS ── */
 #testimonials { background:var(--cream2); }
@@ -260,13 +255,13 @@ footer { background:var(--navy); padding:56px 6% 32px; }
   .hero-inner { grid-template-columns:1fr; gap:48px; }
   .hero-visual { display:none; }
   .hero-text h1 { font-size:3rem; }
+  .destinations-grid { grid-template-columns:repeat(2,1fr); }
   .footer-grid { grid-template-columns:1fr 1fr; }
 }
 @media(max-width:768px) {
   section { padding:70px 5%; }
   .section-title { font-size:2.2rem; }
   .destinations-grid,.testimonials-grid { grid-template-columns:1fr; }
-  .dest-card-wide { grid-column:span 1; }
   .nav-links { display:none; }
   .nav-social { display:none; }
   .hero-text h1 { font-size:2.4rem; }
@@ -361,70 +356,40 @@ footer { background:var(--navy); padding:56px 6% 32px; }
     </div>
     <p class="section-sub" id="dest-subtext" data-i18n="destinations.subtext">Every destination is personally vetted by our travel curators — chosen for their cultural depth, natural beauty and rare experiences.</p>
   </div>
-  <!-- Each card here IS a trip (title + price shown directly on the photo) — clicking opens
-       the details modal below. Data mirrors FALLBACK_TRIPS in the script block so modal lookups
-       stay correct even before loadTrips() resolves; keep both in sync if editing this list. -->
+  <!-- Loading skeletons only. loadTrips() replaces the whole grid with the real DB rows
+       (renderDbTrips) — or with a "browse all" line if none are active. Nothing here is a
+       real trip, so a slow DB fetch never flashes placeholder content at the visitor. -->
   <div class="destinations-grid" id="trips">
-    <div class="dest-card dest-card-wide reveal" onclick="openTripModal(0)">
-      <div class="dest-card-bg" style="background:linear-gradient(160deg,#1a3a2a,#2d6a4f);">🍁</div>
-      <div class="dest-always">
-        <div class="dest-name">Kyoto in Autumn</div>
-        <div class="dest-price">RM 3,200 <span data-i18n="trips.per_person">/ person</span></div>
+    <article class="trip-card trip-card-skeleton reveal visible" aria-hidden="true">
+      <div class="sk sk-img"></div>
+      <div class="trip-body">
+        <div class="sk sk-line" style="width:65%;height:22px;"></div>
+        <div class="sk sk-line" style="width:100%;"></div>
+        <div class="sk sk-line" style="width:80%;"></div>
+        <div class="trip-foot"><div class="sk sk-line" style="width:45%;height:20px;"></div></div>
       </div>
-    </div>
-    <div class="dest-card reveal" onclick="openTripModal(1)">
-      <div class="dest-card-bg" style="background:linear-gradient(160deg,#1a2a3a,#1e6091);">⛵</div>
-      <div class="dest-always">
-        <div class="dest-name">Amalfi by Yacht</div>
-        <div class="dest-price">RM 6,800 <span data-i18n="trips.per_person">/ person</span></div>
+    </article>
+    <article class="trip-card trip-card-skeleton reveal visible" aria-hidden="true">
+      <div class="sk sk-img"></div>
+      <div class="trip-body">
+        <div class="sk sk-line" style="width:55%;height:22px;"></div>
+        <div class="sk sk-line" style="width:100%;"></div>
+        <div class="sk sk-line" style="width:75%;"></div>
+        <div class="trip-foot"><div class="sk sk-line" style="width:45%;height:20px;"></div></div>
       </div>
-    </div>
-    <div class="dest-card reveal" onclick="openTripModal(2)">
-      <div class="dest-card-bg" style="background:linear-gradient(160deg,#3a1a1a,#7a3520);">🐪</div>
-      <div class="dest-always">
-        <div class="dest-name">Marrakech &amp; Beyond</div>
-        <div class="dest-price">RM 3,900 <span data-i18n="trips.per_person">/ person</span></div>
+    </article>
+    <article class="trip-card trip-card-skeleton reveal visible" aria-hidden="true">
+      <div class="sk sk-img"></div>
+      <div class="trip-body">
+        <div class="sk sk-line" style="width:70%;height:22px;"></div>
+        <div class="sk sk-line" style="width:100%;"></div>
+        <div class="sk sk-line" style="width:85%;"></div>
+        <div class="trip-foot"><div class="sk sk-line" style="width:45%;height:20px;"></div></div>
       </div>
-    </div>
-    <div class="dest-card reveal" onclick="openTripModal(3)">
-      <div class="dest-card-bg" style="background:linear-gradient(160deg,#1a2a3a,#2d3561);">🛶</div>
-      <div class="dest-always">
-        <div class="dest-name">Mekong River Journey</div>
-        <div class="dest-price">RM 4,100 <span data-i18n="trips.per_person">/ person</span></div>
-      </div>
-    </div>
-    <div class="dest-card dest-card-wide reveal" onclick="openTripModal(4)">
-      <div class="dest-card-bg" style="background:linear-gradient(160deg,#2a1a3a,#4a2f6a);">🏔️</div>
-      <div class="dest-always">
-        <div class="dest-name">Patagonia Wilderness</div>
-        <div class="dest-price">RM 5,500 <span data-i18n="trips.per_person">/ person</span></div>
-      </div>
-    </div>
-    <div class="dest-card reveal" onclick="openTripModal(5)">
-      <div class="dest-card-bg" style="background:linear-gradient(160deg,#1a1a3a,#2d3561);">🏯</div>
-      <div class="dest-always">
-        <div class="dest-name">Elite Japan Immersion</div>
-        <div class="dest-price">RM 12,000 <span data-i18n="trips.per_person">/ person</span></div>
-      </div>
-    </div>
+    </article>
   </div>
 </section>
 
-<!-- ── TRIP DETAILS MODAL ── -->
-<div class="trip-modal-overlay" id="trip-modal-overlay" onclick="if(event.target===this) closeTripModal()">
-  <div class="trip-modal">
-    <div class="trip-modal-img" id="tm-img">
-      <span id="tm-emoji"></span>
-      <button class="trip-modal-close" onclick="closeTripModal()" aria-label="Close">✕</button>
-    </div>
-    <div class="trip-modal-body">
-      <div class="trip-modal-title" id="tm-title"></div>
-      <div class="trip-modal-price" id="tm-price"></div>
-      <div class="trip-modal-desc" id="tm-desc"></div>
-      <a href="login.html" class="trip-modal-cta" id="tm-cta" data-i18n="trips.book_now">Book Now</a>
-    </div>
-  </div>
-</div>
 
 <!-- ── TESTIMONIALS ── -->
 <section id="testimonials">
@@ -522,7 +487,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 // ── LOAD CMS CONTENT ────────────────────────────────────────
 async function loadCMS() {
   const { data, error } = await sb.from('cms_content').select('*');
-  if (error || !data) return; // fallback to static HTML if CMS fails
+  if (error || !data) { await loadTrips(); return; } // CMS down — still fill the trips grid
   const cms = {};
   data.forEach(row => { cms[row.section] = row.content; });
 
@@ -533,6 +498,9 @@ async function loadCMS() {
   if (cms.testimonials) applyTestimonials(cms.testimonials);
   if (cms.footer)       applyFooter(cms.footer);
   if (cms.navbar)       applyNavbar(cms.navbar);
+
+  // WhatsApp number for the trip-card WhatsApp button (falls back to the phone number)
+  if (cms.contact) waNumber = String(cms.contact.whatsapp || cms.contact.phone || '').replace(/[^\d]/g, '');
 
   // Trip cards live in the `trips` table, not cms_content
   await loadTrips();
@@ -627,64 +595,67 @@ const TRIP_THUMBS = [
 ];
 function cap(s) { return s ? s[0].toUpperCase()+s.slice(1) : ''; }
 
-// Mirrors the hand-authored static cards in #trips, in the same order — used as the
-// openTripModal() data source until loadTrips() resolves with real DB rows (or if it never does).
-const FALLBACK_TRIPS = [
-  { title:'Kyoto in Autumn', summary:"Chase the crimson maple leaves through Kyoto's finest temples and hidden gardens.", price_usd:3200 },
-  { title:'Amalfi by Yacht', summary:'A private yacht journey along the Amalfi Coast — secluded coves, fresh seafood and golden sunsets.', price_usd:6800 },
-  { title:'Marrakech & Beyond', summary:'Imperial cities, Sahara desert camps and Atlas mountain villages — Morocco in full depth.', price_usd:3900 },
-  { title:'Mekong River Journey', summary:'Slow travel through Laos on a restored river cruiser — monasteries, markets and misty mornings.', price_usd:4100 },
-  { title:'Patagonia Wilderness', summary:'Trek the W Circuit with expert mountain guides — glaciers, granite towers and the end of the world.', price_usd:5500 },
-  { title:'Elite Japan Immersion', summary:'Private geisha dinners, bullet-train journeys and exclusive onsen retreats — Japan at its most intimate.', price_usd:12000 },
-];
+const WA_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.477-.907zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.767.967-.94 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg>';
 
 let lastDbTrips = null;
+let waNumber = '';
 async function loadTrips() {
   const { data, error } = await sb.from('trips').select('*').eq('is_active', true).order('created_at');
-  if (error || !data || !data.length) return; // keep static fallback cards
+  if (error || !data || !data.length) {   // no active trips — clear the skeletons
+    const grid = document.getElementById('trips');
+    if (grid) grid.innerHTML = `<p class="trips-inline-empty"><a href="trips.html">${esc(TC_I18N.t('trips_page.empty'))}</a></p>`;
+    return;
+  }
   lastDbTrips = data;
   renderDbTrips(data);
+}
+function esc(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 function renderDbTrips(data) {
   const grid = document.getElementById('trips');
   if (!grid) return;
+  const L = {
+    from: TC_I18N.t('trips.from'), per: TC_I18N.t('trips.per_person'),
+    days: TC_I18N.t('trips.days'), details: TC_I18N.t('trips.details'),
+    priceTba: TC_I18N.t('trips.price_tba'), wa: TC_I18N.t('trips.whatsapp'),
+  };
+  const waMsgTpl = TC_I18N.t('trip_page.enquiry_text');
   grid.innerHTML = data.map((t, i) => {
     const thumb = TRIP_THUMBS[i % TRIP_THUMBS.length];
-    const hasImage = !!t.cover_image;
-    const bgStyle = hasImage ? `background:url('${t.cover_image}') center/cover no-repeat;` : `background:${thumb.gradient};`;
-    const wide = (i % 6 === 0 || i % 6 === 4) ? ' dest-card-wide' : '';
+    const media = t.cover_image
+      ? `<img class="trip-img" src="${esc(t.cover_image)}" alt="${esc(t.title || '')}" loading="lazy">`
+      : `<div class="trip-img-fallback">${thumb.emoji}</div>`;
+    const hasPrice = Number(t.price_usd) > 0;
+    const price = Number(t.price_usd || 0).toLocaleString();
+    const tripHref = `trip.html?slug=${encodeURIComponent(t.slug || t.id || '')}`;
+    const waHref = waNumber
+      ? `https://wa.me/${waNumber}?text=${encodeURIComponent(waMsgTpl.replace('{trip}', t.title || ''))}`
+      : '';
     return `
-      <div class="dest-card${wide} reveal" onclick="openTripModal(${i})">
-        <div class="dest-card-bg" style="${bgStyle}">${hasImage?'':thumb.emoji}</div>
-        <div class="dest-always">
-          <div class="dest-name">${t.title||''}</div>
-          <div class="dest-price">RM ${Number(t.price_usd||0).toLocaleString()} <span>${TC_I18N.t('trips.per_person')}</span></div>
+      <article class="trip-card reveal">
+        ${media}
+        <div class="trip-body">
+          ${t.title ? `<h3 class="trip-name">${esc(t.title)}</h3>` : ''}
+          ${t.summary ? `<p class="trip-desc">${esc(t.summary)}</p>` : ''}
+          <div class="trip-meta">
+            ${t.duration_days ? `<div class="trip-meta-row"><span>◷</span><span>${t.duration_days} ${esc(L.days)}</span></div>` : ''}
+          </div>
+          <div class="trip-foot">
+            <span class="trip-price">${hasPrice
+              ? `${esc(L.from)} RM ${price} <small>${esc(L.per)}</small>`
+              : esc(L.priceTba)}</span>
+            <div class="trip-actions">
+              <a class="btn-trip" href="${tripHref}">${esc(L.details)}</a>
+              ${waHref ? `<a class="btn-wa" href="${esc(waHref)}" target="_blank" rel="noopener" aria-label="${esc(L.wa)}">${WA_ICON}</a>` : ''}
+            </div>
+          </div>
         </div>
-      </div>`;
+      </article>`;
   }).join('');
   syncHeroCardsToTrips(data);
 }
-function openTripModal(i) {
-  const t = (lastDbTrips || FALLBACK_TRIPS)[i];
-  if (!t) return;
-  const thumb = TRIP_THUMBS[i % TRIP_THUMBS.length];
-  const hasImage = !!t.cover_image;
-  document.getElementById('tm-img').style.background = hasImage ? `url('${t.cover_image}') center/cover no-repeat` : thumb.gradient;
-  document.getElementById('tm-emoji').textContent = hasImage ? '' : thumb.emoji;
-  document.getElementById('tm-title').textContent = t.title || '';
-  document.getElementById('tm-price').innerHTML = `RM ${Number(t.price_usd||0).toLocaleString()} <span>${TC_I18N.t('trips.per_person')}</span>`;
-  document.getElementById('tm-desc').textContent = t.summary || '';
-  document.getElementById('tm-cta').href = memberLoggedIn ? 'dashboard.html' : 'login.html';
-  document.getElementById('trip-modal-overlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
-}
-function closeTripModal() {
-  document.getElementById('trip-modal-overlay').classList.remove('open');
-  document.body.style.overflow = '';
-}
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closeTripModal(); });
-let memberLoggedIn = false;
-sb.auth.getSession().then(({ data: { session } }) => { memberLoggedIn = !!session; });
 function syncHeroCardsToTrips(data) {
   const [t1, t2] = data;
   if (t1) {
@@ -790,12 +761,17 @@ window.addEventListener('scroll', () => {
 // ── Load CMS content from Supabase
 loadCMS();
 
-// ── Smooth scroll for nav links
+// ── Smooth scroll for nav links.
+// Re-check href at click time: loadCMS() may later repoint a hero CTA (e.g. "Become a
+// Member") to a real page like login.html, and we must not swallow that navigation.
 document.querySelectorAll('a[href^="#"]').forEach(a => {
   a.addEventListener('click', e => {
+    const href = a.getAttribute('href') || '';
+    if (href.charAt(0) !== '#' || href === '#') return;   // repointed or bare "#" -> let the browser handle it
+    const target = document.querySelector(href);
+    if (!target) return;
     e.preventDefault();
-    const target = document.querySelector(a.getAttribute('href'));
-    if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
   });
 });
 

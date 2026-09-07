@@ -736,7 +736,7 @@ Six small commits after `4ada99d`, all pushed; customer bits auto-deployed, one 
 
 ## Workstream X — Home shows top 6 trips + "More Trips"; new standalone Hotels page (added 2026-09-04)
 
-> **NOT YET COMMITTED / NOT DEPLOYED.** All local edits, verified locally (`python3 -m http.server` + Claude-in-Chrome against production Supabase). No DB migrations. Customer-site files ride the normal git build; `sw-customer.js` bumped so returning visitors pick up the new page.
+> **SHIPPED 2026-09-07** as part of commit `a6b5ba6` (bundled with Workstream Y). Customer site auto-deployed from the `git push`; live and verified (`thetravelchapter.my/hotels.html` renders, nav/footer "Hotels" link present, `sitemap.xml` updated). No DB migrations. The `hotels` CMS section still has no admin editor — cover photo is the hardcoded `DEFAULT_HOTEL_COVER` until a `cms_content` `section='hotels'` row is inserted.
 
 Two user requests in one session.
 
@@ -767,6 +767,39 @@ Two user requests in one session.
 
 ---
 
+## Workstream Y — Members land on home w/ a Profile nav button; dashboard mobile drawer; Browse-Trips filters (added 2026-09-07)
+
+> **SHIPPED.** Commit `a6b5ba6` on `main` (bundles Workstream X too). Customer site (`thetravelchapter`, git-linked) auto-deployed from the push; admin site re-synced separately (see session notes below). Verified locally (`python -m http.server` + browser against prod Supabase). No DB migrations. `sw-customer.js` cache **v13 → v14** (also covers Workstream X's `hotels.html`).
+
+Several small UX changes that had accumulated uncommitted in the working tree, plus Workstream X, all went out in one commit.
+
+**1. Signed-in members now land on `index.html`, not `dashboard.html`.**
+- `login.html` `routeSession()` final redirect changed `dashboard.html` → `index.html`.
+- New `initNavAuth()` IIFE in **`i18n.js`** (runs on any page shipping both `supabase-js` and the public navbar; no-ops on `login.html`/`dashboard.html` which lack `.nav-cta`): checks the Supabase session and, when signed in, collapses the navbar's **Login + Register** cluster (both the desktop `.nav-cta` and the mobile `.nav-cta-row`) into a single **Profile** button → `dashboard.html`. Signed-out state is unchanged. New i18n keys `nav.profile` / `nav.logout` (EN/ZH/MS).
+- `login.html` also got a global Enter-key handler: pressing Enter in any `<input>` submits the currently-visible `.form`'s `.btn-submit`.
+
+**2. `dashboard.html` — mobile off-canvas drawer (`@media(max-width:768px)`).**
+- New fixed `.topbar` (navy, 58px) with a hamburger button + an icon/wordmark link back to `index.html`. Only visible under 768px.
+- `.sidebar` becomes a `transform: translateX(-100%)` drawer (`.open` slides it in), with a `.sidebar-backdrop` (click or Esc to close). Nav-link taps and page switches call `setDrawer(false)`. Desktop layout untouched (the old `--sidebar-w:200px` mobile shrink rule was replaced by the drawer).
+- New sidebar nav item **"Back to Home"** (`index.html`, house icon) above Sign Out — i18n key `dash.back_home` (EN/ZH/MS).
+
+**3. `dashboard.html` — "Browse Trips" page gained a filter/search bar** mirroring `trips.html`: search box + Month + Destination (`region`) + Category selects + Clear. Populated by `buildTripFilters()` (distinct values from the loaded `trips`), filtered by `filteredTrips()`, with a `#trips-count` line. Reuses the existing `trips_page.filter_*` i18n keys. Called from `init()` after data loads.
+
+**Not verified:** the mobile drawer and the nav Profile-button swap on a real phone viewport (sandbox browser couldn't emulate one — same limitation noted in Workstreams W/X); the Browse-Trips filters against a >6-trip dataset (prod has few active trips).
+
+### Session notes (2026-09-07) — fresh machine + deploy path
+
+- **This is a different Windows machine** from the earlier sessions. Nothing was installed: no `git`, no `node`/`npm`, no `netlify` CLI. Repo lives on a **Tailscale network share** (`\\100.65.181.61\personal_folder\drive\application\thetravelchapter app`, mounted as `Z:`), which needs `git config --global --add safe.directory` (applied).
+  - Installed via winget: **Git** (`Git.Git`, 2.55.0 — binary at `C:\Program Files\Git\cmd\git.exe`, still not on PATH in fresh shells) and **Node.js LTS** (`OpenJS.NodeJS.LTS`, v24). Then `npm i -g netlify-cli` (v27.5.0, at `%APPDATA%\npm\netlify.cmd`).
+- **GitHub push:** no cached credentials on this machine and Git Credential Manager can't prompt inside the Claude Code shell. Pushed once using a **personal access token** embedded in the push URL (`git -c credential.helper= push https://x-access-token:<PAT>@github.com/...`), not persisted. User should rotate that PAT.
+- **Netlify accounts — the customer + admin split is real but simpler than the older notes imply.** Logged in via `netlify login` (browser OAuth) as **`aaronchai1997@gmail.com` / team `thetravelcjapter`** (the typo'd team name — not a thing to fix). That account owns **both** sites:
+  - `thetravelchapter` — id `56615704-86bc-4072-9a46-a1733c80eb8e`, custom domain `thetravelchapter.my`, **git-linked** to `eren010-ec/the-travel-chapter` @ `main`. Auto-deploys on push (confirmed: published deploy went to `a6b5ba6` within a minute).
+  - `quietmeridian-4471` (admin) — id `c5f73ef7-2043-4f04-8611-702f5a4e773b`, `quietmeridian-4471.netlify.app`, **not git-linked**. The local `.netlify/state.json` points here.
+  - A *first* `netlify login` attempt landed on a different account (`a1.thetravelchapter@gmail.com` / team "The Chapter") that only has 4 empty placeholder sites and can't see either real site — `netlify logout` + re-login fixed it. If `netlify status` ever shows placeholder sites like `bola-bola-live`/`orvixhr`, you're on the wrong account.
+- **Admin deploy ran clean:** `netlify deploy --prod --dir=admin --site=c5f73ef7-2043-4f04-8611-702f5a4e773b` — no `--no-build` needed this session, `@netlify/build` completed in ~6s, CDN diff uploaded 1 file, "Deploy is live!" (deploy `6a9e6bcc…`). `admin/` had no code changes this session; this just re-synced it to the pushed tree. The production `netlify deploy` command is still blocked by Claude Code's permission classifier — the user ran it via a `!`-prefixed shell.
+
+---
+
 ## Task checklist
 
 - [x] Open all 6 pages in a real browser, confirm logo renders correctly (sizing/placement) — done 2026-07-26 at desktop size.
@@ -786,7 +819,7 @@ Two user requests in one session.
 - [ ] Follow-up (cosmetic): dead CSS left behind by the tier removal — `.tier-badge`/`.tier-cards`/`.tier-card` in `dashboard.html`, `.tier-selector`/`.tier-opt` in `admin/admin.html`. Harmless; `.tier-card`/`.tier-perks` in `index.html` are still IN USE by the new Rewards section. Prune the dead ones in a future hygiene pass if desired.
 - [ ] Follow-up: the `cms_content` rows `section='membership'` and (once created) `section='free_gifts'` — the `membership` row is now orphaned (nothing reads it). Safe to leave or delete.
 - [ ] Referral checkout flow is still manual/admin-recorded — there's no customer-facing "enter a referral code at booking" field (matches the existing vouchers pattern, which also has no checkout-time redemption UI). If that's wanted, it needs a new field in `dashboard.html`'s booking modal plus admin-side matching logic.
-- [ ] Netlify CLI is now logged in on this machine (state persists in `%APPDATA%\netlify`) — future sessions may not need `netlify login` again, but if `netlify status` shows logged out, re-run it (retry once if the first attempt times out waiting for browser approval).
+- [ ] Netlify CLI login state persists in `%APPDATA%\netlify` per machine — but sessions have run on **at least two different Windows machines**, and there are two Netlify accounts (`aaronchai1997@gmail.com` = right one, owns both sites; `a1.thetravelchapter@gmail.com` = only placeholder sites). If `netlify status` shows logged out or lists sites like `bola-bola-live`/`orvixhr`, `netlify logout` then `netlify login` as `aaronchai1997@gmail.com` (retry once if the browser-approval times out).
 - [ ] If admin.html/admin-cms.html/admin-login.html change again, remember the deploy command is `netlify deploy --prod --dir=admin --site c5f73ef7-2043-4f04-8611-702f5a4e773b` — a plain `git push` will not update the live admin site (see Workstream F).
 - [ ] (Optional) `admin-cms.html`'s Hero "Featured Card" fields are now dead on the live site (Workstream H, 2026-08-06) — either hide/relabel them so editors aren't confused, or add back a fallback path for when the trips table has zero active rows.
 - [ ] (Optional) `admin-cms.html`'s "Membership Tiers" form (icon/name/points/CTA/featured/perks per tier) is now also dead on the live site (Workstream N, 2026-08-12) — the homepage tiers grid was switched to static trilingual i18n content instead of CMS data. Section Header fields in the same tab still work. Same fix options as the Hero fields above: hide/relabel, or wire the homepage back to CMS data (loses trilingual coverage).
@@ -807,5 +840,6 @@ Two user requests in one session.
 - [x] **Workstream W (2026-09-03) — SHIPPED.** New `trip.html` detail page; trip cards get "Details" + WhatsApp buttons + a location row + "Price TBA" for title-only trips; home cards unified with the Trips page (fake trips → shimmer skeletons, modal removed); home hero stripped of the trip-picture + stats and given an editable CMS background photo; logo + desktop nav text enlarged; **mobile hamburger navbar** (dropdown nav links + language-picker dropdown + Login|Register button row) on all 6 customer pages; admin trip editor + **notification bell/chime** + WhatsApp CMS field + hero Background-Photo CMS field. Commits `cf47db2` + `4ada99d`, both sites live. No DB migrations. Admin deploy this time ran fine **without** `--no-build` (`NETLIFY_AUTH_TOKEN=<PAT>` env var, `netlify deploy --prod --dir=admin --site c5f73ef7-…`).
 - [x] **Workstream W follow-ups (2026-09-03) — SHIPPED.** `64e3b7d` admin TBA save fix (`|| 0` on blank Duration/Price/Max Pax); `7bd9105` footer email/phone from CMS `contact` (all 6 pages, sw v13); `4a28d2e` admin Trips Status/Destination/Category/TBA filters + Clear; `f731d3b` chime cadence 60s → 10s; `2302023` bell sound now `admin/notification-bell.mp3` (user-provided, sw-admin v3); `97ce00a` contact form Phone field beside Email. All pushed; customer auto-deployed; one admin deploy (`6a993ecd…`) shipped the four admin commits, all verified live.
 - [ ] Follow-up (content/verification, no code): WhatsApp number in CMS → Contact; hero background photo in CMS → Hero; real-device check of the new mobile navbar (sandbox couldn't emulate a phone viewport); Description/Itinerary per trip in the Trips editor.
-- [ ] **Workstream X (2026-09-04) — BUILT, NOT COMMITTED / NOT DEPLOYED.** Home trips grid capped at 6 (`index.html` `loadTrips()` `.limit(6)`) + centered "More Trips" → `trips.html` (new i18n `destinations.view_all`). New standalone **`hotels.html`** — full-bleed cover photo + "Make an Enquiry" (→ `contact.html`) + "WhatsApp Us" (→ `wa.me` from CMS `contact.whatsapp`/`phone`); cover photo is a hardcoded default, overridable via a `cms_content` `section='hotels'` row (no admin editor built). "Hotels" nav + footer link added to all 6 customer pages; `sitemap.xml` updated; `sw-customer.js` v13 → v14. Verified locally (browser + `node --check`). **To ship: git push only** (no admin deploy — nothing under `admin/` changed).
+- [x] **Workstream X (2026-09-04) — SHIPPED 2026-09-07**, commit `a6b5ba6` (bundled with Workstream Y). Home trips grid capped at 6 + "More Trips" → `trips.html`; new standalone `hotels.html` (cover photo + Enquiry + WhatsApp CTA); "Hotels" nav/footer link on all 6 customer pages; `sitemap.xml` + `sw-customer.js` v14. Customer site auto-deployed; live and verified.
 - [ ] Follow-up (optional): build an `admin/admin-cms.html` "Hotels" section so the cover photo / heading / subtext are editable without SQL (currently `hotels.html` reads `cms_content` `section='hotels'` but nothing writes it).
+- [x] **Workstream Y (2026-09-07) — SHIPPED**, commit `a6b5ba6`. Members land on `index.html` after login; new `initNavAuth()` in `i18n.js` swaps the navbar Login/Register cluster for a single Profile button when signed in (`nav.profile`/`nav.logout`); `dashboard.html` mobile off-canvas drawer + hamburger topbar + "Back to Home" nav item (`dash.back_home`); `dashboard.html` "Browse Trips" filter/search bar (search + month + region + category + clear). Both sites live (admin re-synced via CLI). Real-phone check of the drawer + Profile-button swap still pending.

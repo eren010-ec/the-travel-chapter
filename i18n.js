@@ -23,9 +23,9 @@
       // ── index.html: nav ──
       'nav.home': 'Home',
       'nav.destinations': 'Destinations', 'nav.trips': 'Trips', 'nav.rewards': 'Rewards',
-      'nav.free_gifts': 'Free Gifts',
+      'nav.free_gifts': 'Free Gifts', 'nav.hotels': 'Hotels',
       'nav.about': 'About', 'nav.contact': 'Contact', 'nav.signin': 'Sign In',
-      'nav.login': 'Login', 'nav.register': 'Register',
+      'nav.login': 'Login', 'nav.register': 'Register', 'nav.profile': 'Profile', 'nav.logout': 'Log Out',
 
       // ── free-gifts.html ──
       'gifts.eyebrow': 'With Our Compliments',
@@ -47,6 +47,7 @@
       'destinations.eyebrow': 'Where We Go',
       'destinations.heading': 'Handpicked<br><em>Destinations</em>',
       'destinations.subtext': 'Every destination is personally vetted by our travel curators — chosen for their cultural depth, natural beauty and rare experiences.',
+      'destinations.view_all': 'More Trips',
 
       'journal.toc1': 'The Beginning — Kyoto',
       'journal.toc2': 'Word Traveled Fast — Amalfi',
@@ -92,6 +93,12 @@
       'trips_page.filter_dest_all': 'All destinations', 'trips_page.filter_cat_all': 'All categories',
       'trips_page.filter_clear': 'Clear', 'trips_page.filter_none': 'No trips match your filters.',
       'trips_page.filter_count': '{n} trips',
+      'hotels_page.eyebrow': 'Where You Stay',
+      'hotels_page.heading': 'Handpicked <em>Hotels</em>',
+      'hotels_page.subtext': 'From heritage riads to cliffside retreats — every property we book is personally inspected. Tell us what you have in mind and we will match you with the perfect stay.',
+      'hotels_page.enquiry': 'Make an Enquiry',
+      'hotels_page.whatsapp': 'WhatsApp Us',
+      'hotels_page.wa_text': "Hi, I'd like to enquire about hotels for my trip.",
       'trips.card1.name': 'Kyoto in Autumn', 'trips.card1.desc': "Chase the crimson maple leaves through Kyoto's finest temples and hidden gardens.", 'trips.card1.duration': '8 days', 'trips.card1.pax': 'Max 10', 'trips.card1.window': 'Oct – Nov',
       'trips.card2.name': 'Amalfi by Yacht', 'trips.card2.desc': 'A private yacht journey along the Amalfi Coast — secluded coves, fresh seafood and golden sunsets.', 'trips.card2.duration': '6 days', 'trips.card2.pax': 'Max 8', 'trips.card2.window': 'Jun – Jul',
       'trips.card3.name': 'Marrakech & Beyond', 'trips.card3.desc': 'Imperial cities, Sahara desert camps and Atlas mountain villages — Morocco in full depth.', 'trips.card3.duration': '9 days', 'trips.card3.pax': 'Max 14', 'trips.card3.window': 'Sep – Oct',
@@ -167,7 +174,7 @@
       // ── index.html: footer ──
       'footer.tagline': 'Curating extraordinary journeys for discerning travellers since 2012. Based in Kuala Lumpur, travelling the world.',
       'footer.explore_title': 'Explore', 'footer.members_title': 'Members', 'footer.contact_title': 'Contact',
-      'footer.link_destinations': 'Destinations', 'footer.link_trips': 'Featured Trips', 'footer.link_rewards': 'Rewards', 'footer.link_free_gifts': 'Free Gifts', 'footer.link_about': 'Our Story',
+      'footer.link_destinations': 'Destinations', 'footer.link_trips': 'Featured Trips', 'footer.link_rewards': 'Rewards', 'footer.link_free_gifts': 'Free Gifts', 'footer.link_hotels': 'Hotels', 'footer.link_about': 'Our Story',
       'footer.link_signin': 'Sign In', 'footer.link_dashboard': 'Dashboard', 'footer.link_message': 'Send a Message',
       'footer.copyright': '© 2026 The Travel Chapter. All rights reserved.',
       'footer.location': 'Crafted with care in Kuala Lumpur 🇲🇾',
@@ -227,7 +234,7 @@
       'login.toast_password_updated': 'Password updated — signing you in…',
 
       // ── dashboard.html ──
-      'dash.tagline': 'Member Portal', 'dash.loading': 'Loading…', 'dash.signout': 'Sign Out',
+      'dash.tagline': 'Member Portal', 'dash.loading': 'Loading…', 'dash.signout': 'Sign Out', 'dash.back_home': 'Back to Home',
       'dash.nav_overview': 'Overview', 'dash.nav_trips': 'Browse Trips', 'dash.nav_bookings': 'My Bookings',
       'dash.nav_referrals': 'Referrals', 'dash.nav_luckydraw': 'Lucky Draw', 'dash.nav_rewards': 'Rewards Store', 'dash.nav_points': 'Points', 'dash.nav_profile': 'My Profile',
       'dash.overview_welcome': 'Welcome back,', 'dash.overview_subtitle': "Here's a snapshot of your journey with us.",
@@ -284,8 +291,8 @@
       'journal.chapter_word1': '一', 'journal.chapter_word2': '二', 'journal.chapter_word3': '三', 'journal.chapter_word4': '四', 'journal.chapter_word5': '五',
       'journal.chapter_word6': '六', 'journal.chapter_word7': '七', 'journal.chapter_word8': '八', 'journal.chapter_word9': '九', 'journal.chapter_word10': '十',
 
-      'nav.home': '首页', 'nav.destinations': '目的地', 'nav.trips': '行程', 'nav.rewards': '奖励', 'nav.free_gifts': '免费礼品', 'nav.about': '关于我们', 'nav.contact': '联系我们', 'nav.signin': '登录',
-      'nav.login': '登录', 'nav.register': '注册',
+      'nav.home': '首页', 'nav.destinations': '目的地', 'nav.trips': '行程', 'nav.rewards': '奖励', 'nav.free_gifts': '免费礼品', 'nav.hotels': '酒店', 'nav.about': '关于我们', 'nav.contact': '联系我们', 'nav.signin': '登录',
+      'nav.login': '登录', 'nav.register': '注册', 'nav.profile': '会员中心', 'nav.logout': '退出登录',
 
       'gifts.eyebrow': '诚挚赠礼',
       'gifts.heading': '免费<em>礼品</em>',
@@ -304,6 +311,7 @@
       'destinations.eyebrow': '我们的足迹',
       'destinations.heading': '精心甄选<br><em>目的地</em>',
       'destinations.subtext': '每一个目的地都经过我们旅行策划师的亲自实地考察——因其深厚的文化底蕴、自然美景与独特体验而入选。',
+      'destinations.view_all': '更多行程',
 
       'journal.toc1': '起点 — 京都',
       'journal.toc2': '口碑相传 — 阿马尔菲',
@@ -345,6 +353,12 @@
       'trips_page.filter_dest_all': '所有目的地', 'trips_page.filter_cat_all': '所有类别',
       'trips_page.filter_clear': '清除', 'trips_page.filter_none': '没有符合筛选条件的行程。',
       'trips_page.filter_count': '{n} 个行程',
+      'hotels_page.eyebrow': '入住之选',
+      'hotels_page.heading': '精选<em>酒店</em>',
+      'hotels_page.subtext': '从历史庭院旅馆到悬崖度假别墅——我们预订的每一处住宿都经过亲自考察。告诉我们您的想法，我们将为您安排最合适的住宿。',
+      'hotels_page.enquiry': '提出咨询',
+      'hotels_page.whatsapp': 'WhatsApp 联系我们',
+      'hotels_page.wa_text': '您好，我想咨询有关行程的酒店安排。',
       'trips.card1.name': '京都赏秋', 'trips.card1.desc': '穿梭京都最美的寺庙与隐秘花园，追逐火红的枫叶。', 'trips.card1.duration': '8天', 'trips.card1.pax': '最多10人', 'trips.card1.window': '10月 – 11月',
       'trips.card2.name': '阿马尔菲游艇之旅', 'trips.card2.desc': '沿阿马尔菲海岸的私人游艇之旅——静谧海湾、新鲜海鲜与金色日落。', 'trips.card2.duration': '6天', 'trips.card2.pax': '最多8人', 'trips.card2.window': '6月 – 7月',
       'trips.card3.name': '马拉喀什深度之旅', 'trips.card3.desc': '帝王之城、撒哈拉沙漠营地与阿特拉斯山村——深度探索摩洛哥。', 'trips.card3.duration': '9天', 'trips.card3.pax': '最多14人', 'trips.card3.window': '9月 – 10月',
@@ -414,7 +428,7 @@
 
       'footer.tagline': '自2012年起，为品味独到的旅行者策划非凡旅程。总部位于吉隆坡，足迹遍及世界。',
       'footer.explore_title': '探索', 'footer.members_title': '会员', 'footer.contact_title': '联系方式',
-      'footer.link_destinations': '目的地', 'footer.link_trips': '精选行程', 'footer.link_rewards': '奖励', 'footer.link_free_gifts': '免费礼品', 'footer.link_about': '我们的故事',
+      'footer.link_destinations': '目的地', 'footer.link_trips': '精选行程', 'footer.link_rewards': '奖励', 'footer.link_free_gifts': '免费礼品', 'footer.link_hotels': '酒店', 'footer.link_about': '我们的故事',
       'footer.link_signin': '登录', 'footer.link_dashboard': '会员中心', 'footer.link_message': '发送讯息',
       'footer.copyright': '© 2026 The Travel Chapter. 版权所有。',
       'footer.location': '用心打造于马来西亚吉隆坡 🇲🇾',
@@ -470,7 +484,7 @@
       'login.toast_code_resent': '验证码已通过短信重新发送。',
       'login.toast_password_updated': '密码已更新——正在为您登录…',
 
-      'dash.tagline': '会员中心', 'dash.loading': '加载中…', 'dash.signout': '退出登录',
+      'dash.tagline': '会员中心', 'dash.loading': '加载中…', 'dash.signout': '退出登录', 'dash.back_home': '返回首页',
       'dash.nav_overview': '概览', 'dash.nav_trips': '浏览行程', 'dash.nav_bookings': '我的预订',
       'dash.nav_referrals': '推荐好友', 'dash.nav_luckydraw': '幸运抽奖', 'dash.nav_rewards': '积分商城', 'dash.nav_points': '积分', 'dash.nav_profile': '个人资料',
       'dash.overview_welcome': '欢迎回来，', 'dash.overview_subtitle': '这是您与我们同行旅程的概览。',
@@ -527,8 +541,8 @@
       'journal.chapter_word1': 'Satu', 'journal.chapter_word2': 'Dua', 'journal.chapter_word3': 'Tiga', 'journal.chapter_word4': 'Empat', 'journal.chapter_word5': 'Lima',
       'journal.chapter_word6': 'Enam', 'journal.chapter_word7': 'Tujuh', 'journal.chapter_word8': 'Lapan', 'journal.chapter_word9': 'Sembilan', 'journal.chapter_word10': 'Sepuluh',
 
-      'nav.home': 'Utama', 'nav.destinations': 'Destinasi', 'nav.trips': 'Percutian', 'nav.rewards': 'Ganjaran', 'nav.free_gifts': 'Hadiah Percuma', 'nav.about': 'Tentang Kami', 'nav.contact': 'Hubungi Kami', 'nav.signin': 'Log Masuk',
-      'nav.login': 'Log Masuk', 'nav.register': 'Daftar',
+      'nav.home': 'Utama', 'nav.destinations': 'Destinasi', 'nav.trips': 'Percutian', 'nav.rewards': 'Ganjaran', 'nav.free_gifts': 'Hadiah Percuma', 'nav.hotels': 'Hotel', 'nav.about': 'Tentang Kami', 'nav.contact': 'Hubungi Kami', 'nav.signin': 'Log Masuk',
+      'nav.login': 'Log Masuk', 'nav.register': 'Daftar', 'nav.profile': 'Akaun Saya', 'nav.logout': 'Log Keluar',
 
       'gifts.eyebrow': 'Sebagai Penghargaan Kami',
       'gifts.heading': 'Hadiah <em>Percuma</em>',
@@ -547,6 +561,7 @@
       'destinations.eyebrow': 'Ke Mana Kami Pergi',
       'destinations.heading': 'Destinasi<br><em>Pilihan</em>',
       'destinations.subtext': 'Setiap destinasi disemak sendiri oleh penyelaras perjalanan kami — dipilih atas kedalaman budaya, keindahan semula jadi dan pengalaman yang jarang ditemui.',
+      'destinations.view_all': 'Lebih Banyak Percutian',
       'journal.toc1': 'Permulaan — Kyoto',
       'journal.toc2': 'Cerita Tersebar Pantas — Amalfi',
       'journal.toc3': 'Belajar Mendengar — Marrakech',
@@ -587,6 +602,12 @@
       'trips_page.filter_dest_all': 'Semua destinasi', 'trips_page.filter_cat_all': 'Semua kategori',
       'trips_page.filter_clear': 'Kosongkan', 'trips_page.filter_none': 'Tiada percutian sepadan dengan penapis anda.',
       'trips_page.filter_count': '{n} percutian',
+      'hotels_page.eyebrow': 'Tempat Anda Menginap',
+      'hotels_page.heading': 'Hotel <em>Pilihan</em>',
+      'hotels_page.subtext': 'Daripada riad warisan hingga peranginan di tebing tinggi — setiap penginapan yang kami tempah disemak sendiri. Beritahu kami hasrat anda dan kami akan padankan penginapan yang sempurna.',
+      'hotels_page.enquiry': 'Buat Pertanyaan',
+      'hotels_page.whatsapp': 'WhatsApp Kami',
+      'hotels_page.wa_text': 'Hai, saya ingin bertanya tentang hotel untuk percutian saya.',
       'trips.card1.name': 'Kyoto Musim Luruh', 'trips.card1.desc': 'Kejar daun maple merah menyala di kuil-kuil terbaik dan taman tersembunyi Kyoto.', 'trips.card1.duration': '8 hari', 'trips.card1.pax': 'Maks 10', 'trips.card1.window': 'Okt – Nov',
       'trips.card2.name': 'Amalfi dengan Yacht', 'trips.card2.desc': 'Perjalanan yacht peribadi di sepanjang Pantai Amalfi — teluk tersembunyi, makanan laut segar dan senja keemasan.', 'trips.card2.duration': '6 hari', 'trips.card2.pax': 'Maks 8', 'trips.card2.window': 'Jun – Jul',
       'trips.card3.name': 'Marrakech & Sekitarnya', 'trips.card3.desc': 'Bandar diraja, khemah gurun Sahara dan perkampungan Pergunungan Atlas — Maghribi secara mendalam.', 'trips.card3.duration': '9 hari', 'trips.card3.pax': 'Maks 14', 'trips.card3.window': 'Sep – Okt',
@@ -656,7 +677,7 @@
 
       'footer.tagline': 'Merancang perjalanan luar biasa untuk pengembara bercita rasa tinggi sejak 2012. Berpangkalan di Kuala Lumpur, mengembara ke seluruh dunia.',
       'footer.explore_title': 'Terokai', 'footer.members_title': 'Ahli', 'footer.contact_title': 'Hubungi',
-      'footer.link_destinations': 'Destinasi', 'footer.link_trips': 'Percutian Pilihan', 'footer.link_rewards': 'Ganjaran', 'footer.link_free_gifts': 'Hadiah Percuma', 'footer.link_about': 'Kisah Kami',
+      'footer.link_destinations': 'Destinasi', 'footer.link_trips': 'Percutian Pilihan', 'footer.link_rewards': 'Ganjaran', 'footer.link_free_gifts': 'Hadiah Percuma', 'footer.link_hotels': 'Hotel', 'footer.link_about': 'Kisah Kami',
       'footer.link_signin': 'Log Masuk', 'footer.link_dashboard': 'Papan Pemuka', 'footer.link_message': 'Hantar Mesej',
       'footer.copyright': '© 2026 The Travel Chapter. Hak cipta terpelihara.',
       'footer.location': 'Dibina dengan teliti di Kuala Lumpur 🇲🇾',
@@ -712,7 +733,7 @@
       'login.toast_code_resent': 'Kod dihantar semula melalui SMS.',
       'login.toast_password_updated': 'Kata laluan dikemas kini — melog masuk anda…',
 
-      'dash.tagline': 'Portal Ahli', 'dash.loading': 'Memuatkan…', 'dash.signout': 'Log Keluar',
+      'dash.tagline': 'Portal Ahli', 'dash.loading': 'Memuatkan…', 'dash.signout': 'Log Keluar', 'dash.back_home': 'Kembali ke Utama',
       'dash.nav_overview': 'Ringkasan', 'dash.nav_trips': 'Terokai Percutian', 'dash.nav_bookings': 'Tempahan Saya',
       'dash.nav_referrals': 'Rujukan', 'dash.nav_luckydraw': 'Cabutan Bertuah', 'dash.nav_rewards': 'Kedai Ganjaran', 'dash.nav_points': 'Mata', 'dash.nav_profile': 'Profil Saya',
       'dash.overview_welcome': 'Selamat kembali,', 'dash.overview_subtitle': 'Berikut ringkasan perjalanan anda bersama kami.',
@@ -827,4 +848,76 @@
     get lang() { return currentLang; },
     SUPPORTED,
   };
+
+  /* ─────────────────────────────────────────────────────────────
+     Nav auth state — when a member is signed in, the navbar's
+     Login + Register buttons collapse into a single "Profile"
+     button that opens the member dashboard. Runs on any page that
+     ships both supabase-js and the public navbar markup; silently
+     no-ops elsewhere (e.g. login.html, dashboard.html).
+     ───────────────────────────────────────────────────────────── */
+  function initNavAuth() {
+    if (typeof global.supabase === 'undefined' || !global.supabase.createClient) return;
+    // Each marketing page carries two CTA clusters: desktop (.nav-cta) and
+    // the mobile dropdown row (.nav-cta-row).
+    var ctas = document.querySelectorAll('.nav-cta, .nav-cta-row');
+    if (!ctas.length) return;
+
+    var sb;
+    try {
+      sb = global.supabase.createClient(
+        'https://nkrpkfqibsudqsonljve.supabase.co',
+        'sb_publishable_8mbRk904S5zktFv6UIlRUg_gp1PFAWm'
+      );
+    } catch (e) { return; }
+
+    function render(session) {
+      var signedIn = !!session;
+      ctas.forEach(function (scope) {
+        var login    = scope.querySelector(':scope > a.btn-nav-ghost[href*="login.html"]');
+        var register = scope.querySelector(':scope > a.btn-nav-primary[href*="login.html"]');
+        if (!login && !register) return;
+        var profile = scope.querySelector(':scope > a.btn-nav-profile');
+        var logout  = scope.querySelector(':scope > a.btn-nav-logout');
+        if (signedIn && !profile) {
+          var anchor = register || login;
+          // Log Out — ghost style, mirrors where "Login" sat
+          logout = document.createElement('a');
+          logout.className = (login ? login.className : 'btn-nav-ghost') + ' btn-nav-logout';
+          logout.href = '#';
+          logout.setAttribute('data-i18n', 'nav.logout');
+          logout.textContent = t('nav.logout');
+          logout.addEventListener('click', function (e) {
+            e.preventDefault();
+            var go = function () { window.location.href = 'index.html'; };
+            try { sb.auth.signOut().then(go, go); } catch (err) { go(); }
+          });
+          anchor.insertAdjacentElement('afterend', logout);
+          // Profile — primary style, mirrors where "Register" sat
+          profile = document.createElement('a');
+          profile.className = (register ? register.className : 'btn-nav-primary') + ' btn-nav-profile';
+          profile.href = 'dashboard.html';
+          profile.setAttribute('data-i18n', 'nav.profile');
+          profile.textContent = t('nav.profile');
+          logout.insertAdjacentElement('afterend', profile);
+        }
+        // Toggle via inline style, not [hidden] — the mobile rule `.nav-links a
+        // { display:block }` outranks the UA [hidden] rule and would keep the
+        // Login/Register links visible inside the dropdown CTA row.
+        if (login)    login.style.display    = signedIn ? 'none' : '';
+        if (register) register.style.display = signedIn ? 'none' : '';
+        if (profile)  profile.style.display  = signedIn ? '' : 'none';
+        if (logout)   logout.style.display   = signedIn ? '' : 'none';
+      });
+    }
+
+    sb.auth.getSession().then(function (r) { render(r && r.data && r.data.session); }).catch(function () {});
+    sb.auth.onAuthStateChange(function (_evt, session) { render(session); });
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initNavAuth);
+  } else {
+    initNavAuth();
+  }
 })(window);

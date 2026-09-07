@@ -444,7 +444,9 @@ async function routeSession(session) {
     showErr('login-err', TC_I18N.t('login.err_admin_account'));
     return;
   }
-  window.location.href = 'dashboard.html';
+  // Land members on the public home page — the navbar there swaps Login/Register
+  // for a Profile button (see TC_I18N nav-auth) that opens this dashboard.
+  window.location.href = 'index.html';
 }
 
 // Redirect if already logged in
@@ -464,6 +466,17 @@ function showForm(name) {
 function clearErrors() {
   document.querySelectorAll('.err-msg').forEach(e => { e.textContent = ''; e.classList.remove('visible'); });
 }
+
+// Pressing Enter in any field submits the currently visible auth form
+document.addEventListener('keydown', function(e) {
+  if (e.key !== 'Enter' || e.isComposing) return;
+  const input = e.target;
+  if (!input || input.tagName !== 'INPUT') return;
+  const form = input.closest('.form');
+  if (!form || form.classList.contains('hidden')) return;
+  const btn = form.querySelector('.btn-submit');
+  if (btn && !btn.disabled) { e.preventDefault(); btn.click(); }
+});
 
 function showErr(id, msg) {
   const el = document.getElementById(id);

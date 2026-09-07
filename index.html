@@ -196,6 +196,7 @@ section { padding:100px 6%; }
 /* ── DESTINATIONS + TRIPS (each card is a real trip — same card as the Trips page) ── */
 #destinations { background:var(--cream); }
 .destinations-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:26px; }
+.destinations-cta { text-align:center; margin-top:52px; }
 .trip-card {
   background:var(--white); border:1px solid var(--border); border-radius:16px;
   overflow:hidden; display:flex; flex-direction:column;
@@ -306,6 +307,7 @@ footer { background:var(--navy); padding:56px 6% 32px; }
   <ul class="nav-links">
     <li><a href="index.html" data-i18n="nav.home">Home</a></li>
     <li><a href="trips.html" data-i18n="nav.trips">Trips</a></li>
+    <li><a href="hotels.html" data-i18n="nav.hotels">Hotels</a></li>
     <li><a href="free-gifts.html" data-i18n="nav.free_gifts">Free Gifts</a></li>
     <li><a href="about.html" data-i18n="nav.about">About</a></li>
     <li><a href="contact.html" data-i18n="nav.contact">Contact</a></li>
@@ -402,6 +404,10 @@ footer { background:var(--navy); padding:56px 6% 32px; }
       </div>
     </article>
   </div>
+  <!-- Home shows only the first 6 active trips (see renderDbTrips); the full list lives on trips.html -->
+  <div class="destinations-cta reveal">
+    <a href="trips.html" class="btn-hero-primary" data-i18n="destinations.view_all">More Trips</a>
+  </div>
 </section>
 
 
@@ -460,6 +466,7 @@ footer { background:var(--navy); padding:56px 6% 32px; }
       <ul class="footer-links">
         <li><a href="#destinations" data-i18n="footer.link_destinations">Destinations</a></li>
         <li><a href="trips.html" data-i18n="footer.link_trips">Featured Trips</a></li>
+        <li><a href="hotels.html" data-i18n="footer.link_hotels">Hotels</a></li>
         <li><a href="free-gifts.html" data-i18n="footer.link_free_gifts">Free Gifts</a></li>
         <li><a href="about.html" data-i18n="footer.link_about">Our Story</a></li>
       </ul>
@@ -605,7 +612,8 @@ const WA_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M.057 24l1
 let lastDbTrips = null;
 let waNumber = '';
 async function loadTrips() {
-  const { data, error } = await sb.from('trips').select('*').eq('is_active', true).order('created_at');
+  // Home page previews only the first 6 active trips — "More Trips" links to the full list on trips.html
+  const { data, error } = await sb.from('trips').select('*').eq('is_active', true).order('created_at').limit(6);
   if (error || !data || !data.length) {   // no active trips — clear the skeletons
     const grid = document.getElementById('trips');
     if (grid) grid.innerHTML = `<p class="trips-inline-empty"><a href="trips.html">${esc(TC_I18N.t('trips_page.empty'))}</a></p>`;

@@ -734,6 +734,39 @@ Six small commits after `4ada99d`, all pushed; customer bits auto-deployed, one 
 
 ---
 
+## Workstream X — Home shows top 6 trips + "More Trips"; new standalone Hotels page (added 2026-09-04)
+
+> **NOT YET COMMITTED / NOT DEPLOYED.** All local edits, verified locally (`python3 -m http.server` + Claude-in-Chrome against production Supabase). No DB migrations. Customer-site files ride the normal git build; `sw-customer.js` bumped so returning visitors pick up the new page.
+
+Two user requests in one session.
+
+### 1. Home page: cap the trips grid at 6, add a "More Trips" link
+- **`index.html`** — `loadTrips()`'s query gained `.limit(6)` (still `.eq('is_active', true).order('created_at')` — same ordering as `trips.html`, so it's a true preview of the top of that list). Added a centered **More Trips** button (`.destinations-cta` wrapper, reuses `.btn-hero-primary`) after `#trips`, linking to `trips.html`. New CSS rule `.destinations-cta { text-align:center; margin-top:52px; }`.
+- **`i18n.js`** — new key `destinations.view_all` (EN "More Trips" / ZH "更多行程" / MS "Lebih Banyak Percutian").
+- On zero active trips the existing empty-state "browse all" line still renders and the More Trips button sits below it (mildly redundant, harmless — left as-is).
+
+### 2. New `hotels.html` — cover photo + two buttons
+- **NEW `hotels.html`** — standalone page, same navbar/footer/i18n/mobile-nav/SW-registration scaffold as `free-gifts.html`. Body is a single full-bleed cover hero (`.hotel-hero`, `min-height:88vh`, `background: cover`) with a dark gradient `::after` overlay, an eyebrow, an italic heading, a one-line subtext, and a button row:
+  - **Make an Enquiry** → `contact.html` (`.btn-hero-primary`).
+  - **WhatsApp Us** → `https://wa.me/<number>?text=…`, number from `cms_content` section `contact` (`whatsapp` → falls back to `phone`), same as the trip cards. Button hides itself if neither is set. No-JS `href` fallback is `contact.html`.
+  - Text has `text-shadow` (heading a triple-layer black shadow up to 0.85 alpha, eyebrow/subtext lighter) for legibility over the photo — darkened once at the user's request.
+- **Cover photo** — hardcoded default (`DEFAULT_HOTEL_COVER`, an Unsplash resort shot). `loadHotels()` also reads `cms_content` section `hotels` and, if present, overrides `cover_image` / `heading` / `subtext` / `eyebrow`. **No admin editor for section `hotels` was built** — to change the photo now, either edit `DEFAULT_HOTEL_COVER` or insert a `cms_content` row via SQL. Adding a proper `admin-cms.html` section is a natural follow-up if the user wants it self-serve.
+- **i18n.js** — new keys in all 3 locales: `nav.hotels`, `footer.link_hotels`, `hotels_page.eyebrow` / `.heading` / `.subtext` / `.enquiry` / `.whatsapp` / `.wa_text`.
+- **Nav + footer** — a "Hotels" item added between Trips and Free Gifts in the top nav, and between Featured Trips and Free Gifts in the footer Explore list, on all 6 customer pages (`index`, `trips`, `about`, `contact`, `free-gifts`, `trip`). `hotels.html`'s own nav marks it `class="active"`. `dashboard.html` / `login.html` have no marketing nav — untouched.
+- **`sitemap.xml`** — `hotels.html` added (priority 0.6).
+- **`sw-customer.js`** — `CACHE_NAME` **v13 → v14**, `hotels.html` added to APP_SHELL.
+
+### Verified
+- `node --check i18n.js` + `new Function()` parse of `hotels.html`'s inline script — pass.
+- `hotels.html` in a real browser (localhost + prod Supabase): cover photo loads, eyebrow/heading/subtext render after the reveal, **Make an Enquiry** → `contact.html`, **WhatsApp Us** resolved to `https://wa.me/60138372222?text=…` (the live CMS contact number), nav "Hotels" active, footer "Hotels" link present. No app console errors.
+- **Not checked:** the home 6-trip cap in a browser against a >6-trip dataset (prod currently has few active trips); admin side (no `hotels` CMS editor exists).
+
+### To ship
+1. Commit + push — customer build covers `hotels.html` / `index.html` / `i18n.js` / `sitemap.xml` / `sw-customer.js`. No admin deploy needed (nothing under `admin/` changed).
+2. (Optional, content) set a real hotels cover photo — via a `cms_content` `section='hotels'` row (`{ "cover_image": "…" }`) or by editing `DEFAULT_HOTEL_COVER` in `hotels.html`.
+
+---
+
 ## Task checklist
 
 - [x] Open all 6 pages in a real browser, confirm logo renders correctly (sizing/placement) — done 2026-07-26 at desktop size.
@@ -774,3 +807,5 @@ Six small commits after `4ada99d`, all pushed; customer bits auto-deployed, one 
 - [x] **Workstream W (2026-09-03) — SHIPPED.** New `trip.html` detail page; trip cards get "Details" + WhatsApp buttons + a location row + "Price TBA" for title-only trips; home cards unified with the Trips page (fake trips → shimmer skeletons, modal removed); home hero stripped of the trip-picture + stats and given an editable CMS background photo; logo + desktop nav text enlarged; **mobile hamburger navbar** (dropdown nav links + language-picker dropdown + Login|Register button row) on all 6 customer pages; admin trip editor + **notification bell/chime** + WhatsApp CMS field + hero Background-Photo CMS field. Commits `cf47db2` + `4ada99d`, both sites live. No DB migrations. Admin deploy this time ran fine **without** `--no-build` (`NETLIFY_AUTH_TOKEN=<PAT>` env var, `netlify deploy --prod --dir=admin --site c5f73ef7-…`).
 - [x] **Workstream W follow-ups (2026-09-03) — SHIPPED.** `64e3b7d` admin TBA save fix (`|| 0` on blank Duration/Price/Max Pax); `7bd9105` footer email/phone from CMS `contact` (all 6 pages, sw v13); `4a28d2e` admin Trips Status/Destination/Category/TBA filters + Clear; `f731d3b` chime cadence 60s → 10s; `2302023` bell sound now `admin/notification-bell.mp3` (user-provided, sw-admin v3); `97ce00a` contact form Phone field beside Email. All pushed; customer auto-deployed; one admin deploy (`6a993ecd…`) shipped the four admin commits, all verified live.
 - [ ] Follow-up (content/verification, no code): WhatsApp number in CMS → Contact; hero background photo in CMS → Hero; real-device check of the new mobile navbar (sandbox couldn't emulate a phone viewport); Description/Itinerary per trip in the Trips editor.
+- [ ] **Workstream X (2026-09-04) — BUILT, NOT COMMITTED / NOT DEPLOYED.** Home trips grid capped at 6 (`index.html` `loadTrips()` `.limit(6)`) + centered "More Trips" → `trips.html` (new i18n `destinations.view_all`). New standalone **`hotels.html`** — full-bleed cover photo + "Make an Enquiry" (→ `contact.html`) + "WhatsApp Us" (→ `wa.me` from CMS `contact.whatsapp`/`phone`); cover photo is a hardcoded default, overridable via a `cms_content` `section='hotels'` row (no admin editor built). "Hotels" nav + footer link added to all 6 customer pages; `sitemap.xml` updated; `sw-customer.js` v13 → v14. Verified locally (browser + `node --check`). **To ship: git push only** (no admin deploy — nothing under `admin/` changed).
+- [ ] Follow-up (optional): build an `admin/admin-cms.html` "Hotels" section so the cover photo / heading / subtext are editable without SQL (currently `hotels.html` reads `cms_content` `section='hotels'` but nothing writes it).

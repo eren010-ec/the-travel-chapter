@@ -10,19 +10,19 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Travel Chapter">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon-customer.png">
-<title>The Travel Chapter — Contact</title>
-<meta name="description" content="Get in touch with The Travel Chapter. Tell us about the journey you have in mind and our team will help you plan the perfect trip.">
-<link rel="canonical" href="https://thetravelchapter.my/contact.html">
+<title>The Travel Chapter — Hotels</title>
+<meta name="description" content="Handpicked hotels for Travel Chapter travellers — heritage stays, boutique retreats and cliffside hideaways, each personally inspected. Enquire about your perfect stay.">
+<link rel="canonical" href="https://thetravelchapter.my/hotels.html">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="The Travel Chapter">
 <meta property="og:locale" content="en_MY">
-<meta property="og:title" content="The Travel Chapter — Contact">
-<meta property="og:description" content="Get in touch with The Travel Chapter. Tell us about the journey you have in mind and our team will help you plan the perfect trip.">
-<meta property="og:url" content="https://thetravelchapter.my/contact.html">
+<meta property="og:title" content="The Travel Chapter — Hotels">
+<meta property="og:description" content="Handpicked hotels for Travel Chapter travellers — heritage stays, boutique retreats and cliffside hideaways, each personally inspected. Enquire about your perfect stay.">
+<meta property="og:url" content="https://thetravelchapter.my/hotels.html">
 <meta property="og:image" content="https://thetravelchapter.my/the-travel-chapter-logo.jpg">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="The Travel Chapter — Contact">
-<meta name="twitter:description" content="Get in touch with The Travel Chapter. Tell us about the journey you have in mind and our team will help you plan the perfect trip.">
+<meta name="twitter:title" content="The Travel Chapter — Hotels">
+<meta name="twitter:description" content="Handpicked hotels for Travel Chapter travellers — heritage stays, boutique retreats and cliffside hideaways, each personally inspected. Enquire about your perfect stay.">
 <meta name="twitter:image" content="https://thetravelchapter.my/the-travel-chapter-logo.jpg">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="i18n.js"></script>
@@ -32,6 +32,7 @@
 :root {
   --cream:  #faf7f2;
   --cream2: #f2ede4;
+  --cream3: #ede5d8;
   --navy:   #1a1f2e;
   --navy2:  #252b3b;
   --gold:   #b8955a;
@@ -128,40 +129,29 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 .lang-btn:hover { color:var(--navy); }
 .lang-btn.active { background:var(--navy); color:var(--white); }
 
-/* ── CONTACT ── */
-.contact-page { padding:132px 6% 100px; max-width:1240px; margin:0 auto; }
-.contact-grid { display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:start; }
-.section-eyebrow { font-size:0.68rem; letter-spacing:0.3em; text-transform:uppercase; color:var(--gold); margin-bottom:14px; display:flex; align-items:center; gap:10px; }
-.section-eyebrow::before { content:''; width:24px; height:1px; background:var(--gold); }
-.section-title { font-family:'Cormorant Garamond',serif; font-size:2.8rem; font-weight:300; color:var(--navy); line-height:1.2; margin-bottom:16px; }
-.section-title em { font-style:italic; color:var(--gold); }
-.contact-sub { font-size:0.9rem; color:var(--smoke); line-height:1.8; margin-top:8px; max-width:400px; }
-.contact-info { display:flex; flex-direction:column; gap:24px; margin-top:36px; }
-.contact-item { display:flex; gap:16px; align-items:flex-start; }
-.contact-icon { width:42px; height:42px; border-radius:10px; background:var(--cream2); border:1px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:1.1rem; flex-shrink:0; }
-.contact-label { font-size:0.68rem; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--smoke); }
-.contact-value { display:block; font-size:0.88rem; color:var(--navy); margin-top:3px; text-decoration:none; }
-a.contact-value:hover { color:var(--gold); }
-
-.contact-form { display:flex; flex-direction:column; gap:14px; }
-.form-row { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-.field { display:flex; flex-direction:column; gap:5px; }
-.field.full { grid-column:1/-1; }
-.contact-form label { font-size:0.67rem; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--smoke); }
-.contact-form input, .contact-form select, .contact-form textarea { padding:12px 14px; background:var(--cream); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.88rem; font-weight:300; outline:none; transition:border-color 0.2s, background 0.2s; width:100%; }
-.contact-form input:focus, .contact-form select:focus, .contact-form textarea:focus { border-color:var(--gold); background:var(--white); }
-.contact-form input::placeholder, .contact-form textarea::placeholder { color:#c5bdb4; }
-.contact-form textarea { resize:vertical; min-height:130px; }
-.btn-submit-contact { padding:14px 32px; border:none; border-radius:8px; background:var(--navy); color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; box-shadow:0 4px 14px rgba(26,31,46,0.15); margin-top:4px; }
-.btn-submit-contact:hover { background:var(--navy2); box-shadow:0 6px 20px rgba(26,31,46,0.25); transform:translateY(-1px); }
-.btn-submit-contact[disabled] { opacity:0.55; cursor:default; transform:none; box-shadow:none; }
-.cf-status { font-size:0.82rem; line-height:1.6; min-height:1.2em; }
-.cf-status.ok  { color:#1f7a4d; }
-.cf-status.err { color:#c0392b; }
-
-/* ── SCROLL REVEAL ── */
-.reveal { opacity:0; transform:translateY(24px); transition:opacity 0.6s ease, transform 0.6s ease; }
-.reveal.visible { opacity:1; transform:translateY(0); }
+/* ── HOTEL COVER ── */
+.hotel-hero {
+  position:relative; min-height:88vh;
+  display:flex; align-items:center; justify-content:center;
+  padding:172px 6% 96px; text-align:center;
+  background:#141820 center/cover no-repeat;
+}
+.hotel-hero::after {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(180deg, rgba(20,24,32,0.66) 0%, rgba(20,24,32,0.52) 45%, rgba(20,24,32,0.82) 100%);
+}
+.hotel-hero-inner { position:relative; z-index:1; max-width:720px; margin:0 auto; }
+.hotel-eyebrow { font-size:0.72rem; letter-spacing:0.35em; text-transform:uppercase; color:var(--gold2); margin-bottom:22px; display:flex; align-items:center; justify-content:center; gap:12px; text-shadow:0 2px 10px rgba(0,0,0,0.8), 0 1px 3px rgba(0,0,0,0.7); }
+.hotel-eyebrow::before, .hotel-eyebrow::after { content:''; width:32px; height:1px; background:var(--gold2); }
+.hotel-hero h1 { font-family:'Cormorant Garamond',serif; font-size:3.6rem; font-weight:300; line-height:1.14; color:var(--white); margin-bottom:22px; text-shadow:0 4px 28px rgba(0,0,0,0.85), 0 2px 8px rgba(0,0,0,0.7), 0 1px 3px rgba(0,0,0,0.6); }
+.hotel-hero h1 em { font-style:italic; color:var(--gold2); }
+.hotel-hero p { font-size:0.98rem; color:rgba(255,255,255,0.9); line-height:1.85; max-width:540px; margin:0 auto 40px; text-shadow:0 2px 16px rgba(0,0,0,0.85), 0 1px 4px rgba(0,0,0,0.75); }
+.hotel-actions { display:flex; align-items:center; justify-content:center; gap:16px; flex-wrap:wrap; }
+.btn-hero-primary { padding:15px 32px; border-radius:6px; border:none; background:linear-gradient(135deg,var(--gold),#8a6a38); color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.84rem; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:10px; transition:all 0.25s; box-shadow:0 4px 20px rgba(184,149,90,0.35); }
+.btn-hero-primary:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(184,149,90,0.45); }
+.btn-hero-wa { padding:15px 32px; border-radius:6px; border:none; background:#25d366; color:#0b3d22; font-family:'DM Sans',sans-serif; font-size:0.84rem; font-weight:600; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; text-decoration:none; display:inline-flex; align-items:center; gap:10px; transition:all 0.25s; box-shadow:0 4px 20px rgba(37,211,102,0.32); }
+.btn-hero-wa:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(37,211,102,0.42); }
+.btn-hero-wa svg { width:18px; height:18px; fill:currentColor; }
 
 /* ── FOOTER ── */
 footer { background:var(--navy); padding:56px 6% 32px; }
@@ -175,17 +165,21 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 .footer-links a:hover { color:var(--gold2); }
 .footer-bottom { display:flex; align-items:center; justify-content:space-between; padding-top:28px; border-top:1px solid rgba(255,255,255,0.06); font-size:0.75rem; color:rgba(255,255,255,0.25); flex-wrap:wrap; gap:12px; }
 
+/* ── SCROLL REVEAL ── */
+.reveal { opacity:0; transform:translateY(28px); transition:opacity 0.7s ease, transform 0.7s ease; }
+.reveal.visible { opacity:1; transform:translateY(0); }
+
 /* ── RESPONSIVE ── */
 @media(max-width:1024px) {
-  .contact-grid { grid-template-columns:1fr; gap:48px; }
-  .section-title { font-size:2.3rem; }
   .footer-grid { grid-template-columns:1fr 1fr; }
+  .hotel-hero h1 { font-size:2.9rem; }
 }
 @media(max-width:768px) {
   .nav-social { display:none; }
-  .contact-page { padding:110px 5% 72px; }
-  .form-row { grid-template-columns:1fr; }
+  .hotel-hero { min-height:82vh; padding:130px 5% 72px; }
+  .hotel-hero h1 { font-size:2.5rem; }
   .footer-grid { grid-template-columns:1fr; gap:32px; }
+  .btn-hero-primary, .btn-hero-wa { width:100%; justify-content:center; }
 }
 @media(max-width:400px) {
   .navbar { padding:0 4%; }
@@ -203,10 +197,10 @@ footer { background:var(--navy); padding:56px 6% 32px; }
   <ul class="nav-links">
     <li><a href="index.html" data-i18n="nav.home">Home</a></li>
     <li><a href="trips.html" data-i18n="nav.trips">Trips</a></li>
-    <li><a href="hotels.html" data-i18n="nav.hotels">Hotels</a></li>
+    <li><a href="hotels.html" class="active" data-i18n="nav.hotels">Hotels</a></li>
     <li><a href="free-gifts.html" data-i18n="nav.free_gifts">Free Gifts</a></li>
     <li><a href="about.html" data-i18n="nav.about">About</a></li>
-    <li><a href="contact.html" class="active" data-i18n="nav.contact">Contact</a></li>
+    <li><a href="contact.html" data-i18n="nav.contact">Contact</a></li>
     <li class="nav-links-cta"><div class="nav-cta-row">
       <a href="login.html" class="btn-nav-ghost" data-i18n="nav.login">Login</a>
       <a href="login.html?tab=register" class="btn-nav-primary" data-i18n="nav.register">Register</a>
@@ -242,95 +236,28 @@ footer { background:var(--navy); padding:56px 6% 32px; }
   </div>
 </nav>
 
-<!-- ── CONTACT ── -->
-<section class="contact-page">
-  <div class="contact-grid">
-
-    <!-- Left: intro + details -->
-    <div class="reveal">
-      <div class="section-eyebrow" id="con-eyebrow" data-i18n="contact.eyebrow">Get in Touch</div>
-      <h1 class="section-title" id="con-heading" data-i18n="contact.heading" data-i18n-html>Let's Plan Your<br><em>Journey</em></h1>
-      <p class="contact-sub" id="con-subtext" data-i18n="contact.subtext">Have a destination in mind? Want to know more about our membership? Our team is happy to help you find the perfect trip.</p>
-
-      <div class="contact-info">
-        <div class="contact-item">
-          <div class="contact-icon">📧</div>
-          <div>
-            <div class="contact-label" data-i18n="contact.email_label">Email Us</div>
-            <a class="contact-value" id="con-email" href="mailto:hello@thetravelchapter.com">hello@thetravelchapter.com</a>
-          </div>
-        </div>
-        <div class="contact-item">
-          <div class="contact-icon">📞</div>
-          <div>
-            <div class="contact-label" data-i18n="contact.phone_label">Call Us</div>
-            <a class="contact-value" id="con-phone" href="tel:+60312345678">+60 3 1234 5678</a>
-          </div>
-        </div>
-        <div class="contact-item">
-          <div class="contact-icon">📍</div>
-          <div>
-            <div class="contact-label" data-i18n="contact.address_label">Visit Us</div>
-            <div class="contact-value" id="con-address">Kuala Lumpur, Malaysia</div>
-          </div>
-        </div>
-      </div>
+<!-- ── HOTEL COVER ── -->
+<header class="hotel-hero" id="hotel-hero">
+  <div class="hotel-hero-inner reveal">
+    <div class="hotel-eyebrow" data-i18n="hotels_page.eyebrow">Where You Stay</div>
+    <h1 data-i18n="hotels_page.heading" data-i18n-html>Handpicked <em>Hotels</em></h1>
+    <p data-i18n="hotels_page.subtext">From heritage riads to cliffside retreats — every property we book is personally inspected. Tell us what you have in mind and we will match you with the perfect stay.</p>
+    <div class="hotel-actions">
+      <a class="btn-hero-primary" href="contact.html" data-i18n="hotels_page.enquiry">Make an Enquiry</a>
+      <a class="btn-hero-wa" id="hotel-wa" href="contact.html" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.477-.907zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.767.967-.94 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg>
+        <span data-i18n="hotels_page.whatsapp">WhatsApp Us</span>
+      </a>
     </div>
-
-    <!-- Right: form -->
-    <div class="reveal">
-      <form class="contact-form" id="contact-form" novalidate>
-        <div class="form-row">
-          <div class="field">
-            <label for="cf-first" data-i18n="contact.form.first_name">First Name</label>
-            <input type="text" id="cf-first" autocomplete="given-name" required maxlength="100" placeholder="Jane" data-i18n-placeholder="contact.form.first_name_ph">
-          </div>
-          <div class="field">
-            <label for="cf-last" data-i18n="contact.form.last_name">Last Name</label>
-            <input type="text" id="cf-last" autocomplete="family-name" required maxlength="100" placeholder="Smith" data-i18n-placeholder="contact.form.last_name_ph">
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="field">
-            <label for="cf-email" data-i18n="contact.form.email">Email Address</label>
-            <input type="email" id="cf-email" autocomplete="email" required maxlength="320" placeholder="jane@example.com" data-i18n-placeholder="contact.form.email_ph">
-          </div>
-          <div class="field">
-            <label for="cf-phone" data-i18n="contact.form.phone">Phone Number</label>
-            <input type="tel" id="cf-phone" autocomplete="tel" maxlength="30" placeholder="+60 12 345 6789" data-i18n-placeholder="contact.form.phone_ph">
-          </div>
-        </div>
-        <div class="field full">
-          <label for="cf-interest" data-i18n="contact.form.interested">Interested In</label>
-          <select id="cf-interest">
-            <option value="" data-i18n="contact.form.select_placeholder">Select a destination or trip…</option>
-            <option data-i18n="trips.card1.name">Kyoto in Autumn</option>
-            <option data-i18n="trips.card2.name">Amalfi by Yacht</option>
-            <option data-i18n="trips.card3.name">Marrakech &amp; Beyond</option>
-            <option data-i18n="trips.card4.name">Mekong River Journey</option>
-            <option data-i18n="trips.card5.name">Patagonia Wilderness</option>
-            <option data-i18n="trips.card6.name">Elite Japan Immersion</option>
-            <option data-i18n="contact.form.custom_option">Custom / Other</option>
-          </select>
-        </div>
-        <div class="field full">
-          <label for="cf-message" data-i18n="contact.form.message">Your Message</label>
-          <textarea id="cf-message" required maxlength="5000" placeholder="Tell us about your dream trip…" data-i18n-placeholder="contact.form.message_placeholder"></textarea>
-        </div>
-        <button type="submit" class="btn-submit-contact" id="cf-submit" data-i18n="contact.form.submit">Send Message</button>
-        <p class="cf-status" id="cf-status" role="status" aria-live="polite"></p>
-      </form>
-    </div>
-
   </div>
-</section>
+</header>
 
 <!-- ── FOOTER ── -->
 <footer>
   <div class="footer-grid">
     <div>
       <div class="footer-brand"><img src="the-travel-chapter-icon.png" alt="The Travel Chapter" class="footer-brand-img">The Travel Chapter</div>
-      <p class="footer-desc" id="footer-tagline">Curating extraordinary journeys for discerning travellers since 2012. Based in Kuala Lumpur, travelling the world.</p>
+      <p class="footer-desc" data-i18n="footer.tagline">Curating extraordinary journeys for discerning travellers since 2012. Based in Kuala Lumpur, travelling the world.</p>
     </div>
     <div>
       <div class="footer-col-title" data-i18n="footer.explore_title">Explore</div>
@@ -359,8 +286,8 @@ footer { background:var(--navy); padding:56px 6% 32px; }
     </div>
   </div>
   <div class="footer-bottom">
-    <span id="footer-copyright">© 2026 The Travel Chapter. All rights reserved.</span>
-    <span id="footer-location">Crafted with care in Kuala Lumpur 🇲🇾</span>
+    <span data-i18n="footer.copyright">© 2026 The Travel Chapter. All rights reserved.</span>
+    <span data-i18n="footer.location">Crafted with care in Kuala Lumpur 🇲🇾</span>
   </div>
 </footer>
 
@@ -374,8 +301,52 @@ const SUPABASE_ANON = 'sb_publishable_8mbRk904S5zktFv6UIlRUg_gp1PFAWm';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
-// ── CMS: contact details + interest options + footer ────────
-let cmsTripOptions = null;
+// Cover photo: a tasteful default, overridable via CMS (section: hotels, key: cover_image).
+const DEFAULT_HOTEL_COVER = 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=1920&q=80';
+function setHotelCover(url) {
+  const hero = document.getElementById('hotel-hero');
+  if (hero) hero.style.backgroundImage = `url("${url || DEFAULT_HOTEL_COVER}")`;
+}
+setHotelCover();
+
+// ── WhatsApp button — number from CMS (section: contact) ─────
+function applyWhatsApp(num) {
+  const el = document.getElementById('hotel-wa');
+  if (!el) return;
+  const clean = String(num || '').replace(/[^\d]/g, '');
+  if (!clean) { el.style.display = 'none'; return; }  // no number saved — hide the button
+  el.style.display = '';
+  const msg = TC_I18N.t('hotels_page.wa_text') || "Hi, I'd like to enquire about hotels for my trip.";
+  el.href = `https://wa.me/${clean}?text=${encodeURIComponent(msg)}`;
+}
+
+async function loadContact() {
+  const { data } = await sb.from('cms_content').select('content').eq('section', 'contact').maybeSingle();
+  const d = (data && data.content) || {};
+  applyWhatsApp(d.whatsapp || d.phone);
+  const e = document.getElementById('footer-email');
+  if (e && d.email) { e.textContent = d.email; e.href = 'mailto:' + d.email; }
+  const p = document.getElementById('footer-phone');
+  if (p && d.phone) { p.textContent = d.phone; p.href = 'tel:' + String(d.phone).replace(/[^\d+]/g, ''); }
+}
+
+async function loadHotels() {
+  const { data } = await sb.from('cms_content').select('content').eq('section', 'hotels').maybeSingle();
+  const d = (data && data.content) || {};
+  if (d.cover_image) setHotelCover(d.cover_image);
+  if (d.heading) {
+    const h = document.querySelector('.hotel-hero h1');
+    if (h) { h.innerHTML = d.heading; h.removeAttribute('data-i18n'); h.removeAttribute('data-i18n-html'); }
+  }
+  if (d.subtext) {
+    const s = document.querySelector('.hotel-hero p');
+    if (s) { s.textContent = d.subtext; s.removeAttribute('data-i18n'); }
+  }
+  if (d.eyebrow) {
+    const ey = document.querySelector('.hotel-eyebrow');
+    if (ey) { ey.textContent = d.eyebrow; ey.removeAttribute('data-i18n'); }
+  }
+}
 
 function applyNavSocial(d) {
   d = d || {};
@@ -386,52 +357,20 @@ function applyNavSocial(d) {
     else { el.style.display = 'none'; }         // saved blank -> hide the icon
   });
 }
-
-async function loadContact() {
-  const { data, error } = await sb.from('cms_content')
-    .select('section, content').in('section', ['contact', 'footer', 'navbar']);
-  if (error) { console.warn('contact CMS load failed:', error.message); return; }
-  const rows = {};
-  (data || []).forEach(r => { rows[r.section] = r.content || {}; });
-
-  applyNavSocial(rows.navbar);
-
-  const d = rows.contact || {};
-  if (d.email) {
-    const el = document.getElementById('con-email');
-    el.textContent = d.email; el.href = 'mailto:' + d.email;
-  }
-  if (d.phone) {
-    const el = document.getElementById('con-phone');
-    el.textContent = d.phone; el.href = 'tel:' + String(d.phone).replace(/[^\d+]/g, '');
-  }
-  if (d.address) document.getElementById('con-address').textContent = d.address;
-
-  if (Array.isArray(d.trip_options) && d.trip_options.length) {
-    cmsTripOptions = d.trip_options;
-    renderInterestOptions();
-  }
-
-  const f = rows.footer || {};
-  if (f.tagline)        document.getElementById('footer-tagline').textContent = f.tagline;
-  if (f.copyright)      document.getElementById('footer-copyright').textContent = f.copyright;
-  if (f.location_badge) document.getElementById('footer-location').textContent = f.location_badge;
-
-  const fe = document.getElementById('footer-email');
-  if (fe && d.email) { fe.textContent = d.email; fe.href = 'mailto:' + d.email; }
-  const fp = document.getElementById('footer-phone');
-  if (fp && d.phone) { fp.textContent = d.phone; fp.href = 'tel:' + String(d.phone).replace(/[^\d+]/g, ''); }
+async function loadNav() {
+  const { data } = await sb.from('cms_content').select('content').eq('section', 'navbar').maybeSingle();
+  applyNavSocial((data && data.content) || {});
 }
 
-// Rebuild the "Interested In" <select> from the CMS list, keeping the current pick.
-function renderInterestOptions() {
-  if (!cmsTripOptions) return;
-  const sel = document.getElementById('cf-interest');
-  const current = sel.value;
-  sel.innerHTML = `<option value="">${TC_I18N.t('contact.form.select_placeholder')}</option>`
-    + cmsTripOptions.map(o => `<option>${o.replace(/</g, '&lt;')}</option>`).join('');
-  if ([...sel.options].some(o => o.value === current)) sel.value = current;
-}
+loadNav();
+loadContact();
+loadHotels();
+
+// ── Scroll reveal
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revealObserver.unobserve(e.target); } });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
 
 // ── Navbar shadow on scroll
 const navbarEl = document.getElementById('navbar');
@@ -443,70 +382,6 @@ window.addEventListener('scroll', () => {
   }
 }, { passive: true });
 
-// ── Scroll reveal
-const revObs = new IntersectionObserver((entries) => {
-  entries.forEach(e => { if (e.isIntersecting) { e.target.classList.add('visible'); revObs.unobserve(e.target); } });
-}, { threshold: 0.1 });
-document.querySelectorAll('.reveal').forEach(el => revObs.observe(el));
-
-// ── Contact form → public.contact_messages ─────────────────
-const form      = document.getElementById('contact-form');
-const statusEl  = document.getElementById('cf-status');
-const submitBtn = document.getElementById('cf-submit');
-const EMAIL_RE  = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function showStatus(msg, kind) {
-  statusEl.textContent = msg;
-  statusEl.className = 'cf-status ' + (kind === 'ok' ? 'ok' : kind === 'err' ? 'err' : '');
-}
-
-form.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const first    = document.getElementById('cf-first').value.trim();
-  const last     = document.getElementById('cf-last').value.trim();
-  const email    = document.getElementById('cf-email').value.trim();
-  const phone    = document.getElementById('cf-phone').value.trim();
-  const interest = document.getElementById('cf-interest').value.trim();
-  const message  = document.getElementById('cf-message').value.trim();
-
-  if (!first || !last || !email || !message) { showStatus(TC_I18N.t('contact_form.err_required'), 'err'); return; }
-  if (!EMAIL_RE.test(email))                  { showStatus(TC_I18N.t('contact_form.err_email'), 'err'); return; }
-
-  const label = submitBtn.textContent;
-  submitBtn.disabled = true;
-  submitBtn.textContent = TC_I18N.t('contact_form.sending');
-  showStatus('', '');
-
-  const { error } = await sb.from('contact_messages').insert({
-    name: `${first} ${last}`,
-    email,
-    phone: phone || null,
-    interest: interest || null,
-    message
-  });
-
-  submitBtn.disabled = false;
-  submitBtn.textContent = label;
-
-  if (error) {
-    console.warn('contact_messages insert failed:', error.message);
-    showStatus(TC_I18N.t('contact_form.err_send'), 'err');
-    return;
-  }
-  form.reset();
-  renderInterestOptions();
-  showStatus(TC_I18N.t('contact_form.success'), 'ok');
-});
-
-// Re-translate the placeholder option + submit label on a language switch.
-TC_I18N.onChange(() => {
-  renderInterestOptions();
-  if (!submitBtn.disabled) submitBtn.textContent = TC_I18N.t('contact.form.submit');
-});
-
-loadContact();
-
-// ── PWA: service worker registration
 // ── Mobile nav: hamburger dropdown + language picker
 (function initMobileNav() {
   const bar = document.getElementById('navbar');
@@ -549,6 +424,9 @@ loadContact();
     if (TC_I18N.onChange) TC_I18N.onChange(paint);
   }
 })();
+
+// ── Re-apply WhatsApp message text on language change
+TC_I18N.onChange(() => { loadContact(); });
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {

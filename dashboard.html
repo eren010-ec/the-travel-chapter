@@ -63,7 +63,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
   display:flex; align-items:center; gap:11px; padding:11px 14px;
   border-radius:8px; cursor:pointer; color:rgba(255,255,255,0.5);
   font-size:0.82rem; font-weight:400; letter-spacing:0.02em;
-  transition:all 0.2s; border:none; background:transparent; width:100%; text-align:left;
+  transition:all 0.2s; border:none; background:transparent; width:100%; text-align:left; text-decoration:none;
 }
 .nav-item svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
 .nav-item:hover { background:rgba(255,255,255,0.07); color:rgba(255,255,255,0.85); }
@@ -122,6 +122,13 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 .status-completed  { background:rgba(107,114,128,0.1); color:var(--smoke); border:1px solid var(--border); }
 
 /* ── TRIP CARDS ── */
+.trips-filter { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+.trips-filter input, .trips-filter select { width:auto; padding:10px 12px; border:1px solid var(--border); border-radius:8px; background:var(--white); color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.84rem; font-weight:300; outline:none; transition:border-color 0.2s; }
+.trips-filter input:focus, .trips-filter select:focus { border-color:var(--gold); background:var(--white); }
+.trips-filter #tf-search { flex:1; min-width:180px; }
+.trips-filter #tf-clear { padding:10px 16px; border:1px solid var(--border); border-radius:8px; background:var(--cream2); color:var(--smoke); font-family:'DM Sans',sans-serif; font-size:0.8rem; cursor:pointer; transition:all 0.2s; }
+.trips-filter #tf-clear:hover { color:var(--text); border-color:var(--navy); }
+.trips-count { font-size:0.68rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--smoke); margin-bottom:16px; }
 .trips-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:20px; }
 .trip-card { background:var(--white); border:1px solid var(--border); border-radius:14px; overflow:hidden; transition:transform 0.2s,box-shadow 0.2s; }
 .trip-card:hover { transform:translateY(-3px); box-shadow:0 12px 40px rgba(26,31,46,0.1); }
@@ -185,21 +192,75 @@ textarea { resize:vertical; min-height:80px; }
 .empty-state { color:var(--smoke); font-size:0.83rem; text-align:center; padding:36px 20px; }
 .empty-state .icon { font-size:2.2rem; margin-bottom:10px; }
 
+/* ── MOBILE TOPBAR + DRAWER (hidden on desktop) ── */
+.topbar { display:none; }
+.sidebar-backdrop { display:none; }
+
 @media(max-width:768px) {
-  :root { --sidebar-w:200px; }
-  .main { padding:24px 20px; }
+  .main { margin-left:0; padding:78px 18px 36px; }
   .grid-2,.grid-3,.tier-cards,.profile-grid { grid-template-columns:1fr; }
-  .sidebar-brand { padding:20px 16px 16px; gap:8px; }
-  .sidebar-brand img { width:32px; height:32px; }
-  .sidebar-brand .name { font-size:0.64rem; letter-spacing:0.06em; }
-  .sidebar-brand .tagline { font-size:0.54rem; letter-spacing:0.12em; }
+  .trips-filter { flex-direction:column; align-items:stretch; }
+  .trips-filter input, .trips-filter select, .trips-filter #tf-clear { width:100%; }
+
+  /* fixed top bar with hamburger */
+  .topbar {
+    display:flex; align-items:center; gap:12px;
+    position:fixed; top:0; left:0; right:0; height:58px; z-index:60;
+    background:var(--navy); padding:0 14px;
+    border-bottom:1px solid rgba(255,255,255,0.08);
+  }
+  .hamburger {
+    width:38px; height:38px; flex-shrink:0; padding:0; cursor:pointer;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px;
+    background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:8px;
+  }
+  .hamburger span { display:block; width:17px; height:2px; background:var(--gold2); border-radius:2px; transition:transform 0.25s, opacity 0.2s; }
+  .topbar.nav-open .hamburger span:nth-child(1) { transform:translateY(6px) rotate(45deg); }
+  .topbar.nav-open .hamburger span:nth-child(2) { opacity:0; }
+  .topbar.nav-open .hamburger span:nth-child(3) { transform:translateY(-6px) rotate(-45deg); }
+  .tb-brand { display:flex; align-items:center; gap:9px; min-width:0; text-decoration:none; }
+  .tb-brand img { width:28px; height:28px; object-fit:contain; flex-shrink:0; }
+  .tb-brand .name {
+    font-size:0.68rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold2);
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+  }
+
+  /* sidebar becomes an off-canvas drawer */
+  .sidebar {
+    width:min(82vw, 300px); z-index:55; padding-top:58px;
+    overflow-y:auto; -webkit-overflow-scrolling:touch;
+    transform:translateX(-100%);
+    transition:transform 0.28s cubic-bezier(0.4,0,0.2,1);
+    box-shadow:0 0 44px rgba(0,0,0,0.4);
+  }
+  .sidebar.open { transform:translateX(0); }
+  .sidebar-brand { display:none; }
+
+  .sidebar-backdrop {
+    display:block; position:fixed; inset:0; z-index:48;
+    background:rgba(26,31,46,0.5); backdrop-filter:blur(2px);
+    opacity:0; pointer-events:none; transition:opacity 0.28s;
+  }
+  .sidebar-backdrop.show { opacity:1; pointer-events:auto; }
 }
 </style>
 </head>
 <body>
 
+<!-- MOBILE TOPBAR -->
+<header class="topbar" id="topbar">
+  <button class="hamburger" id="nav-hamburger" aria-label="Menu" aria-expanded="false" aria-controls="sidebar">
+    <span></span><span></span><span></span>
+  </button>
+  <a class="tb-brand" href="index.html" aria-label="Back to Home">
+    <img src="the-travel-chapter-icon.png" alt="">
+    <div class="name">The Travel Chapter</div>
+  </a>
+</header>
+<div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
 <!-- SIDEBAR -->
-<aside class="sidebar">
+<aside class="sidebar" id="sidebar">
   <div class="sidebar-brand">
     <img src="the-travel-chapter-icon.png" alt="The Travel Chapter">
     <div>
@@ -254,6 +315,10 @@ textarea { resize:vertical; min-height:80px; }
         <div class="member-tier" id="sb-tier">—</div>
       </div>
     </div>
+    <a class="nav-item" href="index.html">
+      <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V21h14V9.5"/><path d="M9.5 21v-6h5v6"/></svg>
+      <span data-i18n="dash.back_home">Back to Home</span>
+    </a>
     <button class="nav-item" id="btn-signout">
       <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
       <span data-i18n="dash.signout">Sign Out</span>
@@ -287,6 +352,14 @@ textarea { resize:vertical; min-height:80px; }
       <h1 data-i18n="dash.browse_heading" data-i18n-html>Browse <em>Trips</em></h1>
       <p data-i18n="dash.browse_subtitle">Discover curated journeys matched to your membership tier.</p>
     </div>
+    <div class="trips-filter" id="trips-filter">
+      <input type="search" id="tf-search" data-i18n-placeholder="trips_page.filter_search_ph" placeholder="Search trips…">
+      <select id="tf-month" aria-label="Month"></select>
+      <select id="tf-region" aria-label="Destination"><option value="" data-i18n="trips_page.filter_dest_all">All destinations</option></select>
+      <select id="tf-category" aria-label="Category"><option value="" data-i18n="trips_page.filter_cat_all">All categories</option></select>
+      <button type="button" id="tf-clear" data-i18n="trips_page.filter_clear">Clear</button>
+    </div>
+    <div class="trips-count" id="trips-count"></div>
     <div class="trips-grid" id="trips-grid"><div class="empty-state" data-i18n="dash.loading_trips">Loading trips…</div></div>
   </div>
 
@@ -429,6 +502,21 @@ textarea { resize:vertical; min-height:80px; }
 <script>
 TC_I18N.applyStatic();
 
+// ── MOBILE DRAWER ───────────────────────────────────────────
+const _sidebar = document.getElementById('sidebar');
+const _backdrop = document.getElementById('sidebar-backdrop');
+const _topbar = document.getElementById('topbar');
+const _hamburger = document.getElementById('nav-hamburger');
+function setDrawer(open) {
+  _sidebar.classList.toggle('open', open);
+  _backdrop.classList.toggle('show', open);
+  _topbar.classList.toggle('nav-open', open);
+  _hamburger.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+_hamburger.addEventListener('click', () => setDrawer(!_sidebar.classList.contains('open')));
+_backdrop.addEventListener('click', () => setDrawer(false));
+document.addEventListener('keydown', e => { if (e.key === 'Escape') setDrawer(false); });
+
 const SUPABASE_URL  = 'https://nkrpkfqibsudqsonljve.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_8mbRk904S5zktFv6UIlRUg_gp1PFAWm';
 const { createClient } = supabase;
@@ -447,6 +535,7 @@ document.getElementById('sidebar-nav').addEventListener('click', function(e) {
   const target = document.getElementById('page-' + btn.getAttribute('data-page'));
   if (target) target.classList.add('active');
   btn.classList.add('active');
+  setDrawer(false);
 });
 
 document.getElementById('btn-signout').addEventListener('click', async () => {
@@ -499,6 +588,7 @@ async function init() {
 
   await Promise.all([loadProfile(), loadTrips(), loadBookings()]);
   await Promise.all([loadReferralData(), loadProducts(), loadProductRequests()]);
+  buildTripFilters();
   renderSidebar(); renderOverview(); renderTrips(); renderBookings(); renderPoints(); prefillProfile(); renderReferralsPage(); renderRewards();
 }
 
@@ -587,10 +677,65 @@ function pointsStats() {
 // ── RENDER TRIPS ─────────────────────────────────────────────
 const tripEmojis = {'kyoto-autumn':'🍁','amalfi-yacht':'⛵','mekong-river':'🛶','patagonia-wild':'🏔️','marrakech-beyond':'🐪','japan-elite':'🏯'};
 const tripGrads  = ['linear-gradient(135deg,#1a3a2a,#2d6a4f)','linear-gradient(135deg,#1a2a3a,#1e6091)','linear-gradient(135deg,#3a1a1a,#7a3520)','linear-gradient(135deg,#2a1a3a,#4a2f6a)','linear-gradient(135deg,#3a2a1a,#6b4a1a)','linear-gradient(135deg,#1a1a3a,#2d3561)'];
+// ── BROWSE TRIPS: filter / search bar ───────────────────────
+const TRIP_FILTER_LOCALE = { en:'en-GB', zh:'zh-CN', ms:'ms-MY' };
+const tripFilter = {
+  search:   document.getElementById('tf-search'),
+  month:    document.getElementById('tf-month'),
+  region:   document.getElementById('tf-region'),
+  category: document.getElementById('tf-category'),
+};
+function tfFillSelect(sel, values, allKey) {
+  const cur = sel.value;
+  sel.innerHTML = `<option value="">${TC_I18N.t(allKey)}</option>`
+    + values.map(v => `<option value="${v}">${v}</option>`).join('');
+  if (values.includes(cur)) sel.value = cur;
+}
+function buildTripFilters() {
+  const curM = tripFilter.month.value;
+  const loc = TRIP_FILTER_LOCALE[TC_I18N.lang] || 'en-GB';
+  let mh = `<option value="">${TC_I18N.t('trips_page.filter_month_any')}</option>`;
+  for (let m = 1; m <= 12; m++) {
+    mh += `<option value="${String(m).padStart(2,'0')}">${new Date(2021, m-1, 1).toLocaleDateString(loc, { month:'long' })}</option>`;
+  }
+  tripFilter.month.innerHTML = mh;
+  if (curM) tripFilter.month.value = curM;
+  tfFillSelect(tripFilter.region,   [...new Set(trips.map(t => t.region).filter(Boolean))].sort(),   'trips_page.filter_dest_all');
+  tfFillSelect(tripFilter.category, [...new Set(trips.map(t => t.category).filter(Boolean))].sort(), 'trips_page.filter_cat_all');
+}
+function filteredTrips() {
+  const q = tripFilter.search.value.trim().toLowerCase();
+  const m = tripFilter.month.value, r = tripFilter.region.value, c = tripFilter.category.value;
+  return trips.filter(t => {
+    if (q && !`${t.title||''} ${t.summary||''} ${t.region||''} ${t.category||''}`.toLowerCase().includes(q)) return false;
+    if (m && !(t.departure_dates || []).some(d => String(d).slice(5,7) === m)) return false;
+    if (r && t.region !== r) return false;
+    if (c && t.category !== c) return false;
+    return true;
+  });
+}
+['input','change'].forEach(ev => tripFilter.search.addEventListener(ev, renderTrips));
+[tripFilter.month, tripFilter.region, tripFilter.category].forEach(el => el.addEventListener('change', renderTrips));
+document.getElementById('tf-clear').addEventListener('click', () => {
+  tripFilter.search.value = ''; tripFilter.month.value = ''; tripFilter.region.value = ''; tripFilter.category.value = '';
+  renderTrips();
+});
+
 function renderTrips() {
   const grid = document.getElementById('trips-grid');
-  if (!trips.length) { grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="icon">✈️</div><p>${TC_I18N.t('dash.no_trips')}</p></div>`; return; }
-  grid.innerHTML = trips.map((t,i) => {
+  const countEl = document.getElementById('trips-count');
+  if (!trips.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="icon">✈️</div><p>${TC_I18N.t('dash.no_trips')}</p></div>`;
+    if (countEl) countEl.textContent = '';
+    return;
+  }
+  const list = filteredTrips();
+  if (countEl) countEl.textContent = TC_I18N.t('trips_page.filter_count').replace('{n}', list.length);
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty-state" style="grid-column:1/-1;"><div class="icon">🔍</div><p>${TC_I18N.t('trips_page.filter_none')}</p></div>`;
+    return;
+  }
+  grid.innerHTML = list.map((t,i) => {
     const emoji  = tripEmojis[t.slug]||'✈️';
     const grad   = tripGrads[i%tripGrads.length];
     const dates  = (t.departure_dates||[]).slice(0,2).map(d=>fmtDate(d)).join(' · ');
@@ -888,6 +1033,7 @@ init();
 // Static labels are handled by TC_I18N.applyStatic() itself via [data-i18n].
 TC_I18N.onChange(() => {
   if (!currentUser) return;
+  buildTripFilters();
   renderSidebar(); renderOverview(); renderTrips(); renderBookings(); renderPoints(); renderReferralsPage(); renderRewards();
 });
 

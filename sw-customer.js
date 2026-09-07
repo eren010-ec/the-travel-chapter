@@ -1,8 +1,9 @@
-const CACHE_NAME = 'tc-customer-v13';
+const CACHE_NAME = 'tc-customer-v14';
 const APP_SHELL = [
   'index.html',
   'trips.html',
   'trip.html',
+  'hotels.html',
   'free-gifts.html',
   'about.html',
   'contact.html',

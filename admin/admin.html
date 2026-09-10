@@ -478,7 +478,7 @@ textarea { resize:vertical; min-height:70px; }
     <div class="card">
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Day</th><th>Points</th><th>Icon</th><th>Actions</th></tr></thead>
+          <thead><tr><th>Day</th><th>Reward</th><th>Icon</th><th>Actions</th></tr></thead>
           <tbody id="checkin-rewards-body"><tr><td colspan="4" class="loading">Loading…</td></tr></tbody>
         </table>
       </div>
@@ -2062,18 +2062,47 @@ async function deleteProduct(id) {
 
 // ── DAILY CHECK-IN REWARDS ─────────────────────────────────
 async function loadCheckinRewards() {
-  const { data } = await sb.from('check_in_rewards').select('day, points, image_url').order('day');
+  const { data } = await sb.from('check_in_rewards')
+    .select('day, points, image_url, reward_type, voucher_discount_type, voucher_discount_value, voucher_valid_days')
+    .order('day');
   allCheckinRewards = data || [];
+}
+function cirRenderType(d) {
+  const isVoucher = document.getElementById('cir-type-' + d).value === 'voucher';
+  document.getElementById('cir-points-' + d).style.display = isVoucher ? 'none' : '';
+  document.getElementById('cir-voucher-' + d).style.display = isVoucher ? 'flex' : 'none';
 }
 function renderCheckinRewardsTable() {
   const body = document.getElementById('checkin-rewards-body');
   if (!body) return;
   const rows = [];
   for (let d = 1; d <= 7; d++) {
-    const r = allCheckinRewards.find(x => x.day === d) || { day: d, points: 0, image_url: null };
+    const r = allCheckinRewards.find(x => x.day === d) ||
+      { day: d, points: 0, image_url: null, reward_type: 'points', voucher_discount_type: 'fixed', voucher_discount_value: '', voucher_valid_days: 30 };
+    const isV = r.reward_type === 'voucher';
     rows.push(`<tr>
       <td><strong>Day ${d}</strong>${d === 7 ? ' <span style="font-size:0.65rem;color:var(--gold);">bonus</span>' : ''}</td>
-      <td><input type="number" min="0" id="cir-pts-${d}" value="${r.points}" style="width:90px;"></td>
+      <td>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <select id="cir-type-${d}" onchange="cirRenderType(${d})" style="width:140px;">
+            <option value="points"${isV ? '' : ' selected'}>Points</option>
+            <option value="voucher"${isV ? ' selected' : ''}>Voucher</option>
+          </select>
+          <div id="cir-points-${d}" style="display:${isV ? 'none' : 'flex'};align-items:center;gap:6px;">
+            <input type="number" min="0" id="cir-pts-${d}" value="${r.points ?? 0}" style="width:90px;"> <span style="font-size:0.72rem;color:var(--smoke);">points</span>
+          </div>
+          <div id="cir-voucher-${d}" style="display:${isV ? 'flex' : 'none'};align-items:center;gap:6px;flex-wrap:wrap;">
+            <select id="cir-vtype-${d}" style="width:110px;">
+              <option value="fixed"${r.voucher_discount_type === 'percent' ? '' : ' selected'}>Fixed (RM)</option>
+              <option value="percent"${r.voucher_discount_type === 'percent' ? ' selected' : ''}>Percent (%)</option>
+            </select>
+            <input type="number" min="0" step="0.01" id="cir-vval-${d}" value="${r.voucher_discount_value ?? ''}" placeholder="value" style="width:80px;">
+            <span style="font-size:0.72rem;color:var(--smoke);">valid</span>
+            <input type="number" min="1" id="cir-vdays-${d}" value="${r.voucher_valid_days ?? 30}" style="width:60px;">
+            <span style="font-size:0.72rem;color:var(--smoke);">days</span>
+          </div>
+        </div>
+      </td>
       <td>
         <div style="display:flex;align-items:center;gap:10px;">
           <span id="cir-thumb-${d}">${r.image_url
@@ -2104,8 +2133,24 @@ function clearCirImage(day) {
 }
 async function saveCheckinReward(day) {
   const btn = document.getElementById('cir-save-' + day);
+  const type = document.getElementById('cir-type-' + day).value;
+  const payload = { reward_type: type, points: parseInt(document.getElementById('cir-pts-' + day).value) || 0 };
+  if (type === 'voucher') {
+    const vtype = document.getElementById('cir-vtype-' + day).value;
+    const vval  = parseFloat(document.getElementById('cir-vval-' + day).value);
+    const vdays = parseInt(document.getElementById('cir-vdays-' + day).value);
+    if (!vval || vval <= 0) { showToast('Enter a voucher value.', true); return; }
+    if (vtype === 'percent' && vval > 100) { showToast('Percent discount cannot exceed 100.', true); return; }
+    if (!vdays || vdays < 1) { showToast('Enter how many days the voucher stays valid.', true); return; }
+    payload.voucher_discount_type = vtype;
+    payload.voucher_discount_value = vval;
+    payload.voucher_valid_days = vdays;
+  } else {
+    payload.voucher_discount_type = null;
+    payload.voucher_discount_value = null;
+    payload.voucher_valid_days = null;
+  }
   btn.disabled = true; btn.textContent = 'Saving…';
-  const payload = { points: parseInt(document.getElementById('cir-pts-' + day).value) || 0 };
   const file = document.getElementById('cir-file-' + day).files[0];
   if (file) {
     const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();

@@ -117,8 +117,10 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 #btn-checkin { white-space:nowrap; }
 .checkin-boxes { display:flex; gap:7px; margin-top:16px; }
 .ci-col { flex:1; max-width:58px; display:flex; flex-direction:column; align-items:center; gap:5px; }
-.ci-pts { font-size:0.66rem; font-weight:500; color:var(--smoke); letter-spacing:0.02em; }
+.ci-pts { font-size:0.66rem; font-weight:500; color:var(--smoke); letter-spacing:0.02em; white-space:nowrap; }
+.ci-pts.is-voucher { color:#1e6091; }
 .ci-box.lit + .ci-pts { color:var(--gold); }
+.ci-box.lit + .ci-pts.is-voucher { color:#1e6091; }
 .ci-box {
   width:100%; aspect-ratio:1;
   display:flex; align-items:center; justify-content:center;
@@ -706,17 +708,32 @@ async function loadProductRequests() {
 }
 async function loadCheckins() {
   const { data } = await sb.from('check_ins')
-    .select('check_in_date, points_awarded, streak_day')
+    .select('check_in_date, points_awarded, streak_day, reward_kind')
     .eq('member_id', currentUser.id)
     .order('check_in_date', { ascending: false })
     .limit(90);
   checkins = data || [];
 }
 async function loadCheckinRewards() {
-  const { data } = await sb.from('check_in_rewards').select('day, points, image_url').order('day');
+  const { data } = await sb.from('check_in_rewards')
+    .select('day, points, image_url, reward_type, voucher_discount_type, voucher_discount_value, voucher_valid_days')
+    .order('day');
   checkinRewards = data || [];
 }
 function rewardForDay(cycleDay) { return checkinRewards.find(r => r.day === cycleDay) || null; }
+// True when the configured reward for this cycle day is a voucher.
+function isVoucherDay(r) { return !!(r && r.reward_type === 'voucher' && r.voucher_discount_type && r.voucher_discount_value != null); }
+function voucherAmountLabel(dtype, val) {
+  return dtype === 'percent'
+    ? `${Number(val)}%`
+    : `RM ${Number(val).toLocaleString()}`;
+}
+// Short label shown under a box: "+5" for points, "RM 50" / "10%" for a voucher.
+function rewardBoxLabel(cycleDay) {
+  const r = rewardForDay(cycleDay);
+  if (isVoucherDay(r)) return voucherAmountLabel(r.voucher_discount_type, r.voucher_discount_value);
+  return `+${Number(r ? r.points : checkinPoints(cycleDay)).toLocaleString()}`;
+}
 async function loadReferralData() {
   const [{ data: promos }, { data: referrals }, { data: wins }] = await Promise.all([
     sb.from('referral_promotions').select('*').eq('is_active', true),
@@ -814,9 +831,12 @@ function renderCheckin(justClaimed) {
   btn.disabled = checkedToday;
   btn.textContent = TC_I18N.t(checkedToday ? 'dash.checkin_done' : 'dash.checkin_btn');
 
+  const nextR = rewardForDay(((streak) % 7) + 1);
   document.getElementById('ci-hint').textContent = checkedToday
     ? TC_I18N.t('dash.checkin_come_back')
-    : TC_I18N.t('dash.checkin_earn_hint', { pts: checkinPoints(streak + 1) });
+    : isVoucherDay(nextR)
+      ? TC_I18N.t('dash.checkin_earn_hint_voucher', { reward: voucherAmountLabel(nextR.voucher_discount_type, nextR.voucher_discount_value) })
+      : TC_I18N.t('dash.checkin_earn_hint', { pts: checkinPoints(streak + 1) });
 
   // 7-box reward row for the current streak cycle. Boxes light left-to-right as
   // each day is claimed; completing all 7 (day 7, 14, …) starts a fresh row.
@@ -831,9 +851,9 @@ function renderCheckin(justClaimed) {
     if (i <= filled) { cls.push('lit'); if (justClaimed && i === filled) cls.push('pop'); }
     else if (i === next) cls.push('next');
     const r = rewardForDay(i);
-    const inner = r && r.image_url ? `<img src="${r.image_url}" alt="">` : (i === 7 ? '🎉' : '🎁');
-    const pts = r ? r.points : checkinPoints(i);
-    html += `<span class="ci-col"><span class="${cls.join(' ')}">${inner}</span><span class="ci-pts">+${Number(pts).toLocaleString()}</span></span>`;
+    const voucher = isVoucherDay(r);
+    const inner = r && r.image_url ? `<img src="${r.image_url}" alt="">` : (voucher ? '🎟️' : (i === 7 ? '🎉' : '🎁'));
+    html += `<span class="ci-col"><span class="${cls.join(' ')}">${inner}</span><span class="ci-pts${voucher ? ' is-voucher' : ''}">${rewardBoxLabel(i)}</span></span>`;
   }
   document.getElementById('ci-boxes').innerHTML = html;
 }
@@ -844,13 +864,19 @@ async function doCheckIn() {
   if (error) { showToast(TC_I18N.t('dash.error_prefix') + error.message, true); btn.disabled = false; return; }
   if (data.already_checked_in) {
     showToast(TC_I18N.t('dash.checkin_already'));
+  } else if (data.reward_kind === 'voucher') {
+    showToast(TC_I18N.t('dash.checkin_voucher_toast', {
+      reward: voucherAmountLabel(data.voucher_discount_type, data.voucher_discount_value),
+      date: fmtDate(data.voucher_expires_at),
+    }));
+    await loadVouchers();
   } else {
     if (profile) profile.reward_points = data.reward_points;
     showToast(TC_I18N.t(data.weekly_bonus ? 'dash.checkin_bonus_toast' : 'dash.checkin_toast',
       { pts: data.points_awarded, day: data.streak_day }));
   }
   await loadCheckins();
-  renderCheckin(!data.already_checked_in); renderSidebar(); renderOverview(); renderPoints();
+  renderCheckin(!data.already_checked_in); renderSidebar(); renderOverview(); renderVouchers(); renderPoints();
 }
 
 // ── RENDER TRIPS ─────────────────────────────────────────────
@@ -1009,7 +1035,7 @@ function renderPoints() {
     const n = b.points_earned != null ? b.points_earned : Math.floor(Number(b.total_usd) || 0);
     events.push({ date: b.booked_at || b.departure_date, label: b.trips?.title || TC_I18N.t('dash.rewards_pts'), delta: `+${n.toLocaleString()}`, kind: 'earn' });
   });
-  checkins.forEach(c => {
+  checkins.filter(c => c.reward_kind !== 'voucher' && (c.points_awarded || 0) > 0).forEach(c => {
     const label = `${TC_I18N.t('dash.checkin_activity_label')} · ${TC_I18N.t('dash.checkin_day_n', { n: c.streak_day })}`;
     events.push({ date: c.check_in_date, label, delta: `+${Number(c.points_awarded || 0).toLocaleString()}`, kind: 'earn' });
   });

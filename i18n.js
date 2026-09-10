@@ -898,8 +898,9 @@
     function render(session) {
       var signedIn = !!session;
       ctas.forEach(function (scope) {
-        var login    = scope.querySelector(':scope > a.btn-nav-ghost[href*="login.html"]');
-        var register = scope.querySelector(':scope > a.btn-nav-primary[href*="login.html"]');
+        // match both "login.html" and the pretty-URL "/login" the live nav uses
+        var login    = scope.querySelector(':scope > a.btn-nav-ghost[href*="login"]');
+        var register = scope.querySelector(':scope > a.btn-nav-primary[href*="login"]');
         if (!login && !register) return;
         var profile = scope.querySelector(':scope > a.btn-nav-profile');
         var logout  = scope.querySelector(':scope > a.btn-nav-logout');

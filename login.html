@@ -444,9 +444,8 @@ async function routeSession(session) {
     showErr('login-err', TC_I18N.t('login.err_admin_account'));
     return;
   }
-  // Land members on the public home page — the navbar there swaps Login/Register
-  // for a Profile button (see TC_I18N nav-auth) that opens this dashboard.
-  window.location.href = 'index.html';
+  // Signed-in members go straight to their dashboard.
+  window.location.href = 'dashboard.html';
 }
 
 // Redirect if already logged in

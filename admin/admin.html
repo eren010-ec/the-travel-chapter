@@ -447,6 +447,18 @@ textarea { resize:vertical; min-height:70px; }
     </div>
     <div class="card" style="margin-top:18px;">
       <div class="card-header">
+        <div class="card-title">Daily Check-in Rewards</div>
+        <span style="font-size:0.72rem;color:var(--smoke);">Points &amp; icon for each day of the 7-day streak cycle. Resets 12am Malaysia time. Blank icon = default present box.</span>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Day</th><th>Points</th><th>Icon</th><th>Actions</th></tr></thead>
+          <tbody id="checkin-rewards-body"><tr><td colspan="4" class="loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card" style="margin-top:18px;">
+      <div class="card-header">
         <div class="card-title">Redemption Requests</div>
         <select class="filter-select" id="prq-filter" onchange="renderProductRequestsTable()">
           <option value="open">Open (pending / approved)</option>
@@ -1115,7 +1127,7 @@ let editingMemberId=null;
 let editingBookingId=null, addBookingMemberId=null;
 let editingTripId=null, editingBsmId=null;
 let tripImageFile=null, tripImageRemoved=false;
-let allProducts=[], allProductRequests=[];
+let allProducts=[], allProductRequests=[], allCheckinRewards=[];
 let allMessages=[];
 let editingProductId=null, productImageFile=null, productImageRemoved=false;
 
@@ -1282,11 +1294,11 @@ async function init() {
     document.getElementById('nav-revenue')?.remove();
   }
   document.getElementById('admin-email').textContent = session.user.email;
-  const loaders = [loadBookings(), loadTrips(), loadMembers(), loadVouchers(), loadReferralPromotions(), loadReferrals(), loadLuckyDraws(), loadProducts(), loadProductRequests(), loadMessages()];
+  const loaders = [loadBookings(), loadTrips(), loadMembers(), loadVouchers(), loadReferralPromotions(), loadReferrals(), loadLuckyDraws(), loadProducts(), loadProductRequests(), loadMessages(), loadCheckinRewards()];
   if (currentUserIsAdmin) loaders.push(loadTripCosts(), loadRevenue());
   await Promise.all(loaders);
   renderDashboard(); renderMembersTable(); renderAdminsTable(); renderBookingsTable(); renderTripsTable(); renderVouchersTable();
-  renderProductsTable(); renderProductRequestsTable(); renderMessagesTable();
+  renderProductsTable(); renderProductRequestsTable(); renderCheckinRewardsTable(); renderMessagesTable();
   renderReferralsPage(); renderLuckyDrawsPage();
   if (currentUserIsAdmin) renderRevenuePage();
   refreshNotifications();
@@ -2040,6 +2052,69 @@ async function deleteProduct(id) {
   const { error } = await sb.from('products').delete().eq('id', id);
   if (error) showToast('Error: '+error.message, true);
   else { await loadProducts(); renderProductsTable(); showToast('Product deleted.'); }
+}
+
+// ── DAILY CHECK-IN REWARDS ─────────────────────────────────
+async function loadCheckinRewards() {
+  const { data } = await sb.from('check_in_rewards').select('day, points, image_url').order('day');
+  allCheckinRewards = data || [];
+}
+function renderCheckinRewardsTable() {
+  const body = document.getElementById('checkin-rewards-body');
+  if (!body) return;
+  const rows = [];
+  for (let d = 1; d <= 7; d++) {
+    const r = allCheckinRewards.find(x => x.day === d) || { day: d, points: 0, image_url: null };
+    rows.push(`<tr>
+      <td><strong>Day ${d}</strong>${d === 7 ? ' <span style="font-size:0.65rem;color:var(--gold);">bonus</span>' : ''}</td>
+      <td><input type="number" min="0" id="cir-pts-${d}" value="${r.points}" style="width:90px;"></td>
+      <td>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span id="cir-thumb-${d}">${r.image_url
+            ? `<img src="${r.image_url}" style="width:38px;height:38px;border-radius:8px;object-fit:contain;border:1px solid var(--border);background:#fff;">`
+            : '<span style="font-size:1.3rem;">🎁</span>'}</span>
+          <input type="file" accept="image/*" id="cir-file-${d}" style="display:none;" onchange="onCirFile(${d})">
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('cir-file-${d}').click()">📷 Choose</button>
+          ${r.image_url ? `<button class="btn btn-ghost btn-sm" onclick="clearCirImage(${d})">✕ Remove</button>` : ''}
+          <span id="cir-status-${d}" style="font-size:0.7rem;color:var(--smoke);"></span>
+        </div>
+      </td>
+      <td><button class="btn btn-primary btn-sm" id="cir-save-${d}" onclick="saveCheckinReward(${d})">Save</button></td>
+    </tr>`);
+  }
+  body.innerHTML = rows.join('');
+}
+const cirImageRemoved = {};
+function onCirFile(day) {
+  cirImageRemoved[day] = false;
+  const f = document.getElementById('cir-file-' + day).files[0];
+  document.getElementById('cir-status-' + day).textContent = f ? f.name : '';
+}
+function clearCirImage(day) {
+  cirImageRemoved[day] = true;
+  document.getElementById('cir-file-' + day).value = '';
+  document.getElementById('cir-thumb-' + day).innerHTML = '<span style="font-size:1.3rem;">🎁</span>';
+  document.getElementById('cir-status-' + day).textContent = 'icon cleared — press Save';
+}
+async function saveCheckinReward(day) {
+  const btn = document.getElementById('cir-save-' + day);
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const payload = { points: parseInt(document.getElementById('cir-pts-' + day).value) || 0 };
+  const file = document.getElementById('cir-file-' + day).files[0];
+  if (file) {
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const path = `checkin/day${day}-${Date.now()}.${ext}`;
+    const { error: upErr } = await sb.storage.from('trip-images').upload(path, file);
+    if (upErr) { showToast('Image upload failed: ' + upErr.message, true); btn.disabled = false; btn.textContent = 'Save'; return; }
+    payload.image_url = sb.storage.from('trip-images').getPublicUrl(path).data.publicUrl;
+  } else if (cirImageRemoved[day]) {
+    payload.image_url = null;
+  }
+  const { error } = await sb.from('check_in_rewards').update(payload).eq('day', day);
+  if (error) { showToast('Error: ' + error.message, true); btn.disabled = false; btn.textContent = 'Save'; return; }
+  delete cirImageRemoved[day];
+  await loadCheckinRewards(); renderCheckinRewardsTable();
+  showToast(`Day ${day} reward saved ✓`);
 }
 
 // ── PRODUCT REQUESTS ────────────────────────────────────────

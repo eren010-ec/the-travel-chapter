@@ -7,3 +7,6 @@ Thumbs.db
 
 # Supabase CLI local state
 supabase/.temp/
+
+# Local preview builds (regenerated from the real page)
+*.__preview.html

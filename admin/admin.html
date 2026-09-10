@@ -269,6 +269,9 @@ textarea { resize:vertical; min-height:70px; }
     <button class="nav-item" data-page="products">
       <svg viewBox="0 0 24 24"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>Products
     </button>
+    <button class="nav-item" data-page="checkin">
+      <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Check-in Rewards
+    </button>
     <button class="nav-item" data-page="vouchers">
       <svg viewBox="0 0 24 24"><path d="M20 12v6a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-6M2 7h20v5H2z"/><path d="M12 22V7M12 7a2.5 2.5 0 1 1-2.5-2.5C11 4.5 12 7 12 7ZM12 7a2.5 2.5 0 1 0 2.5-2.5C13 4.5 12 7 12 7Z"/></svg>Vouchers
     </button>
@@ -447,18 +450,6 @@ textarea { resize:vertical; min-height:70px; }
     </div>
     <div class="card" style="margin-top:18px;">
       <div class="card-header">
-        <div class="card-title">Daily Check-in Rewards</div>
-        <span style="font-size:0.72rem;color:var(--smoke);">Points &amp; icon for each day of the 7-day streak cycle. Resets 12am Malaysia time. Blank icon = default present box.</span>
-      </div>
-      <div class="tbl-wrap">
-        <table>
-          <thead><tr><th>Day</th><th>Points</th><th>Icon</th><th>Actions</th></tr></thead>
-          <tbody id="checkin-rewards-body"><tr><td colspan="4" class="loading">Loading…</td></tr></tbody>
-        </table>
-      </div>
-    </div>
-    <div class="card" style="margin-top:18px;">
-      <div class="card-header">
         <div class="card-title">Redemption Requests</div>
         <select class="filter-select" id="prq-filter" onchange="renderProductRequestsTable()">
           <option value="open">Open (pending / approved)</option>
@@ -474,6 +465,21 @@ textarea { resize:vertical; min-height:70px; }
         <table>
           <thead><tr><th>Member</th><th>Product</th><th>Method</th><th>Qty</th><th>Amount</th><th>Requested</th><th>Status</th><th>Actions</th></tr></thead>
           <tbody id="product-requests-body"><tr><td colspan="8" class="loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- CHECK-IN REWARDS -->
+  <div class="page" id="page-checkin">
+    <div class="page-header">
+      <div><h1>Check-in Rewards</h1><p>Points &amp; icon for each day of the member Daily Check-in 7-day cycle. Streak resets 12am Malaysia time. Blank icon = default present box.</p></div>
+    </div>
+    <div class="card">
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Day</th><th>Points</th><th>Icon</th><th>Actions</th></tr></thead>
+          <tbody id="checkin-rewards-body"><tr><td colspan="4" class="loading">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>

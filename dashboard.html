@@ -106,10 +106,29 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 .checkin-streak .lbl { font-family:'DM Sans',sans-serif; font-size:0.8rem; color:var(--smoke); }
 .checkin-hint { font-size:0.76rem; color:var(--smoke); margin-top:8px; }
 #btn-checkin { white-space:nowrap; }
-.checkin-week { display:flex; gap:8px; margin-top:16px; }
-.ci-dot { flex:1; height:8px; border-radius:50px; background:var(--border); transition:background 0.2s; }
-.ci-dot.on { background:linear-gradient(90deg,var(--navy),var(--gold)); }
-.ci-dot.today { outline:2px solid var(--gold2); outline-offset:2px; }
+.checkin-boxes { display:flex; gap:7px; margin-top:16px; }
+.ci-box {
+  flex:1; max-width:54px; aspect-ratio:1;
+  display:flex; align-items:center; justify-content:center;
+  font-size:1.15rem; line-height:1; border-radius:10px;
+  background:var(--cream2); border:1px solid var(--border);
+  filter:grayscale(1); opacity:0.4; transition:opacity 0.25s, filter 0.25s, background 0.25s, border-color 0.25s;
+}
+.ci-box.lit {
+  filter:none; opacity:1;
+  background:linear-gradient(135deg,rgba(184,149,90,0.16),rgba(212,170,112,0.30));
+  border-color:var(--gold);
+}
+.ci-box.next {
+  filter:grayscale(0.35); opacity:0.95;
+  border-color:var(--gold2);
+  animation:ci-pulse 1.7s ease-in-out infinite;
+}
+.ci-box.bonus { font-size:1.3rem; }
+.ci-box.bonus.lit { background:linear-gradient(135deg,var(--gold),var(--gold2)); }
+.ci-box.pop { animation:ci-pop 0.55s ease; }
+@keyframes ci-pulse { 0%,100%{box-shadow:0 0 0 2px rgba(212,170,112,0.35)} 50%{box-shadow:0 0 0 6px rgba(212,170,112,0.10)} }
+@keyframes ci-pop { 0%{transform:scale(0.55);filter:grayscale(1);opacity:0.4} 60%{transform:scale(1.18)} 100%{transform:scale(1)} }
 
 /* ── TIER BADGE ── */
 .tier-badge { display:inline-flex; align-items:center; gap:5px; padding:4px 12px; border-radius:50px; font-size:0.7rem; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; }
@@ -357,7 +376,7 @@ textarea { resize:vertical; min-height:80px; }
         </div>
         <button class="btn-primary" id="btn-checkin" data-i18n="dash.checkin_btn">Check In</button>
       </div>
-      <div class="checkin-week" id="ci-week"></div>
+      <div class="checkin-boxes" id="ci-boxes"></div>
     </div>
     <div class="grid-3">
       <div class="stat-card"><div class="stat-value" id="ov-bookings">—</div><div class="stat-label" data-i18n="dash.stat_bookings">Total Bookings</div></div>
@@ -733,8 +752,8 @@ function checkinState() {
   while (done.has(cursor)) { streak++; cursor = ciDateMinus(cursor, 1); }
   return { today, done, checkedToday, streak };
 }
-function renderCheckin() {
-  const { today, done, checkedToday, streak } = checkinState();
+function renderCheckin(justClaimed) {
+  const { checkedToday, streak } = checkinState();
   document.getElementById('ci-streak').textContent = streak;
 
   const btn = document.getElementById('btn-checkin');
@@ -745,12 +764,19 @@ function renderCheckin() {
     ? TC_I18N.t('dash.checkin_come_back')
     : TC_I18N.t('dash.checkin_earn_hint', { pts: checkinPoints(streak + 1) });
 
+  // 7-box reward row for the current streak cycle. Boxes light left-to-right as
+  // each day is claimed; completing all 7 (day 7, 14, …) starts a fresh row.
+  const filled = checkedToday ? ((streak - 1) % 7) + 1 : (streak % 7);
+  const next   = checkedToday ? 0 : filled + 1;
   let html = '';
-  for (let i = 6; i >= 0; i--) {
-    const d = ciDateMinus(today, i);
-    html += `<span class="ci-dot${done.has(d) ? ' on' : ''}${i === 0 ? ' today' : ''}"></span>`;
+  for (let i = 1; i <= 7; i++) {
+    const cls = ['ci-box'];
+    if (i === 7) cls.push('bonus');
+    if (i <= filled) { cls.push('lit'); if (justClaimed && i === filled) cls.push('pop'); }
+    else if (i === next) cls.push('next');
+    html += `<span class="${cls.join(' ')}">${i === 7 ? '🎉' : '🎁'}</span>`;
   }
-  document.getElementById('ci-week').innerHTML = html;
+  document.getElementById('ci-boxes').innerHTML = html;
 }
 async function doCheckIn() {
   const btn = document.getElementById('btn-checkin');
@@ -765,7 +791,7 @@ async function doCheckIn() {
       { pts: data.points_awarded, day: data.streak_day }));
   }
   await loadCheckins();
-  renderCheckin(); renderSidebar(); renderOverview(); renderPoints();
+  renderCheckin(!data.already_checked_in); renderSidebar(); renderOverview(); renderPoints();
 }
 
 // ── RENDER TRIPS ─────────────────────────────────────────────

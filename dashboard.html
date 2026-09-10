@@ -767,12 +767,31 @@ function rewardBoxLabel(cycleDay) {
   if (isVoucherDay(r)) return voucherAmountLabel(r.voucher_discount_type, r.voucher_discount_value);
   return `+${Number(r ? r.points : checkinPoints(cycleDay)).toLocaleString()}`;
 }
-// A points/voucher prize object (from claim_lucky_draw or a check_in_rewards row) -> short human label.
+// A lucky-draw prize object (from claim_lucky_draw) -> short human label.
+// Admin-set label always wins; otherwise derive from the type.
 function prizeLabel(p) {
   if (!p) return '';
-  if (p.reward_type === 'voucher' && p.voucher_discount_value != null)
-    return voucherAmountLabel(p.voucher_discount_type, p.voucher_discount_value) + ' ' + TC_I18N.t('dash.draw_voucher_word');
-  return `+${Number(p.points || 0).toLocaleString()} ${TC_I18N.t('dash.rewards_pts')}`;
+  if (p.label) return p.label;
+  const amt = p.voucher_discount_value != null
+    ? voucherAmountLabel(p.voucher_discount_type, p.voucher_discount_value) : '';
+  switch (p.reward_type) {
+    case 'product':       return p.product_name || TC_I18N.t('dash.draw_prize_product');
+    case 'cash':          return TC_I18N.t('dash.draw_prize_cash', { v: amt });
+    case 'trip_voucher':  return TC_I18N.t('dash.draw_prize_trip', { v: amt });
+    case 'hotel_voucher': return TC_I18N.t('dash.draw_prize_hotel', { v: amt });
+    case 'voucher':       return amt + ' ' + TC_I18N.t('dash.draw_voucher_word');
+    default:              return `+${Number(p.points || 0).toLocaleString()} ${TC_I18N.t('dash.rewards_pts')}`;
+  }
+}
+function prizeEmoji(p) {
+  switch (p && p.reward_type) {
+    case 'product':       return '🎁';
+    case 'cash':          return '💵';
+    case 'trip_voucher':  return '✈️';
+    case 'hotel_voucher': return '🏨';
+    case 'voucher':       return '🎟️';
+    default:              return '⭐';
+  }
 }
 async function loadReferralData() {
   const [{ data: promos }, { data: referrals }, { data: wins }] = await Promise.all([
@@ -994,7 +1013,7 @@ function revealDraw(data, silent) {
       el.innerHTML = drawCell('🎉', prizeLabel(data.prize));
     } else if (p) {
       el.classList.add('dim');
-      el.innerHTML = drawCell(p.reward_type === 'voucher' ? '🎟️' : '⭐', prizeLabel(p));
+      el.innerHTML = drawCell(prizeEmoji(p), prizeLabel(p));
     } else {
       el.classList.add('dim');
       el.innerHTML = drawCell('🎁');

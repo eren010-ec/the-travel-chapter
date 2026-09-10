@@ -2188,44 +2188,56 @@ async function saveCheckinReward(day) {
 // ── DAY-7 LUCKY DRAW PRIZES (9 boxes) ──────────────────────
 async function loadDrawPrizes() {
   const { data } = await sb.from('check_in_draw_prizes')
-    .select('slot, reward_type, points, voucher_discount_type, voucher_discount_value, voucher_valid_days, label')
+    .select('slot, reward_type, points, voucher_discount_type, voucher_discount_value, voucher_valid_days, label, product_id')
     .order('slot');
   allDrawPrizes = data || [];
 }
+const DP_VOUCHERISH = ['cash', 'trip_voucher', 'hotel_voucher'];
 function dpRenderType(s) {
-  const isV = document.getElementById('dp-type-' + s).value === 'voucher';
-  document.getElementById('dp-points-' + s).style.display = isV ? 'none' : 'flex';
-  document.getElementById('dp-voucher-' + s).style.display = isV ? 'flex' : 'none';
+  const t = document.getElementById('dp-type-' + s).value;
+  document.getElementById('dp-points-' + s).style.display  = t === 'points' ? 'flex' : 'none';
+  document.getElementById('dp-voucher-' + s).style.display = DP_VOUCHERISH.includes(t) ? 'flex' : 'none';
+  document.getElementById('dp-product-' + s).style.display = t === 'product' ? 'flex' : 'none';
+  // Cash is always a fixed RM amount — hide the fixed/percent picker for it.
+  document.getElementById('dp-vtype-' + s).style.display = t === 'cash' ? 'none' : '';
 }
 function renderDrawPrizesTable() {
   const body = document.getElementById('draw-prizes-body');
   if (!body) return;
+  const prods = allProducts.filter(p => p.is_active !== false);
   const rows = [];
   for (let s = 1; s <= 9; s++) {
     const p = allDrawPrizes.find(x => x.slot === s) ||
-      { slot: s, reward_type: 'points', points: 0, voucher_discount_type: 'fixed', voucher_discount_value: '', voucher_valid_days: 30, label: '' };
-    const isV = p.reward_type === 'voucher';
+      { slot: s, reward_type: 'points', points: 0, voucher_discount_type: 'fixed', voucher_discount_value: '', voucher_valid_days: 30, label: '', product_id: null };
+    const t = p.reward_type;
+    const vish = DP_VOUCHERISH.includes(t);
+    const opt = (v, lbl) => `<option value="${v}"${t === v ? ' selected' : ''}>${lbl}</option>`;
     rows.push(`<tr>
       <td><strong>Box ${s}</strong></td>
-      <td><input type="text" id="dp-label-${s}" value="${(p.label || '').replace(/"/g, '&quot;')}" placeholder="e.g. Jackpot" style="width:130px;"></td>
+      <td><input type="text" id="dp-label-${s}" value="${(p.label || '').replace(/"/g, '&quot;')}" placeholder="optional" style="width:120px;"></td>
       <td>
         <div style="display:flex;flex-direction:column;gap:8px;">
-          <select id="dp-type-${s}" onchange="dpRenderType(${s})" style="width:130px;">
-            <option value="points"${isV ? '' : ' selected'}>Points</option>
-            <option value="voucher"${isV ? ' selected' : ''}>Voucher</option>
+          <select id="dp-type-${s}" onchange="dpRenderType(${s})" style="width:150px;">
+            ${opt('points','Points')}${opt('cash','Cash')}${opt('trip_voucher','Trip voucher')}${opt('hotel_voucher','Hotel voucher')}${opt('product','Product')}
           </select>
-          <div id="dp-points-${s}" style="display:${isV ? 'none' : 'flex'};align-items:center;gap:6px;">
+          <div id="dp-points-${s}" style="display:${t === 'points' ? 'flex' : 'none'};align-items:center;gap:6px;">
             <input type="number" min="0" id="dp-pts-${s}" value="${p.points ?? 0}" style="width:90px;"> <span style="font-size:0.72rem;color:var(--smoke);">points</span>
           </div>
-          <div id="dp-voucher-${s}" style="display:${isV ? 'flex' : 'none'};align-items:center;gap:6px;flex-wrap:wrap;">
-            <select id="dp-vtype-${s}" style="width:110px;">
+          <div id="dp-voucher-${s}" style="display:${vish ? 'flex' : 'none'};align-items:center;gap:6px;flex-wrap:wrap;">
+            <select id="dp-vtype-${s}" style="width:110px;display:${t === 'cash' ? 'none' : ''};">
               <option value="fixed"${p.voucher_discount_type === 'percent' ? '' : ' selected'}>Fixed (RM)</option>
               <option value="percent"${p.voucher_discount_type === 'percent' ? ' selected' : ''}>Percent (%)</option>
             </select>
-            <input type="number" min="0" step="0.01" id="dp-vval-${s}" value="${p.voucher_discount_value ?? ''}" placeholder="value" style="width:80px;">
+            <input type="number" min="0" step="0.01" id="dp-vval-${s}" value="${p.voucher_discount_value ?? ''}" placeholder="RM / %" style="width:80px;">
             <span style="font-size:0.72rem;color:var(--smoke);">valid</span>
             <input type="number" min="1" id="dp-vdays-${s}" value="${p.voucher_valid_days ?? 30}" style="width:60px;">
             <span style="font-size:0.72rem;color:var(--smoke);">days</span>
+          </div>
+          <div id="dp-product-${s}" style="display:${t === 'product' ? 'flex' : 'none'};align-items:center;gap:6px;">
+            <select id="dp-prod-${s}" style="width:200px;">
+              <option value="">— pick a product —</option>
+              ${prods.map(pr => `<option value="${pr.id}"${p.product_id === pr.id ? ' selected' : ''}>${escapeHtml(pr.name)}</option>`).join('')}
+            </select>
           </div>
         </div>
       </td>
@@ -2241,21 +2253,22 @@ async function saveDrawPrize(slot) {
     reward_type: type,
     label: document.getElementById('dp-label-' + slot).value.trim() || null,
     points: parseInt(document.getElementById('dp-pts-' + slot).value) || 0,
+    voucher_discount_type: null, voucher_discount_value: null, voucher_valid_days: null, product_id: null,
   };
-  if (type === 'voucher') {
-    const vtype = document.getElementById('dp-vtype-' + slot).value;
+  if (DP_VOUCHERISH.includes(type)) {
+    const vtype = type === 'cash' ? 'fixed' : document.getElementById('dp-vtype-' + slot).value;
     const vval  = parseFloat(document.getElementById('dp-vval-' + slot).value);
     const vdays = parseInt(document.getElementById('dp-vdays-' + slot).value);
-    if (!vval || vval <= 0) { showToast('Enter a voucher value.', true); return; }
-    if (vtype === 'percent' && vval > 100) { showToast('Percent discount cannot exceed 100.', true); return; }
-    if (!vdays || vdays < 1) { showToast('Enter how many days the voucher stays valid.', true); return; }
+    if (!vval || vval <= 0) { showToast('Enter a value.', true); return; }
+    if (vtype === 'percent' && vval > 100) { showToast('Percent cannot exceed 100.', true); return; }
+    if (!vdays || vdays < 1) { showToast('Enter how many days it stays valid.', true); return; }
     payload.voucher_discount_type = vtype;
     payload.voucher_discount_value = vval;
     payload.voucher_valid_days = vdays;
-  } else {
-    payload.voucher_discount_type = null;
-    payload.voucher_discount_value = null;
-    payload.voucher_valid_days = null;
+  } else if (type === 'product') {
+    const pid = document.getElementById('dp-prod-' + slot).value;
+    if (!pid) { showToast('Pick a product for this box.', true); return; }
+    payload.product_id = pid;
   }
   btn.disabled = true; btn.textContent = 'Saving…';
   const { error } = await sb.from('check_in_draw_prizes').update(payload).eq('slot', slot);

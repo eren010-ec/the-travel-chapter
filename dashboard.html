@@ -98,6 +98,19 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 .stat-value { font-family:'Cormorant Garamond',serif; font-size:2.2rem; font-weight:300; color:var(--navy); line-height:1; }
 .stat-label { font-size:0.68rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--smoke); margin-top:6px; }
 
+/* ── DAILY CHECK-IN ── */
+.checkin-card { padding:22px 24px; }
+.checkin-main { display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap; }
+.checkin-streak { font-family:'Cormorant Garamond',serif; font-size:1.9rem; font-weight:300; color:var(--navy); line-height:1; margin-top:8px; }
+.checkin-streak span:first-child { color:var(--gold); }
+.checkin-streak .lbl { font-family:'DM Sans',sans-serif; font-size:0.8rem; color:var(--smoke); }
+.checkin-hint { font-size:0.76rem; color:var(--smoke); margin-top:8px; }
+#btn-checkin { white-space:nowrap; }
+.checkin-week { display:flex; gap:8px; margin-top:16px; }
+.ci-dot { flex:1; height:8px; border-radius:50px; background:var(--border); transition:background 0.2s; }
+.ci-dot.on { background:linear-gradient(90deg,var(--navy),var(--gold)); }
+.ci-dot.today { outline:2px solid var(--gold2); outline-offset:2px; }
+
 /* ── TIER BADGE ── */
 .tier-badge { display:inline-flex; align-items:center; gap:5px; padding:4px 12px; border-radius:50px; font-size:0.7rem; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; }
 .tier-badge.explorer { background:rgba(92,184,122,0.1);  color:#27ae60; border:1px solid rgba(92,184,122,0.2); }
@@ -335,6 +348,17 @@ textarea { resize:vertical; min-height:80px; }
       <h1><span data-i18n="dash.overview_welcome">Welcome back,</span> <em id="ov-name">traveller</em></h1>
       <p data-i18n="dash.overview_subtitle">Here's a snapshot of your journey with us.</p>
     </div>
+    <div class="card checkin-card" id="checkin-card">
+      <div class="checkin-main">
+        <div>
+          <div class="card-title" data-i18n="dash.checkin_title">Daily Check-In</div>
+          <div class="checkin-streak"><span id="ci-streak">0</span> <span class="lbl" data-i18n="dash.checkin_day_streak">day streak</span></div>
+          <div class="checkin-hint" id="ci-hint"></div>
+        </div>
+        <button class="btn-primary" id="btn-checkin" data-i18n="dash.checkin_btn">Check In</button>
+      </div>
+      <div class="checkin-week" id="ci-week"></div>
+    </div>
     <div class="grid-3">
       <div class="stat-card"><div class="stat-value" id="ov-bookings">—</div><div class="stat-label" data-i18n="dash.stat_bookings">Total Bookings</div></div>
       <div class="stat-card"><div class="stat-value" id="ov-points">—</div><div class="stat-label" data-i18n="dash.stat_points">Redeemable Points</div></div>
@@ -525,6 +549,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 let currentUser = null, profile = null, trips = [], bookings = [], bookingTrip = null;
 let activePromotions = [], myReferrals = [], myDrawWins = [];
 let products = [], productRequests = [], activeProduct = null;
+let checkins = [];
 
 // ── NAVIGATION via event delegation ─────────────────────────
 document.getElementById('sidebar-nav').addEventListener('click', function(e) {
@@ -558,6 +583,7 @@ document.getElementById('product-modal').addEventListener('click', function(e) {
 document.getElementById('pm-method').addEventListener('change', updatePmTotal);
 document.getElementById('pm-qty').addEventListener('input', updatePmTotal);
 document.getElementById('pm-submit').addEventListener('click', submitProductRequest);
+document.getElementById('btn-checkin').addEventListener('click', doCheckIn);
 document.getElementById('btn-save-profile').addEventListener('click', saveProfile);
 document.getElementById('btn-confirm-book').addEventListener('click', confirmBooking);
 document.getElementById('btn-close-modal').addEventListener('click', closeBookingModal);
@@ -587,9 +613,9 @@ async function init() {
   }
 
   await Promise.all([loadProfile(), loadTrips(), loadBookings()]);
-  await Promise.all([loadReferralData(), loadProducts(), loadProductRequests()]);
+  await Promise.all([loadReferralData(), loadProducts(), loadProductRequests(), loadCheckins()]);
   buildTripFilters();
-  renderSidebar(); renderOverview(); renderTrips(); renderBookings(); renderPoints(); prefillProfile(); renderReferralsPage(); renderRewards();
+  renderSidebar(); renderOverview(); renderCheckin(); renderTrips(); renderBookings(); renderPoints(); prefillProfile(); renderReferralsPage(); renderRewards();
 }
 
 async function loadProfile() {
@@ -613,6 +639,14 @@ async function loadProductRequests() {
   const { data } = await sb.from('product_requests').select('*')
     .eq('member_id', currentUser.id).order('created_at', { ascending: false });
   productRequests = data || [];
+}
+async function loadCheckins() {
+  const { data } = await sb.from('check_ins')
+    .select('check_in_date, points_awarded, streak_day')
+    .eq('member_id', currentUser.id)
+    .order('check_in_date', { ascending: false })
+    .limit(90);
+  checkins = data || [];
 }
 async function loadReferralData() {
   const [{ data: promos }, { data: referrals }, { data: wins }] = await Promise.all([
@@ -665,13 +699,73 @@ function renderOverview() {
     </div>`;
 }
 
-// Redeemable balance + lifetime earned-from-bookings, used by Overview + Points page.
+// Redeemable balance + lifetime earned (confirmed/completed bookings + daily check-ins),
+// used by Overview + Points page.
 function pointsStats() {
   const balance = profile?.reward_points || 0;
-  const earned = bookings
+  const fromBookings = bookings
     .filter(b => b.status === 'confirmed' || b.status === 'completed')
     .reduce((s, b) => s + (b.points_earned != null ? b.points_earned : Math.floor(Number(b.total_usd) || 0)), 0);
-  return { balance, earned };
+  const fromCheckins = checkins.reduce((s, c) => s + (c.points_awarded || 0), 0);
+  return { balance, earned: fromBookings + fromCheckins };
+}
+
+// ── DAILY CHECK-IN ──────────────────────────────────────────
+// "Today" is the Asia/Kuala_Lumpur calendar day, matching daily_check_in() on the server.
+function ciToday() { return new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kuala_Lumpur' }); }
+function ciDateMinus(iso, n) {
+  const d = new Date(iso + 'T00:00:00Z');
+  d.setUTCDate(d.getUTCDate() - n);
+  return d.toISOString().slice(0, 10);
+}
+// Mirror of the server points schedule in 20260910120000_daily_check_ins.sql
+function checkinPoints(day) {
+  const p = 5 + Math.min(Math.max(day - 1, 0), 6) * 2;
+  return day % 7 === 0 ? p + 25 : p;
+}
+function checkinState() {
+  const today = ciToday();
+  const done = new Set(checkins.map(c => c.check_in_date));
+  const checkedToday = done.has(today);
+  // Streak = run of consecutive days ending today (or, if not yet checked in
+  // today, ending yesterday — the streak is still alive and can be continued).
+  let streak = 0, cursor = checkedToday ? today : ciDateMinus(today, 1);
+  while (done.has(cursor)) { streak++; cursor = ciDateMinus(cursor, 1); }
+  return { today, done, checkedToday, streak };
+}
+function renderCheckin() {
+  const { today, done, checkedToday, streak } = checkinState();
+  document.getElementById('ci-streak').textContent = streak;
+
+  const btn = document.getElementById('btn-checkin');
+  btn.disabled = checkedToday;
+  btn.textContent = TC_I18N.t(checkedToday ? 'dash.checkin_done' : 'dash.checkin_btn');
+
+  document.getElementById('ci-hint').textContent = checkedToday
+    ? TC_I18N.t('dash.checkin_come_back')
+    : TC_I18N.t('dash.checkin_earn_hint', { pts: checkinPoints(streak + 1) });
+
+  let html = '';
+  for (let i = 6; i >= 0; i--) {
+    const d = ciDateMinus(today, i);
+    html += `<span class="ci-dot${done.has(d) ? ' on' : ''}${i === 0 ? ' today' : ''}"></span>`;
+  }
+  document.getElementById('ci-week').innerHTML = html;
+}
+async function doCheckIn() {
+  const btn = document.getElementById('btn-checkin');
+  btn.disabled = true;
+  const { data, error } = await sb.rpc('daily_check_in');
+  if (error) { showToast(TC_I18N.t('dash.error_prefix') + error.message, true); btn.disabled = false; return; }
+  if (data.already_checked_in) {
+    showToast(TC_I18N.t('dash.checkin_already'));
+  } else {
+    if (profile) profile.reward_points = data.reward_points;
+    showToast(TC_I18N.t(data.weekly_bonus ? 'dash.checkin_bonus_toast' : 'dash.checkin_toast',
+      { pts: data.points_awarded, day: data.streak_day }));
+  }
+  await loadCheckins();
+  renderCheckin(); renderSidebar(); renderOverview(); renderPoints();
 }
 
 // ── RENDER TRIPS ─────────────────────────────────────────────
@@ -781,6 +875,10 @@ function renderPoints() {
   bookings.filter(b => b.status === 'confirmed' || b.status === 'completed').forEach(b => {
     const n = b.points_earned != null ? b.points_earned : Math.floor(Number(b.total_usd) || 0);
     events.push({ date: b.booked_at || b.departure_date, label: b.trips?.title || TC_I18N.t('dash.rewards_pts'), delta: `+${n.toLocaleString()}`, kind: 'earn' });
+  });
+  checkins.forEach(c => {
+    const label = `${TC_I18N.t('dash.checkin_activity_label')} · ${TC_I18N.t('dash.checkin_day_n', { n: c.streak_day })}`;
+    events.push({ date: c.check_in_date, label, delta: `+${Number(c.points_awarded || 0).toLocaleString()}`, kind: 'earn' });
   });
   productRequests.filter(r => r.method === 'points' && r.status !== 'rejected' && r.status !== 'cancelled').forEach(r => {
     const n = Number(r.points_cost_snapshot || 0) * r.quantity;
@@ -1034,7 +1132,7 @@ init();
 TC_I18N.onChange(() => {
   if (!currentUser) return;
   buildTripFilters();
-  renderSidebar(); renderOverview(); renderTrips(); renderBookings(); renderPoints(); renderReferralsPage(); renderRewards();
+  renderSidebar(); renderOverview(); renderCheckin(); renderTrips(); renderBookings(); renderPoints(); renderReferralsPage(); renderRewards();
 });
 
 // ── PWA: service worker registration

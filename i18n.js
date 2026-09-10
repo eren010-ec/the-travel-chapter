@@ -14,6 +14,7 @@
       'status.pending': 'pending', 'status.confirmed': 'confirmed', 'status.cancelled': 'cancelled', 'status.completed': 'completed',
       'status.redeemed': 'redeemed', 'status.rewarded': 'rewarded',
       'status.approved': 'approved', 'status.fulfilled': 'fulfilled', 'status.rejected': 'rejected',
+      'status.active': 'active', 'status.expired': 'expired', 'status.revoked': 'revoked',
       // Generic "Chapter {word}" builder used when destination chapters come from the CMS
       // (which may have more/fewer than the 5 hardcoded fallback chapters).
       'journal.chapter_label': 'Chapter {word}',
@@ -289,12 +290,20 @@
       'dash.checkin_bonus_toast': 'Day {day} bonus! +{pts} pts 🎉',
       'dash.checkin_already': "You've already checked in today.",
       'dash.checkin_activity_label': 'Daily check-in', 'dash.checkin_day_n': 'Day {n}',
+      'dash.nav_vouchers': 'My Vouchers',
+      'dash.vouchers_heading': 'My <em>Vouchers</em>',
+      'dash.vouchers_subtitle': "Mention your code to our team when booking — they'll apply the discount for you.",
+      'dash.vouchers_none': "You don't have any vouchers yet.",
+      'dash.vouchers_copy': 'Copy',
+      'dash.voucher_off_fixed': 'RM {v} off', 'dash.voucher_off_percent': '{v}% off',
+      'dash.voucher_expires': 'Expires {date}', 'dash.voucher_no_expiry': 'No expiry',
     },
 
     zh: {
       'status.pending': '待处理', 'status.confirmed': '已确认', 'status.cancelled': '已取消', 'status.completed': '已完成',
       'status.redeemed': '已兑换', 'status.rewarded': '已奖励',
       'status.approved': '已批准', 'status.fulfilled': '已完成', 'status.rejected': '已拒绝',
+      'status.active': '有效', 'status.expired': '已过期', 'status.revoked': '已撤销',
       'journal.chapter_label': '第{word}章',
       'journal.chapter_word1': '一', 'journal.chapter_word2': '二', 'journal.chapter_word3': '三', 'journal.chapter_word4': '四', 'journal.chapter_word5': '五',
       'journal.chapter_word6': '六', 'journal.chapter_word7': '七', 'journal.chapter_word8': '八', 'journal.chapter_word9': '九', 'journal.chapter_word10': '十',
@@ -547,12 +556,20 @@
       'dash.checkin_bonus_toast': '第 {day} 天奖励！+{pts} 积分 🎉',
       'dash.checkin_already': '您今天已经签到了。',
       'dash.checkin_activity_label': '每日签到', 'dash.checkin_day_n': '第 {n} 天',
+      'dash.nav_vouchers': '我的优惠券',
+      'dash.vouchers_heading': '我的<em>优惠券</em>',
+      'dash.vouchers_subtitle': '预订时向我们的团队提供您的代码 — 我们会为您扣除折扣。',
+      'dash.vouchers_none': '您还没有优惠券。',
+      'dash.vouchers_copy': '复制',
+      'dash.voucher_off_fixed': '减 RM {v}', 'dash.voucher_off_percent': '{v}% 折扣',
+      'dash.voucher_expires': '有效期至 {date}', 'dash.voucher_no_expiry': '无期限',
     },
 
     ms: {
       'status.pending': 'menunggu', 'status.confirmed': 'disahkan', 'status.cancelled': 'dibatalkan', 'status.completed': 'selesai',
       'status.redeemed': 'ditebus', 'status.rewarded': 'diberi ganjaran',
       'status.approved': 'diluluskan', 'status.fulfilled': 'dipenuhi', 'status.rejected': 'ditolak',
+      'status.active': 'aktif', 'status.expired': 'tamat tempoh', 'status.revoked': 'dibatalkan',
       'journal.chapter_label': 'Bab {word}',
       'journal.chapter_word1': 'Satu', 'journal.chapter_word2': 'Dua', 'journal.chapter_word3': 'Tiga', 'journal.chapter_word4': 'Empat', 'journal.chapter_word5': 'Lima',
       'journal.chapter_word6': 'Enam', 'journal.chapter_word7': 'Tujuh', 'journal.chapter_word8': 'Lapan', 'journal.chapter_word9': 'Sembilan', 'journal.chapter_word10': 'Sepuluh',
@@ -804,6 +821,13 @@
       'dash.checkin_bonus_toast': 'Bonus Hari {day}! +{pts} mata 🎉',
       'dash.checkin_already': 'Anda sudah daftar masuk hari ini.',
       'dash.checkin_activity_label': 'Daftar masuk harian', 'dash.checkin_day_n': 'Hari {n}',
+      'dash.nav_vouchers': 'Baucar Saya',
+      'dash.vouchers_heading': 'Baucar <em>Saya</em>',
+      'dash.vouchers_subtitle': 'Beritahu kod anda kepada pasukan kami semasa menempah — mereka akan tolak diskaun untuk anda.',
+      'dash.vouchers_none': 'Anda belum mempunyai sebarang baucar.',
+      'dash.vouchers_copy': 'Salin',
+      'dash.voucher_off_fixed': 'Potongan RM {v}', 'dash.voucher_off_percent': 'Diskaun {v}%',
+      'dash.voucher_expires': 'Tamat {date}', 'dash.voucher_no_expiry': 'Tiada tarikh tamat',
     },
   };
 

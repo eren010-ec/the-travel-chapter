@@ -483,6 +483,18 @@ textarea { resize:vertical; min-height:70px; }
         </table>
       </div>
     </div>
+    <div class="card" style="margin-top:18px;">
+      <div class="card-header">
+        <div class="card-title">Lucky Draw Prizes — Day 7</div>
+        <span style="font-size:0.72rem;color:var(--smoke);">Used only when Day 7 above is set to "Lucky Draw". The member picks one of these 9 boxes; the winner is random.</span>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Box</th><th>Label</th><th>Prize</th><th>Actions</th></tr></thead>
+          <tbody id="draw-prizes-body"><tr><td colspan="4" class="loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 
   <!-- VOUCHERS -->
@@ -1133,7 +1145,7 @@ let editingMemberId=null;
 let editingBookingId=null, addBookingMemberId=null;
 let editingTripId=null, editingBsmId=null;
 let tripImageFile=null, tripImageRemoved=false;
-let allProducts=[], allProductRequests=[], allCheckinRewards=[];
+let allProducts=[], allProductRequests=[], allCheckinRewards=[], allDrawPrizes=[];
 let allMessages=[];
 let editingProductId=null, productImageFile=null, productImageRemoved=false;
 
@@ -1300,11 +1312,11 @@ async function init() {
     document.getElementById('nav-revenue')?.remove();
   }
   document.getElementById('admin-email').textContent = session.user.email;
-  const loaders = [loadBookings(), loadTrips(), loadMembers(), loadVouchers(), loadReferralPromotions(), loadReferrals(), loadLuckyDraws(), loadProducts(), loadProductRequests(), loadMessages(), loadCheckinRewards()];
+  const loaders = [loadBookings(), loadTrips(), loadMembers(), loadVouchers(), loadReferralPromotions(), loadReferrals(), loadLuckyDraws(), loadProducts(), loadProductRequests(), loadMessages(), loadCheckinRewards(), loadDrawPrizes()];
   if (currentUserIsAdmin) loaders.push(loadTripCosts(), loadRevenue());
   await Promise.all(loaders);
   renderDashboard(); renderMembersTable(); renderAdminsTable(); renderBookingsTable(); renderTripsTable(); renderVouchersTable();
-  renderProductsTable(); renderProductRequestsTable(); renderCheckinRewardsTable(); renderMessagesTable();
+  renderProductsTable(); renderProductRequestsTable(); renderCheckinRewardsTable(); renderDrawPrizesTable(); renderMessagesTable();
   renderReferralsPage(); renderLuckyDrawsPage();
   if (currentUserIsAdmin) renderRevenuePage();
   refreshNotifications();
@@ -2068,9 +2080,11 @@ async function loadCheckinRewards() {
   allCheckinRewards = data || [];
 }
 function cirRenderType(d) {
-  const isVoucher = document.getElementById('cir-type-' + d).value === 'voucher';
-  document.getElementById('cir-points-' + d).style.display = isVoucher ? 'none' : '';
-  document.getElementById('cir-voucher-' + d).style.display = isVoucher ? 'flex' : 'none';
+  const t = document.getElementById('cir-type-' + d).value;
+  document.getElementById('cir-points-' + d).style.display = t === 'points' ? 'flex' : 'none';
+  document.getElementById('cir-voucher-' + d).style.display = t === 'voucher' ? 'flex' : 'none';
+  const note = document.getElementById('cir-draw-note-' + d);
+  if (note) note.style.display = t === 'luckydraw' ? 'block' : 'none';
 }
 function renderCheckinRewardsTable() {
   const body = document.getElementById('checkin-rewards-body');
@@ -2080,15 +2094,18 @@ function renderCheckinRewardsTable() {
     const r = allCheckinRewards.find(x => x.day === d) ||
       { day: d, points: 0, image_url: null, reward_type: 'points', voucher_discount_type: 'fixed', voucher_discount_value: '', voucher_valid_days: 30 };
     const isV = r.reward_type === 'voucher';
+    const isD = d === 7 && r.reward_type === 'luckydraw';
     rows.push(`<tr>
       <td><strong>Day ${d}</strong>${d === 7 ? ' <span style="font-size:0.65rem;color:var(--gold);">bonus</span>' : ''}</td>
       <td>
         <div style="display:flex;flex-direction:column;gap:8px;">
-          <select id="cir-type-${d}" onchange="cirRenderType(${d})" style="width:140px;">
-            <option value="points"${isV ? '' : ' selected'}>Points</option>
+          <select id="cir-type-${d}" onchange="cirRenderType(${d})" style="width:150px;">
+            <option value="points"${!isV && !isD ? ' selected' : ''}>Points</option>
             <option value="voucher"${isV ? ' selected' : ''}>Voucher</option>
+            ${d === 7 ? `<option value="luckydraw"${isD ? ' selected' : ''}>Lucky Draw (3×3)</option>` : ''}
           </select>
-          <div id="cir-points-${d}" style="display:${isV ? 'none' : 'flex'};align-items:center;gap:6px;">
+          ${d === 7 ? `<div id="cir-draw-note-${d}" style="display:${isD ? 'block' : 'none'};font-size:0.72rem;color:var(--smoke);">Prizes set in "Lucky Draw Prizes" below.</div>` : ''}
+          <div id="cir-points-${d}" style="display:${isV || isD ? 'none' : 'flex'};align-items:center;gap:6px;">
             <input type="number" min="0" id="cir-pts-${d}" value="${r.points ?? 0}" style="width:90px;"> <span style="font-size:0.72rem;color:var(--smoke);">points</span>
           </div>
           <div id="cir-voucher-${d}" style="display:${isV ? 'flex' : 'none'};align-items:center;gap:6px;flex-wrap:wrap;">
@@ -2166,6 +2183,85 @@ async function saveCheckinReward(day) {
   delete cirImageRemoved[day];
   await loadCheckinRewards(); renderCheckinRewardsTable();
   showToast(`Day ${day} reward saved ✓`);
+}
+
+// ── DAY-7 LUCKY DRAW PRIZES (9 boxes) ──────────────────────
+async function loadDrawPrizes() {
+  const { data } = await sb.from('check_in_draw_prizes')
+    .select('slot, reward_type, points, voucher_discount_type, voucher_discount_value, voucher_valid_days, label')
+    .order('slot');
+  allDrawPrizes = data || [];
+}
+function dpRenderType(s) {
+  const isV = document.getElementById('dp-type-' + s).value === 'voucher';
+  document.getElementById('dp-points-' + s).style.display = isV ? 'none' : 'flex';
+  document.getElementById('dp-voucher-' + s).style.display = isV ? 'flex' : 'none';
+}
+function renderDrawPrizesTable() {
+  const body = document.getElementById('draw-prizes-body');
+  if (!body) return;
+  const rows = [];
+  for (let s = 1; s <= 9; s++) {
+    const p = allDrawPrizes.find(x => x.slot === s) ||
+      { slot: s, reward_type: 'points', points: 0, voucher_discount_type: 'fixed', voucher_discount_value: '', voucher_valid_days: 30, label: '' };
+    const isV = p.reward_type === 'voucher';
+    rows.push(`<tr>
+      <td><strong>Box ${s}</strong></td>
+      <td><input type="text" id="dp-label-${s}" value="${(p.label || '').replace(/"/g, '&quot;')}" placeholder="e.g. Jackpot" style="width:130px;"></td>
+      <td>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <select id="dp-type-${s}" onchange="dpRenderType(${s})" style="width:130px;">
+            <option value="points"${isV ? '' : ' selected'}>Points</option>
+            <option value="voucher"${isV ? ' selected' : ''}>Voucher</option>
+          </select>
+          <div id="dp-points-${s}" style="display:${isV ? 'none' : 'flex'};align-items:center;gap:6px;">
+            <input type="number" min="0" id="dp-pts-${s}" value="${p.points ?? 0}" style="width:90px;"> <span style="font-size:0.72rem;color:var(--smoke);">points</span>
+          </div>
+          <div id="dp-voucher-${s}" style="display:${isV ? 'flex' : 'none'};align-items:center;gap:6px;flex-wrap:wrap;">
+            <select id="dp-vtype-${s}" style="width:110px;">
+              <option value="fixed"${p.voucher_discount_type === 'percent' ? '' : ' selected'}>Fixed (RM)</option>
+              <option value="percent"${p.voucher_discount_type === 'percent' ? ' selected' : ''}>Percent (%)</option>
+            </select>
+            <input type="number" min="0" step="0.01" id="dp-vval-${s}" value="${p.voucher_discount_value ?? ''}" placeholder="value" style="width:80px;">
+            <span style="font-size:0.72rem;color:var(--smoke);">valid</span>
+            <input type="number" min="1" id="dp-vdays-${s}" value="${p.voucher_valid_days ?? 30}" style="width:60px;">
+            <span style="font-size:0.72rem;color:var(--smoke);">days</span>
+          </div>
+        </div>
+      </td>
+      <td><button class="btn btn-primary btn-sm" id="dp-save-${s}" onclick="saveDrawPrize(${s})">Save</button></td>
+    </tr>`);
+  }
+  body.innerHTML = rows.join('');
+}
+async function saveDrawPrize(slot) {
+  const btn = document.getElementById('dp-save-' + slot);
+  const type = document.getElementById('dp-type-' + slot).value;
+  const payload = {
+    reward_type: type,
+    label: document.getElementById('dp-label-' + slot).value.trim() || null,
+    points: parseInt(document.getElementById('dp-pts-' + slot).value) || 0,
+  };
+  if (type === 'voucher') {
+    const vtype = document.getElementById('dp-vtype-' + slot).value;
+    const vval  = parseFloat(document.getElementById('dp-vval-' + slot).value);
+    const vdays = parseInt(document.getElementById('dp-vdays-' + slot).value);
+    if (!vval || vval <= 0) { showToast('Enter a voucher value.', true); return; }
+    if (vtype === 'percent' && vval > 100) { showToast('Percent discount cannot exceed 100.', true); return; }
+    if (!vdays || vdays < 1) { showToast('Enter how many days the voucher stays valid.', true); return; }
+    payload.voucher_discount_type = vtype;
+    payload.voucher_discount_value = vval;
+    payload.voucher_valid_days = vdays;
+  } else {
+    payload.voucher_discount_type = null;
+    payload.voucher_discount_value = null;
+    payload.voucher_valid_days = null;
+  }
+  btn.disabled = true; btn.textContent = 'Saving…';
+  const { error } = await sb.from('check_in_draw_prizes').update(payload).eq('slot', slot);
+  if (error) { showToast('Error: ' + error.message, true); btn.disabled = false; btn.textContent = 'Save'; return; }
+  await loadDrawPrizes(); renderDrawPrizesTable();
+  showToast(`Box ${slot} prize saved ✓`);
 }
 
 // ── PRODUCT REQUESTS ────────────────────────────────────────

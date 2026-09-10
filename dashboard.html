@@ -142,6 +142,24 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 .ci-box.bonus { font-size:1.3rem; }
 .ci-box.bonus.lit { background:linear-gradient(135deg,var(--gold),var(--gold2)); }
 .ci-box.pop { animation:ci-pop 0.55s ease; }
+
+/* Day-7 lucky draw modal */
+.draw-sub { font-size:0.82rem; color:var(--smoke); margin-bottom:16px; }
+.draw-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:16px; }
+.draw-cell {
+  aspect-ratio:1; border-radius:12px; border:1px solid var(--border); background:var(--cream2);
+  display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
+  font-size:1.7rem; cursor:pointer; transition:transform 0.15s, box-shadow 0.15s, background 0.3s; user-select:none;
+}
+.draw-cell:hover:not(.revealed) { transform:translateY(-2px); box-shadow:0 6px 18px rgba(26,31,46,0.12); }
+.draw-cell.revealed { cursor:default; font-size:0.9rem; }
+.draw-cell.revealed .dc-emoji { font-size:1.3rem; }
+.draw-cell.dim { opacity:0.45; }
+.draw-cell.win { background:linear-gradient(135deg,var(--gold),var(--gold2)); border-color:var(--gold); color:var(--white); }
+.draw-cell .dc-label { font-size:0.66rem; font-weight:500; text-align:center; line-height:1.15; }
+.draw-grid.locked .draw-cell:not(.revealed) { pointer-events:none; }
+.draw-result { text-align:center; font-size:0.95rem; color:var(--navy); margin-bottom:6px; min-height:1.2em; }
+.draw-result strong { color:var(--gold); }
 @keyframes ci-pulse { 0%,100%{box-shadow:0 0 0 2px rgba(212,170,112,0.35)} 50%{box-shadow:0 0 0 6px rgba(212,170,112,0.10)} }
 @keyframes ci-pop { 0%{transform:scale(0.55);filter:grayscale(1);opacity:0.4} 60%{transform:scale(1.18)} 100%{transform:scale(1)} }
 
@@ -580,6 +598,19 @@ textarea { resize:vertical; min-height:80px; }
   </div>
 </div>
 
+<!-- DAY 7 LUCKY DRAW -->
+<div class="modal-overlay" id="draw-modal">
+  <div class="modal">
+    <h2 data-i18n="dash.draw_title">Lucky Draw</h2>
+    <p class="draw-sub" id="draw-sub" data-i18n="dash.draw_pick">Pick a box — one is yours to keep.</p>
+    <div class="draw-grid" id="draw-grid"></div>
+    <div class="draw-result" id="draw-result" hidden></div>
+    <div class="modal-actions">
+      <button class="btn-primary" id="draw-close" style="flex:1;" data-i18n="dash.draw_close" hidden>Collect</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -708,7 +739,7 @@ async function loadProductRequests() {
 }
 async function loadCheckins() {
   const { data } = await sb.from('check_ins')
-    .select('check_in_date, points_awarded, streak_day, reward_kind')
+    .select('check_in_date, points_awarded, streak_day, reward_kind, draw_prize')
     .eq('member_id', currentUser.id)
     .order('check_in_date', { ascending: false })
     .limit(90);
@@ -723,16 +754,25 @@ async function loadCheckinRewards() {
 function rewardForDay(cycleDay) { return checkinRewards.find(r => r.day === cycleDay) || null; }
 // True when the configured reward for this cycle day is a voucher.
 function isVoucherDay(r) { return !!(r && r.reward_type === 'voucher' && r.voucher_discount_type && r.voucher_discount_value != null); }
+function isDrawDay(cycleDay) { const r = rewardForDay(cycleDay); return cycleDay === 7 && r && r.reward_type === 'luckydraw'; }
 function voucherAmountLabel(dtype, val) {
   return dtype === 'percent'
     ? `${Number(val)}%`
     : `RM ${Number(val).toLocaleString()}`;
 }
-// Short label shown under a box: "+5" for points, "RM 50" / "10%" for a voucher.
+// Short label shown under a box: "+5" for points, "RM 50" / "10%" for a voucher, 🎲 for the day-7 draw.
 function rewardBoxLabel(cycleDay) {
+  if (isDrawDay(cycleDay)) return TC_I18N.t('dash.draw_box_label');
   const r = rewardForDay(cycleDay);
   if (isVoucherDay(r)) return voucherAmountLabel(r.voucher_discount_type, r.voucher_discount_value);
   return `+${Number(r ? r.points : checkinPoints(cycleDay)).toLocaleString()}`;
+}
+// A points/voucher prize object (from claim_lucky_draw or a check_in_rewards row) -> short human label.
+function prizeLabel(p) {
+  if (!p) return '';
+  if (p.reward_type === 'voucher' && p.voucher_discount_value != null)
+    return voucherAmountLabel(p.voucher_discount_type, p.voucher_discount_value) + ' ' + TC_I18N.t('dash.draw_voucher_word');
+  return `+${Number(p.points || 0).toLocaleString()} ${TC_I18N.t('dash.rewards_pts')}`;
 }
 async function loadReferralData() {
   const [{ data: promos }, { data: referrals }, { data: wins }] = await Promise.all([
@@ -831,12 +871,22 @@ function renderCheckin(justClaimed) {
   btn.disabled = checkedToday;
   btn.textContent = TC_I18N.t(checkedToday ? 'dash.checkin_done' : 'dash.checkin_btn');
 
-  const nextR = rewardForDay(((streak) % 7) + 1);
+  const nextDay = ((streak) % 7) + 1;
+  const nextR = rewardForDay(nextDay);
   document.getElementById('ci-hint').textContent = checkedToday
     ? TC_I18N.t('dash.checkin_come_back')
-    : isVoucherDay(nextR)
-      ? TC_I18N.t('dash.checkin_earn_hint_voucher', { reward: voucherAmountLabel(nextR.voucher_discount_type, nextR.voucher_discount_value) })
-      : TC_I18N.t('dash.checkin_earn_hint', { pts: checkinPoints(streak + 1) });
+    : isDrawDay(nextDay)
+      ? TC_I18N.t('dash.checkin_earn_hint_draw')
+      : isVoucherDay(nextR)
+        ? TC_I18N.t('dash.checkin_earn_hint_voucher', { reward: voucherAmountLabel(nextR.voucher_discount_type, nextR.voucher_discount_value) })
+        : TC_I18N.t('dash.checkin_earn_hint', { pts: checkinPoints(streak + 1) });
+
+  // Day-7 lucky draw that was checked in but not yet played -> nudge them to open it.
+  const pendingDraw = checkins.find(c => c.check_in_date === ciToday() && c.reward_kind === 'luckydraw' && !c.draw_prize);
+  if (pendingDraw) {
+    btn.disabled = false;
+    btn.textContent = TC_I18N.t('dash.draw_open_btn');
+  }
 
   // 7-box reward row for the current streak cycle. Boxes light left-to-right as
   // each day is claimed; completing all 7 (day 7, 14, …) starts a fresh row.
@@ -852,16 +902,27 @@ function renderCheckin(justClaimed) {
     else if (i === next) cls.push('next');
     const r = rewardForDay(i);
     const voucher = isVoucherDay(r);
-    const inner = r && r.image_url ? `<img src="${r.image_url}" alt="">` : (voucher ? '🎟️' : (i === 7 ? '🎉' : '🎁'));
-    html += `<span class="ci-col"><span class="${cls.join(' ')}">${inner}</span><span class="ci-pts${voucher ? ' is-voucher' : ''}">${rewardBoxLabel(i)}</span></span>`;
+    const draw = isDrawDay(i);
+    const inner = r && r.image_url ? `<img src="${r.image_url}" alt="">` : (draw ? '🎲' : voucher ? '🎟️' : (i === 7 ? '🎉' : '🎁'));
+    html += `<span class="ci-col"><span class="${cls.join(' ')}">${inner}</span><span class="ci-pts${voucher || draw ? ' is-voucher' : ''}">${rewardBoxLabel(i)}</span></span>`;
   }
   document.getElementById('ci-boxes').innerHTML = html;
 }
 async function doCheckIn() {
   const btn = document.getElementById('btn-checkin');
+  // If a day-7 draw was already checked in but not played, this button opens it.
+  if (checkins.find(c => c.check_in_date === ciToday() && c.reward_kind === 'luckydraw' && !c.draw_prize)) {
+    openDrawModal(); return;
+  }
   btn.disabled = true;
   const { data, error } = await sb.rpc('daily_check_in');
   if (error) { showToast(TC_I18N.t('dash.error_prefix') + error.message, true); btn.disabled = false; return; }
+  if (data.reward_kind === 'luckydraw' || data.draw_pending) {
+    await loadCheckins();
+    renderCheckin(!data.already_checked_in); renderSidebar();
+    openDrawModal();
+    return;
+  }
   if (data.already_checked_in) {
     showToast(TC_I18N.t('dash.checkin_already'));
   } else if (data.reward_kind === 'voucher') {
@@ -878,6 +939,82 @@ async function doCheckIn() {
   await loadCheckins();
   renderCheckin(!data.already_checked_in); renderSidebar(); renderOverview(); renderVouchers(); renderPoints();
 }
+
+// ── DAY-7 LUCKY DRAW MODAL ──────────────────────────────────
+let drawBusy = false;
+function drawCell(emoji, label) {
+  return `<span class="dc-emoji">${emoji}</span>${label ? `<span class="dc-label">${label}</span>` : ''}`;
+}
+function openDrawModal() {
+  const grid = document.getElementById('draw-grid');
+  const result = document.getElementById('draw-result');
+  const closeBtn = document.getElementById('draw-close');
+  drawBusy = false;
+  result.hidden = true; result.innerHTML = '';
+  closeBtn.hidden = true;
+  document.getElementById('draw-sub').textContent = TC_I18N.t('dash.draw_pick');
+  grid.classList.remove('locked');
+  // If they already played (reopening), show the stored prize straight away.
+  const played = checkins.find(c => c.check_in_date === ciToday() && c.reward_kind === 'luckydraw' && c.draw_prize);
+  let cells = '';
+  for (let i = 1; i <= 9; i++) cells += `<div class="draw-cell" data-cell="${i}">${drawCell('🎁')}</div>`;
+  grid.innerHTML = cells;
+  document.getElementById('draw-modal').classList.add('open');
+  if (played) revealDraw({ picked: 5, prize: played.draw_prize, board: null }, true);
+}
+async function pickDrawCell(cell) {
+  if (drawBusy) return;
+  drawBusy = true;
+  const grid = document.getElementById('draw-grid');
+  grid.classList.add('locked');
+  const el = grid.querySelector(`[data-cell="${cell}"]`);
+  el.innerHTML = drawCell('⏳');
+  const { data, error } = await sb.rpc('claim_lucky_draw', { pick: cell });
+  if (error) {
+    showToast(TC_I18N.t('dash.error_prefix') + error.message, true);
+    drawBusy = false; grid.classList.remove('locked'); el.innerHTML = drawCell('🎁');
+    return;
+  }
+  revealDraw(data, false);
+  if (data.reward_points != null && profile) profile.reward_points = data.reward_points;
+  await Promise.all([loadCheckins(), loadVouchers()]);
+  renderCheckin(); renderSidebar(); renderOverview(); renderVouchers(); renderPoints();
+}
+function revealDraw(data, silent) {
+  const grid = document.getElementById('draw-grid');
+  const picked = data.picked || 5;
+  const byCell = {};
+  (data.board || []).forEach(b => { byCell[b.cell] = b; });
+  grid.querySelectorAll('.draw-cell').forEach(el => {
+    const c = Number(el.getAttribute('data-cell'));
+    el.classList.add('revealed');
+    const p = c === picked ? data.prize : byCell[c];
+    if (c === picked) {
+      el.classList.add('win');
+      el.innerHTML = drawCell('🎉', prizeLabel(data.prize));
+    } else if (p) {
+      el.classList.add('dim');
+      el.innerHTML = drawCell(p.reward_type === 'voucher' ? '🎟️' : '⭐', prizeLabel(p));
+    } else {
+      el.classList.add('dim');
+      el.innerHTML = drawCell('🎁');
+    }
+  });
+  const result = document.getElementById('draw-result');
+  result.hidden = false;
+  result.innerHTML = TC_I18N.t('dash.draw_won', { prize: `<strong>${prizeLabel(data.prize)}</strong>` });
+  document.getElementById('draw-sub').textContent = TC_I18N.t('dash.draw_done');
+  document.getElementById('draw-close').hidden = false;
+  if (!silent) showToast(TC_I18N.t('dash.draw_toast', { prize: prizeLabel(data.prize) }));
+}
+document.getElementById('draw-grid').addEventListener('click', function (e) {
+  const cell = e.target.closest('.draw-cell[data-cell]');
+  if (cell && !cell.classList.contains('revealed')) pickDrawCell(Number(cell.getAttribute('data-cell')));
+});
+document.getElementById('draw-close').addEventListener('click', () => document.getElementById('draw-modal').classList.remove('open'));
+document.getElementById('draw-modal').addEventListener('click', function (e) {
+  if (e.target === this && document.getElementById('draw-close').hidden === false) this.classList.remove('open');
+});
 
 // ── RENDER TRIPS ─────────────────────────────────────────────
 const tripEmojis = {'kyoto-autumn':'🍁','amalfi-yacht':'⛵','mekong-river':'🛶','patagonia-wild':'🏔️','marrakech-beyond':'🐪','japan-elite':'🏯'};

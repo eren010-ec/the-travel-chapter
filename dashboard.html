@@ -18,6 +18,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+/* Render Arabic numerals in a sans face everywhere — Cormorant Garamond's "1"
+   reads as a capital "I". Merges into the Cormorant family for digits only;
+   if no local sans resolves, digits fall back to the element's own stack. */
+@font-face {
+  font-family: 'Cormorant Garamond';
+  font-weight: 100 900;
+  src: local('DM Sans'), local('Segoe UI'), local('Helvetica Neue'), local('Arial'), local('Roboto');
+  unicode-range: U+0030-0039;
+}
 :root {
   --cream:  #faf7f2;
   --cream2: #f2ede4;

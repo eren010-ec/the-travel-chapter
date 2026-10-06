@@ -22,6 +22,7 @@
       'journal.chapter_word6': 'Six', 'journal.chapter_word7': 'Seven', 'journal.chapter_word8': 'Eight', 'journal.chapter_word9': 'Nine', 'journal.chapter_word10': 'Ten',
 
       // ── index.html: nav ──
+      'tabbar.products': 'Products', 'tabbar.profile': 'Profile',
       'nav.home': 'Home',
       'nav.destinations': 'Destinations', 'nav.trips': 'Trips', 'nav.rewards': 'Rewards',
       'nav.free_gifts': 'Free Gifts', 'nav.hotels': 'Hotels',
@@ -242,7 +243,7 @@
       'dash.nav_overview': 'Overview', 'dash.nav_trips': 'Browse Trips', 'dash.nav_bookings': 'My Bookings',
       'dash.nav_referrals': 'Referrals', 'dash.nav_luckydraw': 'Lucky Draw', 'dash.nav_rewards': 'Rewards Store', 'dash.nav_points': 'Points', 'dash.nav_profile': 'My Profile',
       'dash.overview_welcome': 'Welcome back,', 'dash.overview_subtitle': "Here's a snapshot of your journey with us.",
-      'dash.stat_bookings': 'Total Bookings', 'dash.stat_points': 'Redeemable Points', 'dash.stat_earned': 'Points Earned',
+      'dash.stat_bookings': 'Total Bookings', 'dash.stat_points': 'Points',
       'dash.recent_bookings': 'Recent Bookings', 'dash.points_summary': 'Points Summary',
       'dash.no_bookings_overview': 'No bookings yet.<br>Browse trips to get started!',
       'dash.browse_heading': 'Browse <em>Trips</em>', 'dash.browse_subtitle': 'Discover curated journeys, all open to every member.',
@@ -272,7 +273,7 @@
       'dash.rewards_submitted': 'Request submitted — our team will be in touch ✓', 'dash.rewards_cancelled': 'Request cancelled',
       'dash.my_wins': 'My Wins', 'dash.no_wins': 'No wins yet — stay tuned!', 'dash.lucky_draw_fallback_name': 'Lucky Draw',
       'dash.points_heading': 'My <em>Points</em>', 'dash.points_subtitle': 'Earn 1 point for every RM spent on a confirmed booking. Spend them in the Rewards Store.',
-      'dash.points_balance': 'Redeemable Balance', 'dash.points_earned_total': 'Points Earned',
+      'dash.points_balance': 'Points',
       'dash.points_activity': 'Recent Activity', 'dash.points_no_activity': 'No points activity yet.',
       'dash.profile_heading': 'My <em>Profile</em>', 'dash.profile_subtitle': 'Keep your details up to date for a seamless booking experience.',
       'dash.personal_info': 'Personal Information',
@@ -328,6 +329,7 @@
       'journal.chapter_word1': '一', 'journal.chapter_word2': '二', 'journal.chapter_word3': '三', 'journal.chapter_word4': '四', 'journal.chapter_word5': '五',
       'journal.chapter_word6': '六', 'journal.chapter_word7': '七', 'journal.chapter_word8': '八', 'journal.chapter_word9': '九', 'journal.chapter_word10': '十',
 
+      'tabbar.products': '产品', 'tabbar.profile': '我的',
       'nav.home': '首页', 'nav.destinations': '目的地', 'nav.trips': '行程', 'nav.rewards': '奖励', 'nav.free_gifts': '免费礼品', 'nav.hotels': '酒店', 'nav.about': '关于我们', 'nav.contact': '联系我们', 'nav.signin': '登录',
       'nav.login': '登录', 'nav.register': '注册', 'nav.profile': '会员中心', 'nav.logout': '退出登录',
 
@@ -528,7 +530,7 @@
       'dash.nav_overview': '概览', 'dash.nav_trips': '浏览行程', 'dash.nav_bookings': '我的预订',
       'dash.nav_referrals': '推荐好友', 'dash.nav_luckydraw': '幸运抽奖', 'dash.nav_rewards': '积分商城', 'dash.nav_points': '积分', 'dash.nav_profile': '个人资料',
       'dash.overview_welcome': '欢迎回来，', 'dash.overview_subtitle': '这是您与我们同行旅程的概览。',
-      'dash.stat_bookings': '总预订数', 'dash.stat_points': '可兑换积分', 'dash.stat_earned': '已赚取积分',
+      'dash.stat_bookings': '总预订数', 'dash.stat_points': '积分',
       'dash.recent_bookings': '近期预订', 'dash.points_summary': '积分概览',
       'dash.no_bookings_overview': '暂无预订。<br>浏览行程，开启您的旅程！',
       'dash.browse_heading': '浏览<em>行程</em>', 'dash.browse_subtitle': '探索面向所有会员开放的精选旅程。',
@@ -558,7 +560,7 @@
       'dash.rewards_submitted': '申请已提交，我们的团队将与您联系 ✓', 'dash.rewards_cancelled': '申请已取消',
       'dash.my_wins': '我的中奖记录', 'dash.no_wins': '暂无中奖记录——敬请期待！', 'dash.lucky_draw_fallback_name': '幸运抽奖',
       'dash.points_heading': '我的<em>积分</em>', 'dash.points_subtitle': '每次确认预订每消费 1 令吉获 1 积分，可在积分商城中兑换。',
-      'dash.points_balance': '可兑换余额', 'dash.points_earned_total': '已赚取积分',
+      'dash.points_balance': '积分',
       'dash.points_activity': '近期动态', 'dash.points_no_activity': '暂无积分动态。',
       'dash.profile_heading': '我的<em>资料</em>', 'dash.profile_subtitle': '保持资料更新，让预订体验更顺畅。',
       'dash.personal_info': '个人信息',
@@ -614,6 +616,7 @@
       'journal.chapter_word1': 'Satu', 'journal.chapter_word2': 'Dua', 'journal.chapter_word3': 'Tiga', 'journal.chapter_word4': 'Empat', 'journal.chapter_word5': 'Lima',
       'journal.chapter_word6': 'Enam', 'journal.chapter_word7': 'Tujuh', 'journal.chapter_word8': 'Lapan', 'journal.chapter_word9': 'Sembilan', 'journal.chapter_word10': 'Sepuluh',
 
+      'tabbar.products': 'Produk', 'tabbar.profile': 'Profil',
       'nav.home': 'Utama', 'nav.destinations': 'Destinasi', 'nav.trips': 'Percutian', 'nav.rewards': 'Ganjaran', 'nav.free_gifts': 'Hadiah Percuma', 'nav.hotels': 'Hotel', 'nav.about': 'Tentang Kami', 'nav.contact': 'Hubungi Kami', 'nav.signin': 'Log Masuk',
       'nav.login': 'Log Masuk', 'nav.register': 'Daftar', 'nav.profile': 'Akaun Saya', 'nav.logout': 'Log Keluar',
 
@@ -813,7 +816,7 @@
       'dash.nav_overview': 'Ringkasan', 'dash.nav_trips': 'Terokai Percutian', 'dash.nav_bookings': 'Tempahan Saya',
       'dash.nav_referrals': 'Rujukan', 'dash.nav_luckydraw': 'Cabutan Bertuah', 'dash.nav_rewards': 'Kedai Ganjaran', 'dash.nav_points': 'Mata', 'dash.nav_profile': 'Profil Saya',
       'dash.overview_welcome': 'Selamat kembali,', 'dash.overview_subtitle': 'Berikut ringkasan perjalanan anda bersama kami.',
-      'dash.stat_bookings': 'Jumlah Tempahan', 'dash.stat_points': 'Mata Boleh Tebus', 'dash.stat_earned': 'Mata Diperoleh',
+      'dash.stat_bookings': 'Jumlah Tempahan', 'dash.stat_points': 'Mata',
       'dash.recent_bookings': 'Tempahan Terkini', 'dash.points_summary': 'Ringkasan Mata',
       'dash.no_bookings_overview': 'Belum ada tempahan.<br>Terokai percutian untuk bermula!',
       'dash.browse_heading': 'Terokai <em>Percutian</em>', 'dash.browse_subtitle': 'Temui perjalanan pilihan yang terbuka kepada semua ahli.',
@@ -843,7 +846,7 @@
       'dash.rewards_submitted': 'Permohonan dihantar — pasukan kami akan menghubungi anda ✓', 'dash.rewards_cancelled': 'Permohonan dibatalkan',
       'dash.my_wins': 'Kemenangan Saya', 'dash.no_wins': 'Belum ada kemenangan — nantikan!', 'dash.lucky_draw_fallback_name': 'Cabutan Bertuah',
       'dash.points_heading': 'Mata <em>Saya</em>', 'dash.points_subtitle': 'Perolehi 1 mata bagi setiap RM dibelanjakan pada tempahan yang disahkan. Belanjakannya di Kedai Ganjaran.',
-      'dash.points_balance': 'Baki Boleh Tebus', 'dash.points_earned_total': 'Mata Diperoleh',
+      'dash.points_balance': 'Mata',
       'dash.points_activity': 'Aktiviti Terkini', 'dash.points_no_activity': 'Tiada aktiviti mata lagi.',
       'dash.profile_heading': 'Profil <em>Saya</em>', 'dash.profile_subtitle': 'Pastikan maklumat anda terkini untuk pengalaman tempahan yang lancar.',
       'dash.personal_info': 'Maklumat Peribadi',

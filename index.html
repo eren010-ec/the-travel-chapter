@@ -45,8 +45,32 @@
   ]
 }
 </script>
+<script>
+// Hero background photo + secondary CTA come from the CMS (cms_content.hero), which normally
+// isn't known until supabase-js has loaded and queried. Remember the last hero so repeat
+// visits paint it at once, and on a first visit fetch just that row right now (plain REST,
+// no supabase-js needed) and preload the photo. loadCMS() still applies + re-caches the
+// latest hero afterwards.
+(function () {
+  var cached = null;
+  try { cached = JSON.parse(localStorage.getItem('tc_hero_cms') || 'null'); } catch (e) {}
+  function preload(url) {
+    if (!url) return;
+    var l = document.createElement('link');
+    l.rel = 'preload'; l.as = 'image'; l.href = url;
+    document.head.appendChild(l);
+  }
+  if (cached) { preload(cached.background_image); window.TC_HERO_EARLY = Promise.resolve(cached); return; }
+  window.TC_HERO_EARLY = fetch('https://nkrpkfqibsudqsonljve.supabase.co/rest/v1/cms_content?section=eq.hero&select=content',
+      { headers: { apikey: 'sb_publishable_8mbRk904S5zktFv6UIlRUg_gp1PFAWm' } })
+    .then(function (r) { return r.ok ? r.json() : []; })
+    .then(function (rows) { var c = rows && rows[0] && rows[0].content; if (c) preload(c.background_image); return c || null; })
+    .catch(function () { return null; });
+})();
+</script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="i18n.js"></script>
+<script src="mobile-tabbar.js" defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -351,7 +375,7 @@ footer { background:var(--navy); padding:56px 6% 32px; }
   <div class="hero-bg"></div>
   <div class="hero-grid"></div>
   <div class="hero-inner">
-    <div class="hero-text reveal">
+    <div class="hero-text">
       <div class="hero-eyebrow" id="hero-eyebrow" data-i18n="hero.eyebrow">Curated Journeys</div>
       <h1 id="hero-heading" data-i18n="hero.heading" data-i18n-html>Travel Beyond<br>the <em>Ordinary</em></h1>
       <p id="hero-subtext" data-i18n="hero.subtext">The Travel Chapter curates extraordinary journeys for discerning travellers — from intimate ryokans in Kyoto to private yacht charters along the Amalfi Coast.</p>
@@ -362,6 +386,27 @@ footer { background:var(--navy); padding:56px 6% 32px; }
     </div>
   </div>
 </section>
+<script>
+// Paint the hero photo / secondary CTA as soon as they're known (see the head script).
+window.TC_HERO_EARLY && TC_HERO_EARLY.then(function (c) { if (c) applyHeroMedia(c); });
+function applyHeroMedia(d) {
+  var heroEl = document.getElementById('hero');
+  // Optional editable background photo — a dark overlay gradient is layered on top so the heading stays readable.
+  if (heroEl && d.background_image) {
+    heroEl.style.backgroundImage =
+      "linear-gradient(135deg, rgba(20,24,34,0.82) 0%, rgba(30,42,58,0.72) 50%, rgba(20,24,34,0.9) 100%), url('" + d.background_image + "')";
+    heroEl.style.backgroundSize = 'cover';
+    heroEl.style.backgroundPosition = 'center';
+  } else if (heroEl) {
+    heroEl.style.backgroundImage = ''; // photo removed in the CMS — back to the plain gradient
+  }
+  var p2 = document.getElementById('hero-cta-secondary');
+  if (p2) {
+    if (d.cta_secondary_label) { p2.textContent = d.cta_secondary_label; p2.href = d.cta_secondary_href || '#'; p2.style.display = ''; }
+    else { p2.style.display = 'none'; }
+  }
+}
+</script>
 
 <!-- ── DESTINATIONS ── -->
 <section id="destinations">
@@ -553,20 +598,15 @@ function applyHero(d) {
   txt('hero-subtext', d.subtext);
   const p1 = document.getElementById('hero-cta-primary');
   if(p1) { p1.textContent=d.cta_primary_label||''; p1.href=d.cta_primary_href||'#'; }
-  const p2 = document.getElementById('hero-cta-secondary');
-  if(p2) {
-    if (d.cta_secondary_label) { p2.textContent=d.cta_secondary_label; p2.href=d.cta_secondary_href||'#'; p2.style.display=''; }
-    else { p2.style.display='none'; }
-  }
-  // Optional editable background photo (CMS: hero.background_image) — a dark overlay
-  // gradient is layered on top so the heading stays readable.
-  const heroEl = document.getElementById('hero');
-  if (heroEl && d.background_image) {
-    heroEl.style.backgroundImage =
-      `linear-gradient(135deg, rgba(20,24,34,0.82) 0%, rgba(30,42,58,0.72) 50%, rgba(20,24,34,0.9) 100%), url('${d.background_image}')`;
-    heroEl.style.backgroundSize = 'cover';
-    heroEl.style.backgroundPosition = 'center';
-  }
+  applyHeroMedia(d);
+  // Remember the photo + secondary CTA so the next visit paints them before the CMS loads.
+  try {
+    localStorage.setItem('tc_hero_cms', JSON.stringify({
+      background_image: d.background_image || null,
+      cta_secondary_label: d.cta_secondary_label || null,
+      cta_secondary_href: d.cta_secondary_href || null,
+    }));
+  } catch (e) {}
 }
 
 function applyDestinations(d) {

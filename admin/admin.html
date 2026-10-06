@@ -320,7 +320,7 @@ textarea { resize:vertical; min-height:70px; }
   <!-- MEMBERS -->
   <div class="page" id="page-members">
     <div class="page-header">
-      <div><h1>Members</h1><p>View, edit details, manage bookings and upgrade tiers.</p></div>
+      <div><h1>Members</h1><p>View and edit member details, points and bookings.</p></div>
       <button class="btn btn-gold" onclick="openCreateMemberModal(false)">+ New Member</button>
     </div>
     <div class="card">
@@ -720,7 +720,7 @@ textarea { resize:vertical; min-height:70px; }
       <div class="modal-section-title">Points &amp; Access</div>
       <div style="display:flex;align-items:flex-start;gap:12px;">
         <div class="field" id="mm-reward-points-section" style="flex:1;">
-          <label>Redeemable Points</label>
+          <label>Points</label>
           <input type="number" id="mm-reward-points" min="0" placeholder="0">
           <div class="field-hint" style="font-size:0.68rem;color:#c5bdb4;margin-top:3px;">Balance the member spends in the Rewards Store. Bookings auto-credit 1 point per RM when confirmed.</div>
         </div>
@@ -2424,7 +2424,7 @@ function renderProductRequestsTable() {
 async function setProductRequestStatus(id, status) {
   const r = allProductRequests.find(x=>x.id===id);
   if (status === 'fulfilled' && r && r.method === 'points') {
-    if (!confirm(`Mark fulfilled. Remember to deduct ${Number(r.points_cost_snapshot||0)*r.quantity} redeemable points from ${r.member_name||'the member'} in the Members tab — this is not done automatically.`)) return;
+    if (!confirm(`Mark fulfilled. Remember to deduct ${Number(r.points_cost_snapshot||0)*r.quantity} points from ${r.member_name||'the member'} in the Members tab — this is not done automatically.`)) return;
   }
   const { error } = await sb.from('product_requests')
     .update({ status, handled_by: currentAdminId, handled_at: new Date().toISOString() }).eq('id', id);

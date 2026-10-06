@@ -15,6 +15,7 @@
 <meta name="description" content="The Travel Chapter member dashboard.">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="i18n.js"></script>
+<script src="mobile-tabbar.js" defer></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -434,10 +435,9 @@ textarea { resize:vertical; min-height:80px; }
         <button class="btn-primary" id="btn-play-ticket" data-i18n="dash.draw_tickets_play">Play</button>
       </div>
     </div>
-    <div class="grid-3">
+    <div class="grid-2">
       <div class="stat-card"><div class="stat-value" id="ov-bookings">—</div><div class="stat-label" data-i18n="dash.stat_bookings">Total Bookings</div></div>
-      <div class="stat-card"><div class="stat-value" id="ov-points">—</div><div class="stat-label" data-i18n="dash.stat_points">Redeemable Points</div></div>
-      <div class="stat-card"><div class="stat-value" id="ov-earned">—</div><div class="stat-label" data-i18n="dash.stat_earned">Points Earned</div></div>
+      <div class="stat-card"><div class="stat-value" id="ov-points">—</div><div class="stat-label" data-i18n="dash.stat_points">Points</div></div>
     </div>
     <div class="grid-2">
       <div class="card"><div class="card-title" data-i18n="dash.recent_bookings">Recent Bookings</div><div id="ov-recent"></div></div>
@@ -449,7 +449,7 @@ textarea { resize:vertical; min-height:80px; }
   <div class="page" id="page-trips">
     <div class="page-header">
       <h1 data-i18n="dash.browse_heading" data-i18n-html>Browse <em>Trips</em></h1>
-      <p data-i18n="dash.browse_subtitle">Discover curated journeys matched to your membership tier.</p>
+      <p data-i18n="dash.browse_subtitle">Discover curated journeys, all open to every member.</p>
     </div>
     <div class="trips-filter" id="trips-filter">
       <input type="search" id="tf-search" data-i18n-placeholder="trips_page.filter_search_ph" placeholder="Search trips…">
@@ -535,10 +535,7 @@ textarea { resize:vertical; min-height:80px; }
       <h1 data-i18n="dash.points_heading" data-i18n-html>My <em>Points</em></h1>
       <p data-i18n="dash.points_subtitle">Earn 1 point for every RM spent on a confirmed booking. Spend them in the Rewards Store.</p>
     </div>
-    <div class="grid-2" style="margin-bottom:20px;">
-      <div class="stat-card"><div class="stat-value" id="pt-balance">—</div><div class="stat-label" data-i18n="dash.points_balance">Redeemable Balance</div></div>
-      <div class="stat-card"><div class="stat-value" id="pt-earned">—</div><div class="stat-label" data-i18n="dash.points_earned_total">Earned from Bookings</div></div>
-    </div>
+    <div class="stat-card" style="margin-bottom:20px;"><div class="stat-value" id="pt-balance">—</div><div class="stat-label" data-i18n="dash.points_balance">Points</div></div>
     <div class="card">
       <div class="card-title" data-i18n="dash.points_activity">Recent Activity</div>
       <div id="pt-activity"><div class="empty-state" data-i18n="dash.loading">Loading…</div></div>
@@ -852,30 +849,15 @@ function renderOverview() {
         <span class="status-pill status-${b.status}">${TC_I18N.t('status.'+b.status)}</span></div>`).join('')
     : `<div class="empty-state"><div class="icon">🗺️</div><p>${TC_I18N.t('dash.no_bookings_overview')}</p></div>`;
 
-  const st = pointsStats();
-  document.getElementById('ov-earned').textContent = st.earned.toLocaleString();
+  // One points figure (profiles.reward_points) — what the member has to spend.
   document.getElementById('ov-progress').innerHTML = `
     <div style="display:flex;flex-direction:column;gap:10px;">
       <div style="display:flex;align-items:center;justify-content:space-between;">
-        <span style="font-size:0.82rem;color:var(--smoke);">${TC_I18N.t('dash.points_earned_total')}</span>
-        <span style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--navy);">${st.earned.toLocaleString()}</span>
-      </div>
-      <div style="display:flex;align-items:center;justify-content:space-between;">
         <span style="font-size:0.82rem;color:var(--smoke);">${TC_I18N.t('dash.points_balance')}</span>
-        <span style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--gold);">${st.balance.toLocaleString()}</span>
+        <span style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--gold);">${(profile?.reward_points || 0).toLocaleString()}</span>
       </div>
+      <div style="font-size:0.76rem;color:var(--smoke);line-height:1.6;">${TC_I18N.t('dash.points_subtitle')}</div>
     </div>`;
-}
-
-// Redeemable balance + lifetime earned (confirmed/completed bookings + daily check-ins),
-// used by Overview + Points page.
-function pointsStats() {
-  const balance = profile?.reward_points || 0;
-  const fromBookings = bookings
-    .filter(b => b.status === 'confirmed' || b.status === 'completed')
-    .reduce((s, b) => s + (b.points_earned != null ? b.points_earned : Math.floor(Number(b.total_usd) || 0)), 0);
-  const fromCheckins = checkins.reduce((s, c) => s + (c.points_awarded || 0), 0);
-  return { balance, earned: fromBookings + fromCheckins };
 }
 
 // ── DAILY CHECK-IN ──────────────────────────────────────────
@@ -1225,9 +1207,7 @@ document.getElementById('vouchers-list').addEventListener('click', function (e) 
 
 // ── RENDER POINTS ───────────────────────────────────────────
 function renderPoints() {
-  const st = pointsStats();
-  document.getElementById('pt-balance').textContent = st.balance.toLocaleString();
-  document.getElementById('pt-earned').textContent = st.earned.toLocaleString();
+  document.getElementById('pt-balance').textContent = (profile?.reward_points || 0).toLocaleString();
 
   const events = [];
   bookings.filter(b => b.status === 'confirmed' || b.status === 'completed').forEach(b => {

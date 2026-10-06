@@ -486,14 +486,15 @@ textarea { resize:vertical; min-height:70px; }
     <div class="card" style="margin-top:18px;">
       <div class="card-header">
         <div class="card-title">Lucky Draw Prizes — Day 7</div>
-        <span style="font-size:0.72rem;color:var(--smoke);">Used only when Day 7 above is set to "Lucky Draw". The member picks one of these 9 boxes; the winner is random.</span>
+        <span style="font-size:0.72rem;color:var(--smoke);">Used only when Day 7 above is set to "Lucky Draw". The member picks one of these 9 boxes; the winner is random. Odds are optional — leave blank for an equal share of whatever % is left.</span>
       </div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Box</th><th>Label</th><th>Prize</th><th>Actions</th></tr></thead>
-          <tbody id="draw-prizes-body"><tr><td colspan="4" class="loading">Loading…</td></tr></tbody>
+          <thead><tr><th>Box</th><th>Label</th><th>Prize</th><th>Odds</th><th>Actions</th></tr></thead>
+          <tbody id="draw-prizes-body"><tr><td colspan="5" class="loading">Loading…</td></tr></tbody>
         </table>
       </div>
+      <div id="dp-odds-summary" style="padding:10px 16px;font-size:0.78rem;color:var(--smoke);"></div>
     </div>
   </div>
 
@@ -2188,11 +2189,45 @@ async function saveCheckinReward(day) {
 // ── DAY-7 LUCKY DRAW PRIZES (9 boxes) ──────────────────────
 async function loadDrawPrizes() {
   const { data } = await sb.from('check_in_draw_prizes')
-    .select('slot, reward_type, points, voucher_discount_type, voucher_discount_value, voucher_valid_days, label, product_id')
+    .select('slot, reward_type, points, voucher_discount_type, voucher_discount_value, voucher_valid_days, label, product_id, odds')
     .order('slot');
   allDrawPrizes = data || [];
 }
 const DP_VOUCHERISH = ['cash', 'trip_voucher', 'hotel_voucher'];
+// Effective % chance per box from optional odds (null = blank). Mirrors the SQL
+// public.draw_prize_chances(): set odds are used as-is, blanks split what is left
+// of 100% evenly, then everything is scaled to 100% (all 0 -> even split).
+function drawChances(odds) {
+  const set = odds.filter(o => o != null);
+  const setTotal = set.reduce((a, b) => a + b, 0);
+  const blanks = odds.length - set.length;
+  const w = odds.map(o => o != null ? o : Math.max(100 - setTotal, 0) / blanks);
+  const total = w.reduce((a, b) => a + b, 0);
+  return w.map(x => total > 0 ? x * 100 / total : 100 / odds.length);
+}
+function dpOddsInput(s) {
+  const v = (document.getElementById('dp-odds-' + s)?.value || '').trim();
+  return v === '' ? null : parseFloat(v);
+}
+const dpPct = n => Math.round(n * 100) / 100;
+function dpRenderChances() {
+  const odds = [];
+  for (let s = 1; s <= 9; s++) odds.push(dpOddsInput(s));
+  const valid = odds.every(o => o == null || (o >= 0 && o <= 100));
+  const setTotal = dpPct(odds.filter(o => o != null).reduce((a, b) => a + b, 0));
+  const ch = valid && setTotal <= 100 ? drawChances(odds) : null;
+  for (let s = 1; s <= 9; s++) {
+    const el = document.getElementById('dp-chance-' + s);
+    if (el) el.textContent = ch ? `= ${dpPct(ch[s - 1])}% chance` : '';
+  }
+  const sum = document.getElementById('dp-odds-summary');
+  if (!sum) return;
+  if (odds.every(o => o == null)) sum.textContent = 'No odds set — every box has an equal chance (11.11% each).';
+  else if (!valid) sum.innerHTML = '<span style="color:#c0392b;">Each odds value must be between 0 and 100%.</span>';
+  else if (setTotal > 100) sum.innerHTML = `<span style="color:#c0392b;">Odds add up to ${setTotal}% — they cannot go over 100%.</span>`;
+  else if (odds.every(o => o != null)) sum.textContent = `Odds set on every box (${setTotal}% in total) — scaled to 100%.`;
+  else sum.textContent = `Odds set: ${setTotal}% in total. Boxes left blank share the remaining ${dpPct(100 - setTotal)}% equally.`;
+}
 function dpRenderType(s) {
   const t = document.getElementById('dp-type-' + s).value;
   document.getElementById('dp-points-' + s).style.display  = t === 'points' ? 'flex' : 'none';
@@ -2208,7 +2243,7 @@ function renderDrawPrizesTable() {
   const rows = [];
   for (let s = 1; s <= 9; s++) {
     const p = allDrawPrizes.find(x => x.slot === s) ||
-      { slot: s, reward_type: 'points', points: 0, voucher_discount_type: 'fixed', voucher_discount_value: '', voucher_valid_days: 30, label: '', product_id: null };
+      { slot: s, reward_type: 'points', points: 0, voucher_discount_type: 'fixed', voucher_discount_value: '', voucher_valid_days: 30, label: '', product_id: null, odds: null };
     const t = p.reward_type;
     const vish = DP_VOUCHERISH.includes(t);
     const opt = (v, lbl) => `<option value="${v}"${t === v ? ' selected' : ''}>${lbl}</option>`;
@@ -2241,10 +2276,17 @@ function renderDrawPrizesTable() {
           </div>
         </div>
       </td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <input type="number" min="0" max="100" step="0.01" id="dp-odds-${s}" value="${p.odds ?? ''}" placeholder="auto" oninput="dpRenderChances()" style="width:70px;"> <span style="font-size:0.72rem;color:var(--smoke);">%</span>
+        </div>
+        <div id="dp-chance-${s}" style="font-size:0.7rem;color:var(--smoke);margin-top:4px;white-space:nowrap;"></div>
+      </td>
       <td><button class="btn btn-primary btn-sm" id="dp-save-${s}" onclick="saveDrawPrize(${s})">Save</button></td>
     </tr>`);
   }
   body.innerHTML = rows.join('');
+  dpRenderChances();
 }
 async function saveDrawPrize(slot) {
   const btn = document.getElementById('dp-save-' + slot);
@@ -2254,7 +2296,13 @@ async function saveDrawPrize(slot) {
     label: document.getElementById('dp-label-' + slot).value.trim() || null,
     points: parseInt(document.getElementById('dp-pts-' + slot).value) || 0,
     voucher_discount_type: null, voucher_discount_value: null, voucher_valid_days: null, product_id: null,
+    odds: dpOddsInput(slot),
   };
+  if (payload.odds != null) {
+    if (isNaN(payload.odds) || payload.odds < 0 || payload.odds > 100) { showToast('Odds must be between 0 and 100%, or blank.', true); return; }
+    const others = allDrawPrizes.filter(x => x.slot !== slot && x.odds != null).reduce((a, x) => a + Number(x.odds), 0);
+    if (dpPct(others + payload.odds) > 100) { showToast(`Odds would total ${dpPct(others + payload.odds)}% — the other boxes already use ${dpPct(others)}%.`, true); return; }
+  }
   if (DP_VOUCHERISH.includes(type)) {
     const vtype = type === 'cash' ? 'fixed' : document.getElementById('dp-vtype-' + slot).value;
     const vval  = parseFloat(document.getElementById('dp-vval-' + slot).value);

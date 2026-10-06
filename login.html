@@ -389,6 +389,7 @@ input:focus { border-color: var(--gold); background: var(--white); }
           <span class="err-msg" id="regf-err"></span>
         </div>
         <button class="btn-submit" id="btn-register-finish" onclick="handleRegisterFinish()" data-i18n="login.create_account_button">Create Account</button>
+        <p class="form-footer"><a onclick="signOutFromFinish()" data-i18n="login.finish_signout">Not now — sign out</a></p>
       </div>
 
       <!-- FORGOT PASSWORD: request code -->
@@ -447,10 +448,15 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 // Admin/staff accounts belong on admin-login.html, not the member portal.
 async function routeSession(session) {
   if (!session) return;
-  const { data: profile } = await sb.from('profiles').select('is_admin, is_staff').eq('id', session.user.id).single();
+  const { data: profile } = await sb.from('profiles').select('is_admin, is_staff, first_name').eq('id', session.user.id).single();
   if (profile?.is_admin || profile?.is_staff) {
     await sb.auth.signOut();
     showErr('login-err', TC_I18N.t('login.err_admin_account'));
+    return;
+  }
+  // Verified their phone but never finished Join Us (no name yet) — finish that first.
+  if (!(profile?.first_name || '').trim()) {
+    showForm('register-finish');
     return;
   }
   // Signed-in members go straight to their dashboard.
@@ -579,19 +585,38 @@ async function handleRegisterFinish() {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('regf-err', TC_I18N.t('login.err_invalid_email')); return; }
   if (pw.length < 8) { showErr('regf-err', TC_I18N.t('login.err_password_length')); return; }
   const btn = document.getElementById('btn-register-finish');
+  const fail = msg => {
+    suppressAutoRedirect = false;
+    showErr('regf-err', msg); btn.disabled = false; btn.textContent = TC_I18N.t('login.create_account_button');
+  };
   btn.disabled = true; btn.textContent = TC_I18N.t('login.creating_loading');
+  // updateUser fires USER_UPDATED before the profile has a name — keep the listener out of it.
+  suppressAutoRedirect = true;
   // All new members start as explorer (lowest tier) — no tier selection
   const { error } = await sb.auth.updateUser({ password: pw, data: { first_name: first, last_name: last, tier: 'explorer' } });
-  if (error) { showErr('regf-err', error.message); btn.disabled = false; btn.textContent = TC_I18N.t('login.create_account_button'); return; }
+  if (error) { fail(error.message); return; }
   const { data: { session } } = await sb.auth.getSession();
+  if (!session) { fail(TC_I18N.t('login.err_session_expired')); return; }
   // handle_new_user only populates profiles on the initial insert (which happened back at
   // signInWithOtp with no name yet) — write the name/email into profiles directly too, not just auth metadata.
   // Stored as a plain profiles column (not auth.users.email) so it doesn't trigger Supabase's
   // email-confirmation flow — these are phone-auth accounts with no email provider dependency.
-  await sb.from('profiles').update({ first_name: first, last_name: last, email }).eq('id', session.user.id);
+  // .select() so a silently-blocked update (0 rows) is caught too, not just an error.
+  const { data: saved, error: profErr } = await sb.from('profiles')
+    .update({ first_name: first, last_name: last, email }).eq('id', session.user.id).select('first_name');
+  if (profErr || !saved || !saved.length) { fail(TC_I18N.t('login.err_profile_save') + (profErr ? ' (' + profErr.message + ')' : '')); return; }
+  suppressAutoRedirect = false;
   btn.disabled = false; btn.textContent = TC_I18N.t('login.create_account_button');
   showToast(TC_I18N.t('login.toast_welcome'));
   routeSession(session);
+}
+
+// The finish-profile form is shown to a signed-in but unfinished account; let them leave it.
+async function signOutFromFinish() {
+  suppressAutoRedirect = true;
+  await sb.auth.signOut();
+  suppressAutoRedirect = false;
+  showForm('login');
 }
 
 async function resendCode() {

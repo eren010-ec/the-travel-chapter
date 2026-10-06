@@ -702,9 +702,14 @@ async function init() {
   currentUser = session.user;
 
   // Admin/staff accounts belong on the admin portal, not here
-  const { data: roleCheck } = await sb.from('profiles').select('is_admin, is_staff').eq('id', currentUser.id).single();
+  const { data: roleCheck } = await sb.from('profiles').select('is_admin, is_staff, first_name').eq('id', currentUser.id).single();
   if (roleCheck?.is_admin || roleCheck?.is_staff) {
     await sb.auth.signOut();
+    window.location.href = 'login.html';
+    return;
+  }
+  // Phone verified but sign-up never finished (no name/password yet) — login.html shows the finish step.
+  if (!(roleCheck?.first_name || '').trim()) {
     window.location.href = 'login.html';
     return;
   }

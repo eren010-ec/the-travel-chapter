@@ -761,7 +761,9 @@ textarea { resize:vertical; min-height:70px; }
     <div class="form-grid">
       <div class="field full">
         <label>Member</label>
-        <select id="abm-member"></select>
+        <input type="text" id="abm-member-search" placeholder="Search name, phone or email…" oninput="filterAddBookingMembers()" autocomplete="off" style="margin-bottom:6px;">
+        <select id="abm-member" size="6" style="height:auto;"></select>
+        <div id="abm-member-count" style="font-size:0.68rem;color:var(--smoke);margin-top:3px;"></div>
       </div>
       <div class="field full">
         <label>Trip</label>
@@ -1456,19 +1458,25 @@ function renderDashboard() {
 function filterMembers() {
   const q=document.getElementById('mb-search').value.toLowerCase();
   // Exclude admins and staff from members list — they live in the Admins tab
-  const filtered=allMembers.filter(m=>!m.is_admin&&!m.is_staff&&`${m.first_name||''} ${m.last_name||''} ${m.email||''} ${m.contact_email||''} ${m.phone||''}`.toLowerCase().includes(q));
+  const filtered=allMembers.filter(m=>!m.is_admin&&!m.is_staff&&`${m.first_name||''} ${m.last_name||''} ${m.email||''} ${m.contact_email||''} ${m.phone||''} ${isIncompleteSignup(m)?'incomplete sign-up':''}`.toLowerCase().includes(q));
   document.getElementById('mb-count').textContent=`${filtered.length} members`;
   renderMembersRows(filtered);
 }
 function renderMembersTable() {
   const members = allMembers.filter(m=>!m.is_admin&&!m.is_staff);
-  document.getElementById('mb-count').textContent=`${members.length} members`;
+  const incomplete = members.filter(isIncompleteSignup).length;
+  document.getElementById('mb-count').textContent=`${members.length} members${incomplete ? ` (${incomplete} incomplete sign-up${incomplete > 1 ? 's' : ''})` : ''}`;
   renderMembersRows(members);
 }
+// No first name = the person started "Join Us" (an account is created as soon as the
+// SMS code is requested) but never finished the name/email/password step.
+function isIncompleteSignup(m) { return !(m.first_name || '').trim(); }
 function renderMembersRows(list) {
   document.getElementById('members-body').innerHTML = list.length
     ? list.map(m=>`<tr>
-        <td><strong>${m.first_name||''} ${m.last_name||''}</strong></td>
+        <td>${isIncompleteSignup(m)
+          ? `<span class="pill pill-pending" title="Started Join Us but never entered name, email and password. They will be asked to finish next time they log in.">Incomplete sign-up</span>`
+          : `<strong>${m.first_name||''} ${m.last_name||''}</strong>`}</td>
         <td style="color:var(--smoke);font-size:0.78rem;">${m.contact_email||m.email||''}</td>
         <td style="color:var(--smoke);font-size:0.78rem;">${m.phone||''}</td>
         <td>${(m.reward_points||0).toLocaleString()}</td>
@@ -1668,10 +1676,26 @@ function resetToDefault() {
 }
 
 // ── ADD BOOKING (Bookings page) ────────────────────────────
+function filterAddBookingMembers() {
+  const q = document.getElementById('abm-member-search').value.trim().toLowerCase();
+  const sel = document.getElementById('abm-member');
+  const keep = sel.value;
+  const members = allMembers.filter(m=>!m.is_admin&&!m.is_staff)
+    .filter(m => !q || `${m.first_name||''} ${m.last_name||''} ${m.phone||''} ${m.email||''} ${m.contact_email||''}`.toLowerCase().includes(q))
+    .sort((a,b)=>`${a.first_name||''}`.localeCompare(`${b.first_name||''}`));
+  sel.innerHTML = members.map(m=>`<option value="${m.id}">${escapeHtml(`${m.first_name||''} ${m.last_name||''}`.trim() || '—')} — ${escapeHtml(m.phone || m.email || '')}</option>`).join('');
+  // keep the current pick if it still matches, otherwise pre-select the only/first match while searching
+  if (members.some(m => m.id === keep)) sel.value = keep;
+  else if (q && members.length) sel.value = members[0].id;
+  else sel.value = '';
+  document.getElementById('abm-member-count').textContent = members.length
+    ? `${members.length} member${members.length > 1 ? 's' : ''}${q ? ' match' + (members.length > 1 ? '' : 'es') : ''}`
+    : 'No members match.';
+}
 function openAddBookingModal() {
-  const members = allMembers.filter(m=>!m.is_admin&&!m.is_staff).sort((a,b)=>`${a.first_name}`.localeCompare(b.first_name));
-  document.getElementById('abm-member').innerHTML = '<option value="">— pick a member —</option>' +
-    members.map(m=>`<option value="${m.id}">${escapeHtml(`${m.first_name||''} ${m.last_name||''}`.trim() || '—')} — ${escapeHtml(m.phone || m.email || '')}</option>`).join('');
+  document.getElementById('abm-member-search').value = '';
+  document.getElementById('abm-member').innerHTML = '';
+  filterAddBookingMembers();
 
   // Populate trip dropdown
   const tripSel = document.getElementById('abm-trip');
@@ -1682,6 +1706,7 @@ function openAddBookingModal() {
   document.getElementById('abm-requests').value='';
   document.getElementById('abm-status').value='pending';
   openModal('add-booking-modal');
+  setTimeout(() => document.getElementById('abm-member-search').focus(), 50);
 }
 
 function updateAddDates() {

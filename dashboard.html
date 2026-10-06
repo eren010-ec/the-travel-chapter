@@ -116,6 +116,9 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 .checkin-hint { font-size:0.76rem; color:var(--smoke); margin-top:8px; }
 #btn-checkin { white-space:nowrap; }
 .checkin-boxes { display:flex; gap:7px; margin-top:16px; }
+.ci-tickets { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-top:16px; padding:10px 14px; border-radius:10px; background:#eef5fb; border:1px solid #cfe0ef; font-size:0.8rem; color:#1e6091; }
+.ci-tickets[hidden] { display:none; }
+.ci-tickets button { white-space:nowrap; padding:7px 16px; font-size:0.75rem; }
 .ci-col { flex:1; max-width:58px; display:flex; flex-direction:column; align-items:center; gap:5px; }
 .ci-pts { font-size:0.66rem; font-weight:500; color:var(--smoke); letter-spacing:0.02em; white-space:nowrap; }
 .ci-pts.is-voucher { color:#1e6091; }
@@ -426,6 +429,10 @@ textarea { resize:vertical; min-height:80px; }
         <button class="btn-primary" id="btn-checkin" data-i18n="dash.checkin_btn">Check In</button>
       </div>
       <div class="checkin-boxes" id="ci-boxes"></div>
+      <div class="ci-tickets" id="ci-tickets" hidden>
+        <span id="ci-tickets-text"></span>
+        <button class="btn-primary" id="btn-play-ticket" data-i18n="dash.draw_tickets_play">Play</button>
+      </div>
     </div>
     <div class="grid-3">
       <div class="stat-card"><div class="stat-value" id="ov-bookings">—</div><div class="stat-label" data-i18n="dash.stat_bookings">Total Bookings</div></div>
@@ -639,7 +646,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 let currentUser = null, profile = null, trips = [], bookings = [], bookingTrip = null;
 let activePromotions = [], myReferrals = [], myDrawWins = [];
 let products = [], productRequests = [], activeProduct = null;
-let checkins = [], checkinRewards = [], vouchers = [];
+let checkins = [], checkinRewards = [], vouchers = [], drawTickets = [];
 
 // ── NAVIGATION via event delegation ─────────────────────────
 document.getElementById('sidebar-nav').addEventListener('click', function(e) {
@@ -703,7 +710,7 @@ async function init() {
   }
 
   await Promise.all([loadProfile(), loadTrips(), loadBookings()]);
-  await Promise.all([loadReferralData(), loadProducts(), loadProductRequests(), loadCheckins(), loadCheckinRewards(), loadVouchers()]);
+  await Promise.all([loadReferralData(), loadProducts(), loadProductRequests(), loadCheckins(), loadCheckinRewards(), loadVouchers(), loadDrawTickets()]);
   buildTripFilters();
   renderSidebar(); renderOverview(); renderCheckin(); renderTrips(); renderBookings(); renderVouchers(); renderPoints(); prefillProfile(); renderReferralsPage(); renderRewards();
 }
@@ -727,6 +734,14 @@ async function loadVouchers() {
     .order('created_at', { ascending: false });
   vouchers = data || [];
 }
+// Unplayed lucky-draw vouchers (one per confirmed booking, or given by staff), oldest first.
+async function loadDrawTickets() {
+  const { data } = await sb.from('lucky_draw_tickets')
+    .select('id, source, note, created_at')
+    .eq('member_id', currentUser.id).is('used_at', null)
+    .order('created_at', { ascending: true });
+  drawTickets = data || [];
+}
 async function loadProducts() {
   const { data } = await sb.from('products').select('*').eq('is_active', true)
     .order('sort_order', { ascending: true }).order('name', { ascending: true });
@@ -747,13 +762,15 @@ async function loadCheckins() {
 }
 async function loadCheckinRewards() {
   const { data } = await sb.from('check_in_rewards')
-    .select('day, points, image_url, reward_type, voucher_discount_type, voucher_discount_value, voucher_valid_days')
+    .select('day, points, image_url, reward_type, voucher_discount_type, voucher_discount_value, voucher_valid_days, product_id, products(name)')
     .order('day');
   checkinRewards = data || [];
 }
 function rewardForDay(cycleDay) { return checkinRewards.find(r => r.day === cycleDay) || null; }
 // True when the configured reward for this cycle day is a voucher.
 function isVoucherDay(r) { return !!(r && r.reward_type === 'voucher' && r.voucher_discount_type && r.voucher_discount_value != null); }
+// True when the day gives a product (the server falls back to points if the product is gone).
+function isProductDay(r) { return !!(r && r.reward_type === 'product' && r.product_id && r.products); }
 function isDrawDay(cycleDay) { const r = rewardForDay(cycleDay); return cycleDay === 7 && r && r.reward_type === 'luckydraw'; }
 function voucherAmountLabel(dtype, val) {
   return dtype === 'percent'
@@ -765,6 +782,7 @@ function rewardBoxLabel(cycleDay) {
   if (isDrawDay(cycleDay)) return TC_I18N.t('dash.draw_box_label');
   const r = rewardForDay(cycleDay);
   if (isVoucherDay(r)) return voucherAmountLabel(r.voucher_discount_type, r.voucher_discount_value);
+  if (isProductDay(r)) return TC_I18N.t('dash.checkin_gift_label');
   return `+${Number(r ? r.points : checkinPoints(cycleDay)).toLocaleString()}`;
 }
 // A lucky-draw prize object (from claim_lucky_draw) -> short human label.
@@ -898,7 +916,9 @@ function renderCheckin(justClaimed) {
       ? TC_I18N.t('dash.checkin_earn_hint_draw')
       : isVoucherDay(nextR)
         ? TC_I18N.t('dash.checkin_earn_hint_voucher', { reward: voucherAmountLabel(nextR.voucher_discount_type, nextR.voucher_discount_value) })
-        : TC_I18N.t('dash.checkin_earn_hint', { pts: checkinPoints(streak + 1) });
+        : isProductDay(nextR)
+          ? TC_I18N.t('dash.checkin_earn_hint_product', { product: nextR.products.name })
+          : TC_I18N.t('dash.checkin_earn_hint', { pts: checkinPoints(streak + 1) });
 
   // Day-7 lucky draw that was checked in but not yet played -> nudge them to open it.
   const pendingDraw = checkins.find(c => c.check_in_date === ciToday() && c.reward_kind === 'luckydraw' && !c.draw_prize);
@@ -922,10 +942,17 @@ function renderCheckin(justClaimed) {
     const r = rewardForDay(i);
     const voucher = isVoucherDay(r);
     const draw = isDrawDay(i);
+    const product = isProductDay(r);
     const inner = r && r.image_url ? `<img src="${r.image_url}" alt="">` : (draw ? '🎲' : voucher ? '🎟️' : (i === 7 ? '🎉' : '🎁'));
-    html += `<span class="ci-col"><span class="${cls.join(' ')}">${inner}</span><span class="ci-pts${voucher || draw ? ' is-voucher' : ''}">${rewardBoxLabel(i)}</span></span>`;
+    const title = product ? ` title="${String(r.products.name).replace(/&/g, '&amp;').replace(/"/g, '&quot;')}"` : '';
+    html += `<span class="ci-col"${title}><span class="${cls.join(' ')}">${inner}</span><span class="ci-pts${voucher || draw || product ? ' is-voucher' : ''}">${rewardBoxLabel(i)}</span></span>`;
   }
   document.getElementById('ci-boxes').innerHTML = html;
+
+  const tk = document.getElementById('ci-tickets');
+  tk.hidden = !drawTickets.length;
+  document.getElementById('ci-tickets-text').textContent =
+    TC_I18N.t(drawTickets.length === 1 ? 'dash.draw_tickets_one' : 'dash.draw_tickets_many', { n: drawTickets.length });
 }
 async function doCheckIn() {
   const btn = document.getElementById('btn-checkin');
@@ -950,6 +977,9 @@ async function doCheckIn() {
       date: fmtDate(data.voucher_expires_at),
     }));
     await loadVouchers();
+  } else if (data.reward_kind === 'product') {
+    showToast(TC_I18N.t('dash.checkin_product_toast', { product: data.product_name }));
+    await loadProductRequests(); renderMyRequests();
   } else {
     if (profile) profile.reward_points = data.reward_points;
     showToast(TC_I18N.t(data.weekly_bonus ? 'dash.checkin_bonus_toast' : 'dash.checkin_toast',
@@ -960,11 +990,17 @@ async function doCheckIn() {
 }
 
 // ── DAY-7 LUCKY DRAW MODAL ──────────────────────────────────
-let drawBusy = false;
+// The same 3x3 game is played either for today's Day-7 check-in (drawTicketId
+// null -> claim_lucky_draw) or by spending a lucky-draw voucher (play_draw_ticket).
+let drawBusy = false, drawTicketId = null;
 function drawCell(emoji, label) {
   return `<span class="dc-emoji">${emoji}</span>${label ? `<span class="dc-label">${label}</span>` : ''}`;
 }
-function openDrawModal() {
+document.getElementById('btn-play-ticket').addEventListener('click', () => {
+  if (drawTickets.length) openDrawModal(drawTickets[0].id);
+});
+function openDrawModal(ticketId) {
+  drawTicketId = ticketId || null;
   const grid = document.getElementById('draw-grid');
   const result = document.getElementById('draw-result');
   const closeBtn = document.getElementById('draw-close');
@@ -974,7 +1010,7 @@ function openDrawModal() {
   document.getElementById('draw-sub').textContent = TC_I18N.t('dash.draw_pick');
   grid.classList.remove('locked');
   // If they already played (reopening), show the stored prize straight away.
-  const played = checkins.find(c => c.check_in_date === ciToday() && c.reward_kind === 'luckydraw' && c.draw_prize);
+  const played = !drawTicketId && checkins.find(c => c.check_in_date === ciToday() && c.reward_kind === 'luckydraw' && c.draw_prize);
   let cells = '';
   for (let i = 1; i <= 9; i++) cells += `<div class="draw-cell" data-cell="${i}">${drawCell('🎁')}</div>`;
   grid.innerHTML = cells;
@@ -988,7 +1024,9 @@ async function pickDrawCell(cell) {
   grid.classList.add('locked');
   const el = grid.querySelector(`[data-cell="${cell}"]`);
   el.innerHTML = drawCell('⏳');
-  const { data, error } = await sb.rpc('claim_lucky_draw', { pick: cell });
+  const { data, error } = drawTicketId
+    ? await sb.rpc('play_draw_ticket', { p_ticket: drawTicketId, pick: cell })
+    : await sb.rpc('claim_lucky_draw', { pick: cell });
   if (error) {
     showToast(TC_I18N.t('dash.error_prefix') + error.message, true);
     drawBusy = false; grid.classList.remove('locked'); el.innerHTML = drawCell('🎁');
@@ -996,8 +1034,8 @@ async function pickDrawCell(cell) {
   }
   revealDraw(data, false);
   if (data.reward_points != null && profile) profile.reward_points = data.reward_points;
-  await Promise.all([loadCheckins(), loadVouchers()]);
-  renderCheckin(); renderSidebar(); renderOverview(); renderVouchers(); renderPoints();
+  await Promise.all([loadCheckins(), loadVouchers(), loadDrawTickets(), loadProductRequests()]);
+  renderCheckin(); renderSidebar(); renderOverview(); renderVouchers(); renderPoints(); renderMyRequests();
 }
 function revealDraw(data, silent) {
   const grid = document.getElementById('draw-grid');
@@ -1195,7 +1233,8 @@ function renderPoints() {
     const label = `${TC_I18N.t('dash.checkin_activity_label')} · ${TC_I18N.t('dash.checkin_day_n', { n: c.streak_day })}`;
     events.push({ date: c.check_in_date, label, delta: `+${Number(c.points_awarded || 0).toLocaleString()}`, kind: 'earn' });
   });
-  productRequests.filter(r => r.method === 'points' && r.status !== 'rejected' && r.status !== 'cancelled').forEach(r => {
+  // 0-cost rows are free gifts (check-in / lucky-draw products) — nothing was spent.
+  productRequests.filter(r => r.method === 'points' && Number(r.points_cost_snapshot || 0) > 0 && r.status !== 'rejected' && r.status !== 'cancelled').forEach(r => {
     const n = Number(r.points_cost_snapshot || 0) * r.quantity;
     events.push({ date: r.created_at, label: r.product_name, delta: `−${n.toLocaleString()}`, kind: 'spend', pending: r.status !== 'fulfilled' });
   });
@@ -1284,7 +1323,9 @@ function renderMyRequests() {
   const box = document.getElementById('rw-requests');
   box.innerHTML = productRequests.length
     ? productRequests.map(r => {
-        const amount = r.method === 'points'
+        const amount = r.method === 'points' && !Number(r.points_cost_snapshot || 0)
+          ? TC_I18N.t('dash.rewards_free_gift')
+          : r.method === 'points'
           ? `${Number(r.points_cost_snapshot||0).toLocaleString()} ${TC_I18N.t('dash.rewards_pts')}`
           : `RM ${Number(r.price_snapshot||0).toLocaleString()}`;
         const canCancel = r.status === 'pending';

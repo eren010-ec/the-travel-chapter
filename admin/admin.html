@@ -473,7 +473,7 @@ textarea { resize:vertical; min-height:70px; }
   <!-- CHECK-IN REWARDS -->
   <div class="page" id="page-checkin">
     <div class="page-header">
-      <div><h1>Check-in Rewards</h1><p>Points &amp; icon for each day of the member Daily Check-in 7-day cycle. Streak resets 12am Malaysia time. Blank icon = default present box.</p></div>
+      <div><h1>Check-in Rewards</h1><p>Reward (points, voucher or product) &amp; icon for each day of the member Daily Check-in 7-day cycle. Streak resets 12am Malaysia time. Blank icon = default present box.</p></div>
     </div>
     <div class="card">
       <div class="tbl-wrap">
@@ -717,6 +717,15 @@ textarea { resize:vertical; min-height:70px; }
             <option value="admin">Admin</option>
           </select>
         </div>
+      </div>
+      <div class="field" style="margin-bottom:0;">
+        <label>Lucky Draw Vouchers</label>
+        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+          <span id="mm-tickets-status" style="font-size:0.8rem;color:var(--navy);">—</span>
+          <input type="number" id="mm-tickets-count" min="1" max="20" value="1" style="width:64px;">
+          <button class="btn btn-gold btn-sm" id="btn-give-tickets" onclick="giveDrawTickets()">🎟️ Give</button>
+        </div>
+        <div class="field-hint" style="font-size:0.68rem;color:#c5bdb4;margin-top:3px;">Each voucher is one play of the 3×3 Lucky Draw (same prizes &amp; odds as check-in Day 7). Members also get one automatically per confirmed booking. Given immediately — no need to Save.</div>
       </div>
     </div>
 
@@ -1541,6 +1550,8 @@ async function openMemberModal(id) {
   // reward_points fetched directly (independent of the admin_members view)
   const { data: rpRow } = await sb.from('profiles').select('reward_points').eq('id', id).single();
   document.getElementById('mm-reward-points').value = rpRow?.reward_points ?? 0;
+  document.getElementById('mm-tickets-count').value = 1;
+  loadMemberTickets(id);
 
   const isAdminPanelAccount = m.is_admin || m.is_staff;
   // Points section is for regular members only, not admin/staff accounts
@@ -1559,6 +1570,30 @@ async function openMemberModal(id) {
 
   document.getElementById('btn-save-member').onclick = saveMember;
   openModal('member-modal');
+}
+
+// ── LUCKY DRAW VOUCHERS (per member) ────────────────────────
+async function loadMemberTickets(memberId) {
+  const el = document.getElementById('mm-tickets-status');
+  el.textContent = 'Loading…';
+  const { data, error } = await sb.from('lucky_draw_tickets').select('used_at').eq('member_id', memberId);
+  if (editingMemberId !== memberId) return;
+  if (error) { el.textContent = 'Could not load'; return; }
+  const unused = data.filter(t => !t.used_at).length;
+  el.textContent = `${unused} unused · ${data.length - unused} played`;
+}
+async function giveDrawTickets() {
+  const memberId = editingMemberId;
+  const n = parseInt(document.getElementById('mm-tickets-count').value);
+  if (!n || n < 1 || n > 20) { showToast('Give between 1 and 20 vouchers at a time.', true); return; }
+  const btn = document.getElementById('btn-give-tickets');
+  btn.disabled = true;
+  const rows = Array.from({ length: n }, () => ({ member_id: memberId, source: 'manual', note: 'Given by staff', created_by: currentAdminId }));
+  const { error } = await sb.from('lucky_draw_tickets').insert(rows);
+  btn.disabled = false;
+  if (error) { showToast('Error: ' + error.message, true); return; }
+  showToast(`${n} lucky draw voucher${n > 1 ? 's' : ''} given ✓`);
+  loadMemberTickets(memberId);
 }
 
 async function loadMemberBookings(memberId, firstName) {
@@ -2076,7 +2111,7 @@ async function deleteProduct(id) {
 // ── DAILY CHECK-IN REWARDS ─────────────────────────────────
 async function loadCheckinRewards() {
   const { data } = await sb.from('check_in_rewards')
-    .select('day, points, image_url, reward_type, voucher_discount_type, voucher_discount_value, voucher_valid_days')
+    .select('day, points, image_url, reward_type, voucher_discount_type, voucher_discount_value, voucher_valid_days, product_id')
     .order('day');
   allCheckinRewards = data || [];
 }
@@ -2084,29 +2119,40 @@ function cirRenderType(d) {
   const t = document.getElementById('cir-type-' + d).value;
   document.getElementById('cir-points-' + d).style.display = t === 'points' ? 'flex' : 'none';
   document.getElementById('cir-voucher-' + d).style.display = t === 'voucher' ? 'flex' : 'none';
+  document.getElementById('cir-product-' + d).style.display = t === 'product' ? 'flex' : 'none';
   const note = document.getElementById('cir-draw-note-' + d);
   if (note) note.style.display = t === 'luckydraw' ? 'block' : 'none';
 }
 function renderCheckinRewardsTable() {
   const body = document.getElementById('checkin-rewards-body');
   if (!body) return;
+  const prods = allProducts.filter(p => p.is_active !== false);
   const rows = [];
   for (let d = 1; d <= 7; d++) {
     const r = allCheckinRewards.find(x => x.day === d) ||
-      { day: d, points: 0, image_url: null, reward_type: 'points', voucher_discount_type: 'fixed', voucher_discount_value: '', voucher_valid_days: 30 };
+      { day: d, points: 0, image_url: null, reward_type: 'points', voucher_discount_type: 'fixed', voucher_discount_value: '', voucher_valid_days: 30, product_id: null };
     const isV = r.reward_type === 'voucher';
     const isD = d === 7 && r.reward_type === 'luckydraw';
+    const isP = r.reward_type === 'product';
     rows.push(`<tr>
       <td><strong>Day ${d}</strong>${d === 7 ? ' <span style="font-size:0.65rem;color:var(--gold);">bonus</span>' : ''}</td>
       <td>
         <div style="display:flex;flex-direction:column;gap:8px;">
           <select id="cir-type-${d}" onchange="cirRenderType(${d})" style="width:150px;">
-            <option value="points"${!isV && !isD ? ' selected' : ''}>Points</option>
+            <option value="points"${!isV && !isD && !isP ? ' selected' : ''}>Points</option>
             <option value="voucher"${isV ? ' selected' : ''}>Voucher</option>
+            <option value="product"${isP ? ' selected' : ''}>Product</option>
             ${d === 7 ? `<option value="luckydraw"${isD ? ' selected' : ''}>Lucky Draw (3×3)</option>` : ''}
           </select>
           ${d === 7 ? `<div id="cir-draw-note-${d}" style="display:${isD ? 'block' : 'none'};font-size:0.72rem;color:var(--smoke);">Prizes set in "Lucky Draw Prizes" below.</div>` : ''}
-          <div id="cir-points-${d}" style="display:${isV || isD ? 'none' : 'flex'};align-items:center;gap:6px;">
+          <div id="cir-product-${d}" style="display:${isP ? 'flex' : 'none'};flex-direction:column;gap:4px;">
+            <select id="cir-prod-${d}" style="width:200px;">
+              <option value="">— pick a product —</option>
+              ${prods.map(pr => `<option value="${pr.id}"${r.product_id === pr.id ? ' selected' : ''}>${escapeHtml(pr.name)}</option>`).join('')}
+            </select>
+            <span style="font-size:0.72rem;color:var(--smoke);">Lands in Redemption Requests as approved, free.</span>
+          </div>
+          <div id="cir-points-${d}" style="display:${isV || isD || isP ? 'none' : 'flex'};align-items:center;gap:6px;">
             <input type="number" min="0" id="cir-pts-${d}" value="${r.points ?? 0}" style="width:90px;"> <span style="font-size:0.72rem;color:var(--smoke);">points</span>
           </div>
           <div id="cir-voucher-${d}" style="display:${isV ? 'flex' : 'none'};align-items:center;gap:6px;flex-wrap:wrap;">
@@ -2152,7 +2198,11 @@ function clearCirImage(day) {
 async function saveCheckinReward(day) {
   const btn = document.getElementById('cir-save-' + day);
   const type = document.getElementById('cir-type-' + day).value;
-  const payload = { reward_type: type, points: parseInt(document.getElementById('cir-pts-' + day).value) || 0 };
+  const payload = { reward_type: type, points: parseInt(document.getElementById('cir-pts-' + day).value) || 0, product_id: null };
+  if (type === 'product') {
+    payload.product_id = document.getElementById('cir-prod-' + day).value;
+    if (!payload.product_id) { showToast('Pick a product for this day.', true); return; }
+  }
   if (type === 'voucher') {
     const vtype = document.getElementById('cir-vtype-' + day).value;
     const vval  = parseFloat(document.getElementById('cir-vval-' + day).value);

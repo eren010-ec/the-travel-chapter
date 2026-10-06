@@ -369,7 +369,10 @@ textarea { resize:vertical; min-height:70px; }
 
   <!-- BOOKINGS -->
   <div class="page" id="page-bookings">
-    <div class="page-header"><div><h1>Bookings</h1><p>View and manage all member bookings.</p></div></div>
+    <div class="page-header">
+      <div><h1>Bookings</h1><p>View and manage all member bookings.</p></div>
+      <button class="btn btn-gold" onclick="openAddBookingModal()">+ Add Booking</button>
+    </div>
     <div class="card">
       <div class="card-header">
         <div class="toolbar">
@@ -526,6 +529,18 @@ textarea { resize:vertical; min-height:70px; }
         <table>
           <thead><tr><th>Code</th><th>Discount</th><th>Assigned To</th><th>Status</th><th>Expires</th><th>Issued By</th><th>Actions</th></tr></thead>
           <tbody id="vouchers-body"><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+    <div class="card" style="margin-top:18px;">
+      <div class="card-header">
+        <div class="card-title">Lucky Draw Vouchers</div>
+        <span style="font-size:0.72rem;color:var(--smoke);">Each one is a single play of the member's 3×3 Lucky Draw (same prizes &amp; odds as check-in Day 7). Create them with "+ New Voucher".</span>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr><th>Member</th><th>Status</th><th>Prize Won</th><th>Note</th><th>Given</th><th>Actions</th></tr></thead>
+          <tbody id="draw-tickets-body"><tr><td colspan="6" class="loading">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -718,22 +733,12 @@ textarea { resize:vertical; min-height:70px; }
           </select>
         </div>
       </div>
-      <div class="field" style="margin-bottom:0;">
-        <label>Lucky Draw Vouchers</label>
-        <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-          <span id="mm-tickets-status" style="font-size:0.8rem;color:var(--navy);">—</span>
-          <input type="number" id="mm-tickets-count" min="1" max="20" value="1" style="width:64px;">
-          <button class="btn btn-gold btn-sm" id="btn-give-tickets" onclick="giveDrawTickets()">🎟️ Give</button>
-        </div>
-        <div class="field-hint" style="font-size:0.68rem;color:#c5bdb4;margin-top:3px;">Each voucher is one play of the 3×3 Lucky Draw (same prizes &amp; odds as check-in Day 7). Members also get one automatically per confirmed booking. Given immediately — no need to Save.</div>
-      </div>
     </div>
 
     <!-- Member's Bookings — shown for members only, hidden for admins -->
     <div class="modal-section" id="mm-bookings-section">
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
         <div class="modal-section-title" style="margin-bottom:0;">Bookings</div>
-        <button class="btn btn-gold btn-sm" onclick="openAddBookingModal()">+ Add Booking</button>
       </div>
       <div id="mm-bookings-list" style="display:flex;flex-direction:column;gap:8px;">
         <div class="loading">Loading bookings…</div>
@@ -748,13 +753,16 @@ textarea { resize:vertical; min-height:70px; }
 </div>
 
 <!-- ═══════════════════════════════════════════════
-     ADD BOOKING MODAL (for a specific member)
+     ADD BOOKING MODAL (opened from the Bookings page)
 ════════════════════════════════════════════════ -->
 <div class="modal-overlay" id="add-booking-modal">
   <div class="modal" style="max-width:420px;">
     <h2>Add Booking</h2>
-    <div class="modal-sub" id="abm-member-name">For: —</div>
     <div class="form-grid">
+      <div class="field full">
+        <label>Member</label>
+        <select id="abm-member"></select>
+      </div>
       <div class="field full">
         <label>Trip</label>
         <select id="abm-trip"></select>
@@ -1057,30 +1065,38 @@ textarea { resize:vertical; min-height:70px; }
 <div class="modal-overlay" id="create-voucher-modal">
   <div class="modal" style="max-width:480px;">
     <h2>New Voucher</h2>
-    <div class="modal-sub">Give a discount code to a new or existing member. Not auto-applied at checkout — staff reference the code when creating a booking.</div>
+    <div class="modal-sub" id="vc-sub">Give a discount code to a new or existing member. Not auto-applied at checkout — staff reference the code when creating a booking.</div>
     <div class="form-grid">
       <div class="field full">
+        <label>Voucher Type</label>
+        <select id="vc-kind" onchange="vcRenderKind()">
+          <option value="discount">Discount code</option>
+          <option value="luckydraw">Lucky Draw voucher (one play of the 3×3 game)</option>
+        </select>
+      </div>
+      <div class="field full vc-discount-only">
         <label>Code</label>
         <div style="display:flex;gap:8px;">
           <input type="text" id="vc-code" style="flex:1;text-transform:uppercase;" placeholder="WELCOME-XXXXXX">
           <button type="button" class="btn btn-ghost btn-sm" onclick="document.getElementById('vc-code').value=generateVoucherCode()">🎲 Generate</button>
         </div>
       </div>
-      <div class="field">
+      <div class="field vc-discount-only">
         <label>Discount Type</label>
         <select id="vc-type">
           <option value="fixed">Fixed (RM)</option>
           <option value="percent">Percent (%)</option>
         </select>
       </div>
-      <div class="field"><label>Value</label><input type="number" id="vc-value" min="0.01" step="0.01" placeholder="e.g. 100"></div>
+      <div class="field vc-discount-only"><label>Value</label><input type="number" id="vc-value" min="0.01" step="0.01" placeholder="e.g. 100"></div>
       <div class="field full">
-        <label>Assign To (optional)</label>
+        <label id="vc-member-label">Assign To (optional)</label>
         <select id="vc-member">
           <option value="">General code — anyone can use it</option>
         </select>
       </div>
-      <div class="field"><label>Expires On (optional)</label><input type="date" id="vc-expires"></div>
+      <div class="field vc-discount-only"><label>Expires On (optional)</label><input type="date" id="vc-expires"></div>
+      <div class="field vc-draw-only" style="display:none;"><label>How Many</label><input type="number" id="vc-qty" min="1" max="20" value="1"></div>
       <div class="field full"><label>Note (optional)</label><input type="text" id="vc-note" placeholder="e.g. New member welcome voucher"></div>
     </div>
     <div class="modal-actions">
@@ -1155,7 +1171,7 @@ let editingMemberId=null;
 let editingBookingId=null, addBookingMemberId=null;
 let editingTripId=null, editingBsmId=null;
 let tripImageFile=null, tripImageRemoved=false;
-let allProducts=[], allProductRequests=[], allCheckinRewards=[], allDrawPrizes=[];
+let allProducts=[], allProductRequests=[], allCheckinRewards=[], allDrawPrizes=[], allDrawTickets=[];
 let allMessages=[];
 let editingProductId=null, productImageFile=null, productImageRemoved=false;
 
@@ -1322,11 +1338,11 @@ async function init() {
     document.getElementById('nav-revenue')?.remove();
   }
   document.getElementById('admin-email').textContent = session.user.email;
-  const loaders = [loadBookings(), loadTrips(), loadMembers(), loadVouchers(), loadReferralPromotions(), loadReferrals(), loadLuckyDraws(), loadProducts(), loadProductRequests(), loadMessages(), loadCheckinRewards(), loadDrawPrizes()];
+  const loaders = [loadBookings(), loadTrips(), loadMembers(), loadVouchers(), loadReferralPromotions(), loadReferrals(), loadLuckyDraws(), loadProducts(), loadProductRequests(), loadMessages(), loadCheckinRewards(), loadDrawPrizes(), loadDrawTickets()];
   if (currentUserIsAdmin) loaders.push(loadTripCosts(), loadRevenue());
   await Promise.all(loaders);
   renderDashboard(); renderMembersTable(); renderAdminsTable(); renderBookingsTable(); renderTripsTable(); renderVouchersTable();
-  renderProductsTable(); renderProductRequestsTable(); renderCheckinRewardsTable(); renderDrawPrizesTable(); renderMessagesTable();
+  renderProductsTable(); renderProductRequestsTable(); renderCheckinRewardsTable(); renderDrawPrizesTable(); renderDrawTicketsTable(); renderMessagesTable();
   renderReferralsPage(); renderLuckyDrawsPage();
   if (currentUserIsAdmin) renderRevenuePage();
   refreshNotifications();
@@ -1550,8 +1566,6 @@ async function openMemberModal(id) {
   // reward_points fetched directly (independent of the admin_members view)
   const { data: rpRow } = await sb.from('profiles').select('reward_points').eq('id', id).single();
   document.getElementById('mm-reward-points').value = rpRow?.reward_points ?? 0;
-  document.getElementById('mm-tickets-count').value = 1;
-  loadMemberTickets(id);
 
   const isAdminPanelAccount = m.is_admin || m.is_staff;
   // Points section is for regular members only, not admin/staff accounts
@@ -1570,30 +1584,6 @@ async function openMemberModal(id) {
 
   document.getElementById('btn-save-member').onclick = saveMember;
   openModal('member-modal');
-}
-
-// ── LUCKY DRAW VOUCHERS (per member) ────────────────────────
-async function loadMemberTickets(memberId) {
-  const el = document.getElementById('mm-tickets-status');
-  el.textContent = 'Loading…';
-  const { data, error } = await sb.from('lucky_draw_tickets').select('used_at').eq('member_id', memberId);
-  if (editingMemberId !== memberId) return;
-  if (error) { el.textContent = 'Could not load'; return; }
-  const unused = data.filter(t => !t.used_at).length;
-  el.textContent = `${unused} unused · ${data.length - unused} played`;
-}
-async function giveDrawTickets() {
-  const memberId = editingMemberId;
-  const n = parseInt(document.getElementById('mm-tickets-count').value);
-  if (!n || n < 1 || n > 20) { showToast('Give between 1 and 20 vouchers at a time.', true); return; }
-  const btn = document.getElementById('btn-give-tickets');
-  btn.disabled = true;
-  const rows = Array.from({ length: n }, () => ({ member_id: memberId, source: 'manual', note: 'Given by staff', created_by: currentAdminId }));
-  const { error } = await sb.from('lucky_draw_tickets').insert(rows);
-  btn.disabled = false;
-  if (error) { showToast('Error: ' + error.message, true); return; }
-  showToast(`${n} lucky draw voucher${n > 1 ? 's' : ''} given ✓`);
-  loadMemberTickets(memberId);
 }
 
 async function loadMemberBookings(memberId, firstName) {
@@ -1677,10 +1667,11 @@ function resetToDefault() {
   showToast('Default password set — click Save All Changes to apply.');
 }
 
-// ── ADD BOOKING (for a member from member modal) ───────────
+// ── ADD BOOKING (Bookings page) ────────────────────────────
 function openAddBookingModal() {
-  const m = allMembers.find(x=>x.id===addBookingMemberId);
-  document.getElementById('abm-member-name').textContent = `For: ${m?.first_name||''} ${m?.last_name||''}`.trim();
+  const members = allMembers.filter(m=>!m.is_admin&&!m.is_staff).sort((a,b)=>`${a.first_name}`.localeCompare(b.first_name));
+  document.getElementById('abm-member').innerHTML = '<option value="">— pick a member —</option>' +
+    members.map(m=>`<option value="${m.id}">${escapeHtml(`${m.first_name||''} ${m.last_name||''}`.trim() || '—')} — ${escapeHtml(m.phone || m.email || '')}</option>`).join('');
 
   // Populate trip dropdown
   const tripSel = document.getElementById('abm-trip');
@@ -1721,16 +1712,18 @@ async function confirmAddBooking() {
   const date  = document.getElementById('abm-date').value;
   const reqs  = document.getElementById('abm-requests').value.trim();
   const status= document.getElementById('abm-status').value;
+  const memberId = document.getElementById('abm-member').value;
+  if (!memberId) { showToast('Please pick a member.', true); btn.disabled=false; btn.textContent='Add Booking'; return; }
   if (!sel.value) { showToast('Please select a trip.', true); btn.disabled=false; btn.textContent='Add Booking'; return; }
   const { error } = await sb.from('bookings').insert({
-    member_id: addBookingMemberId, trip_id: sel.value,
+    member_id: memberId, trip_id: sel.value,
     departure_date: date, num_travellers: pax,
     total_usd: price*pax, special_requests: reqs||null, status
   });
   if (error) showToast('Error: '+error.message, true);
   else {
     closeModal('add-booking-modal');
-    await Promise.all([loadBookings(), loadMemberBookings(addBookingMemberId)]);
+    await loadBookings();
     renderBookingsTable(); renderDashboard();
     showToast('Booking added ✓');
   }
@@ -2569,7 +2562,21 @@ async function deleteVoucher(id, code) {
   showToast('Voucher deleted.');
 }
 
+function vcRenderKind() {
+  const draw = document.getElementById('vc-kind').value === 'luckydraw';
+  document.querySelectorAll('#create-voucher-modal .vc-discount-only').forEach(el => el.style.display = draw ? 'none' : '');
+  document.querySelectorAll('#create-voucher-modal .vc-draw-only').forEach(el => el.style.display = draw ? '' : 'none');
+  document.getElementById('vc-sub').textContent = draw
+    ? 'Give a member Lucky Draw plays. They see a "Play" button on their dashboard check-in card.'
+    : 'Give a discount code to a new or existing member. Not auto-applied at checkout — staff reference the code when creating a booking.';
+  document.getElementById('vc-member-label').textContent = draw ? 'Member' : 'Assign To (optional)';
+  const general = document.querySelector('#vc-member option[value=""]');
+  if (general) general.textContent = draw ? '— pick a member —' : 'General code — anyone can use it';
+  document.getElementById('btn-create-voucher').textContent = draw ? 'Give Voucher' : 'Create Voucher';
+}
 function openCreateVoucherModal() {
+  document.getElementById('vc-kind').value = 'discount';
+  document.getElementById('vc-qty').value = 1;
   document.getElementById('vc-code').value = generateVoucherCode();
   document.getElementById('vc-type').value = 'fixed';
   document.getElementById('vc-value').value = '';
@@ -2579,9 +2586,11 @@ function openCreateVoucherModal() {
   const members = allMembers.filter(m=>!m.is_admin&&!m.is_staff).sort((a,b)=>`${a.first_name}`.localeCompare(b.first_name));
   memberSelect.innerHTML = '<option value="">General code — anyone can use it</option>' +
     members.map(m=>`<option value="${m.id}">${m.first_name||''} ${m.last_name||''} — ${m.email||''}</option>`).join('');
+  vcRenderKind();
   openModal('create-voucher-modal');
 }
 async function createVoucher() {
+  if (document.getElementById('vc-kind').value === 'luckydraw') return giveDrawTickets();
   const btn = document.getElementById('btn-create-voucher');
   const code = document.getElementById('vc-code').value.trim().toUpperCase();
   const discount_type = document.getElementById('vc-type').value;
@@ -2607,6 +2616,63 @@ async function createVoucher() {
   await loadVouchers(); renderVouchersTable();
   showToast(`Voucher ${code} created ✓`);
   btn.disabled = false; btn.textContent = 'Create Voucher';
+}
+
+// ── LUCKY DRAW VOUCHERS (lucky_draw_tickets) ────────────────
+async function loadDrawTickets() {
+  const { data } = await sb.from('lucky_draw_tickets')
+    .select('id, member_id, source, note, created_at, used_at, prize')
+    .order('created_at', { ascending: false });
+  allDrawTickets = data || [];
+}
+function drawPrizeText(p) {
+  if (!p) return '—';
+  if (p.label) return p.label;
+  const amt = p.voucher_discount_value != null
+    ? (p.voucher_discount_type === 'percent' ? `${Number(p.voucher_discount_value)}%` : `RM ${Number(p.voucher_discount_value).toLocaleString()}`) : '';
+  return { product: p.product_name || 'Product', cash: `Cash ${amt}`, trip_voucher: `Trip voucher ${amt}`, hotel_voucher: `Hotel voucher ${amt}` }[p.reward_type]
+    || `${Number(p.points || 0).toLocaleString()} points`;
+}
+function renderDrawTicketsTable() {
+  const body = document.getElementById('draw-tickets-body');
+  if (!body) return;
+  body.innerHTML = allDrawTickets.length
+    ? allDrawTickets.map(t => {
+        const m = allMembers.find(x => x.id === t.member_id);
+        const name = m ? (`${m.first_name||''} ${m.last_name||''}`.trim() || m.email || '—') : '—';
+        return `<tr>
+          <td>${escapeHtml(name)}</td>
+          <td>${t.used_at ? '<span class="pill pill-confirmed">Played</span>' : '<span class="pill pill-active">Unused</span>'}</td>
+          <td>${t.used_at ? escapeHtml(drawPrizeText(t.prize)) : '—'}</td>
+          <td style="font-size:0.75rem;color:var(--smoke);">${escapeHtml(t.note || '')}</td>
+          <td style="font-size:0.75rem;color:var(--smoke);">${fmtDate(t.created_at)}</td>
+          <td>${t.used_at ? '' : `<button class="btn btn-danger btn-sm" onclick="deleteDrawTicket('${t.id}')">Delete</button>`}</td>
+        </tr>`;
+      }).join('')
+    : '<tr><td colspan="6" class="empty">No lucky draw vouchers yet.</td></tr>';
+}
+async function giveDrawTickets() {
+  const btn = document.getElementById('btn-create-voucher');
+  const memberId = document.getElementById('vc-member').value;
+  const n = parseInt(document.getElementById('vc-qty').value);
+  const note = document.getElementById('vc-note').value.trim() || null;
+  if (!memberId) { showToast('Pick the member to give it to.', true); return; }
+  if (!n || n < 1 || n > 20) { showToast('Give between 1 and 20 at a time.', true); return; }
+  btn.disabled = true; btn.textContent = 'Giving…';
+  const rows = Array.from({ length: n }, () => ({ member_id: memberId, source: 'manual', note, created_by: currentAdminId }));
+  const { error } = await sb.from('lucky_draw_tickets').insert(rows);
+  btn.disabled = false; btn.textContent = 'Give Voucher';
+  if (error) { showToast('Error: ' + error.message, true); return; }
+  closeModal('create-voucher-modal');
+  await loadDrawTickets(); renderDrawTicketsTable();
+  showToast(`${n} Lucky Draw voucher${n > 1 ? 's' : ''} given ✓`);
+}
+async function deleteDrawTicket(id) {
+  if (!confirm('Delete this unused Lucky Draw voucher? The member will no longer be able to play it.')) return;
+  const { error } = await sb.from('lucky_draw_tickets').delete().eq('id', id).is('used_at', null);
+  if (error) { showToast('Error: ' + error.message, true); return; }
+  await loadDrawTickets(); renderDrawTicketsTable();
+  showToast('Lucky Draw voucher deleted.');
 }
 
 // ── REFERRALS (admin + staff) ────────────────────────────────

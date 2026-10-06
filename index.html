@@ -302,11 +302,26 @@ footer { background:var(--navy); padding:56px 6% 32px; }
   section { padding:64px 16px; }
   #destinations { padding-left:16px; padding-right:16px; }
   .section-title { font-size:2.2rem; }
-  .destinations-grid,.testimonials-grid { grid-template-columns:1fr; gap:18px; }
+  .testimonials-grid { grid-template-columns:1fr; gap:18px; }
   .nav-social { display:none; }
   .hero-text h1 { font-size:2.4rem; }
-  .trip-body { padding:20px 18px 22px; }
   .footer-grid { grid-template-columns:1fr; gap:32px; }
+  /* Phones: two trips per row — compact cards (no summary, stacked price + buttons) */
+  .destinations-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+  .destinations-grid .trip-card { border-radius:12px; }
+  .destinations-grid .trip-img-fallback { font-size:2.2rem; }
+  .destinations-grid .trip-body { padding:12px 11px 13px; gap:7px; }
+  .destinations-grid .trip-name { font-size:1.08rem; line-height:1.2; overflow-wrap:anywhere; }
+  .destinations-grid .trip-desc { display:none; }
+  .destinations-grid .trip-meta { gap:4px; font-size:0.7rem; }
+  .destinations-grid .trip-meta-row { gap:5px; }
+  .destinations-grid .trip-foot { flex-direction:column; align-items:stretch; gap:9px; padding-top:10px; }
+  .destinations-grid .trip-price { font-size:1rem; line-height:1.2; }
+  .destinations-grid .trip-price small { font-size:0.62rem; }
+  .destinations-grid .trip-actions { width:100%; gap:6px; }
+  .destinations-grid .btn-trip { flex:1; min-width:0; text-align:center; padding:8px 6px; font-size:0.7rem; }
+  .destinations-grid .btn-wa { width:34px; height:32px; }
+  .destinations-grid .btn-wa svg { width:15px; height:15px; }
 }
 @media(max-width:480px) {
   section { padding:56px 12px; }

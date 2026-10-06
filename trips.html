@@ -209,14 +209,28 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 }
 @media(max-width:768px) {
   .nav-social { display:none; }
-  .trips-grid { grid-template-columns:1fr; gap:18px; }
   .page-head { padding:130px 5% 64px; }
   .trips-section { padding:40px 16px 72px; }
   .trips-filter, .trips-count, .trips-grid { max-width:none; }
   .trips-filter { flex-direction:column; align-items:stretch; }
   .trips-filter #tf-search, .tf-clear { width:100%; }
-  .trip-body { padding:20px 18px 22px; }
   .footer-grid { grid-template-columns:1fr; gap:32px; }
+  /* Phones: two trips per row — compact cards (no summary, stacked price + buttons) */
+  .trips-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+  .trips-grid .trip-card { border-radius:12px; }
+  .trips-grid .trip-img-fallback { font-size:2.2rem; }
+  .trips-grid .trip-body { padding:12px 11px 13px; gap:7px; }
+  .trips-grid .trip-name { font-size:1.08rem; line-height:1.2; overflow-wrap:anywhere; }
+  .trips-grid .trip-desc { display:none; }
+  .trips-grid .trip-meta { gap:4px; font-size:0.7rem; }
+  .trips-grid .trip-meta-row { gap:5px; }
+  .trips-grid .trip-foot { flex-direction:column; align-items:stretch; gap:9px; padding-top:10px; }
+  .trips-grid .trip-price { font-size:1rem; line-height:1.2; }
+  .trips-grid .trip-price small { font-size:0.62rem; }
+  .trips-grid .trip-actions { width:100%; gap:6px; }
+  .trips-grid .btn-trip { flex:1; min-width:0; text-align:center; padding:8px 6px; font-size:0.7rem; }
+  .trips-grid .btn-wa { width:34px; height:32px; }
+  .trips-grid .btn-wa svg { width:15px; height:15px; }
 }
 @media(max-width:480px) {
   .trips-section { padding:36px 12px 64px; }

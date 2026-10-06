@@ -28,8 +28,11 @@
     '.tc-tabbar{display:none}' +
     '@media (max-width:768px){' +
       'body.has-tc-tabbar{padding-bottom:calc(64px + env(safe-area-inset-bottom,0px))}' +
+      // Toasts sit above the bar; their hidden state (translateY(80px)) would then land inside
+      // the bar as an empty pill, so push hidden ones fully off-screen.
       'body.has-tc-tabbar .toast{bottom:calc(80px + env(safe-area-inset-bottom,0px))}' +
-      '.tc-tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:90;' +
+      'body.has-tc-tabbar .toast:not(.show){transform:translateX(-50%) translateY(calc(100% + 120px + env(safe-area-inset-bottom,0px)))}' +
+      '.tc-tabbar{display:flex;position:fixed;left:0;right:0;top:auto;bottom:0;z-index:90;' +
         'background:#fff;border-top:1px solid rgba(26,31,46,0.1);box-shadow:0 -6px 24px rgba(26,31,46,0.06);' +
         'padding-bottom:env(safe-area-inset-bottom,0px)}' +
       '.tc-tabbar a{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;' +
@@ -52,8 +55,10 @@
     document.head.appendChild(style);
 
     var page = (location.pathname.split('/').pop() || '').toLowerCase();
-    var nav = document.createElement('nav');
+    // A div, not <nav>: some pages style every <nav> as their fixed top navbar.
+    var nav = document.createElement('div');
     nav.className = 'tc-tabbar';
+    nav.setAttribute('role', 'navigation');
     nav.setAttribute('aria-label', 'Main');
     var fallbacks = { home: 'Home', trips: 'Trips', products: 'Products', profile: 'Profile' };
     nav.innerHTML = TABS.map(function (t) {

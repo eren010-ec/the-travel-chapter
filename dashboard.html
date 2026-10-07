@@ -736,11 +736,13 @@ async function loadVouchers() {
     .order('created_at', { ascending: false });
   vouchers = data || [];
 }
-// Unplayed lucky-draw vouchers (one per confirmed booking, or given by staff), oldest first.
+// Unplayed, unexpired lucky-draw vouchers, soonest-expiring first (no expiry last).
 async function loadDrawTickets() {
   const { data } = await sb.from('lucky_draw_tickets')
-    .select('id, source, note, created_at')
+    .select('id, source, note, created_at, expires_at')
     .eq('member_id', currentUser.id).is('used_at', null)
+    .or(`expires_at.is.null,expires_at.gte.${ciToday()}`)
+    .order('expires_at', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: true });
   drawTickets = data || [];
 }
@@ -939,7 +941,9 @@ function renderCheckin(justClaimed) {
   const tk = document.getElementById('ci-tickets');
   tk.hidden = !drawTickets.length;
   document.getElementById('ci-tickets-text').textContent =
-    TC_I18N.t(drawTickets.length === 1 ? 'dash.draw_tickets_one' : 'dash.draw_tickets_many', { n: drawTickets.length });
+    TC_I18N.t(drawTickets.length === 1 ? 'dash.draw_tickets_one' : 'dash.draw_tickets_many', { n: drawTickets.length })
+    + (drawTickets[0] && drawTickets[0].expires_at
+        ? ' · ' + TC_I18N.t('dash.draw_tickets_valid', { date: fmtDate(drawTickets[0].expires_at) }) : '');
 }
 async function doCheckIn() {
   const btn = document.getElementById('btn-checkin');

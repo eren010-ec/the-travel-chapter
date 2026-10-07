@@ -539,8 +539,8 @@ textarea { resize:vertical; min-height:70px; }
       </div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Member</th><th>Status</th><th>Prize Won</th><th>Note</th><th>Given</th><th>Actions</th></tr></thead>
-          <tbody id="draw-tickets-body"><tr><td colspan="6" class="loading">Loading…</td></tr></tbody>
+          <thead><tr><th>Member</th><th>Status</th><th>Prize Won</th><th>Note</th><th>Given</th><th>Valid Until</th><th>Actions</th></tr></thead>
+          <tbody id="draw-tickets-body"><tr><td colspan="7" class="loading">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -1097,7 +1097,7 @@ textarea { resize:vertical; min-height:70px; }
           <option value="">General code — anyone can use it</option>
         </select>
       </div>
-      <div class="field vc-discount-only"><label>Expires On (optional)</label><input type="date" id="vc-expires"></div>
+      <div class="field"><label id="vc-expires-label">Expires On (optional)</label><input type="date" id="vc-expires"></div>
       <div class="field vc-draw-only" style="display:none;"><label>How Many</label><input type="number" id="vc-qty" min="1" max="20" value="1"></div>
       <div class="field full"><label>Note (optional)</label><input type="text" id="vc-note" placeholder="e.g. New member welcome voucher"></div>
     </div>
@@ -2595,6 +2595,7 @@ function vcRenderKind() {
     ? 'Give a member Lucky Draw plays. They see a "Play" button on their dashboard check-in card.'
     : 'Give a discount code to a new or existing member. Not auto-applied at checkout — staff reference the code when creating a booking.';
   document.getElementById('vc-member-label').textContent = draw ? 'Member' : 'Assign To (optional)';
+  document.getElementById('vc-expires-label').textContent = draw ? 'Valid Until (optional)' : 'Expires On (optional)';
   const general = document.querySelector('#vc-member option[value=""]');
   if (general) general.textContent = draw ? '— pick a member —' : 'General code — anyone can use it';
   document.getElementById('btn-create-voucher').textContent = draw ? 'Give Voucher' : 'Create Voucher';
@@ -2646,7 +2647,7 @@ async function createVoucher() {
 // ── LUCKY DRAW VOUCHERS (lucky_draw_tickets) ────────────────
 async function loadDrawTickets() {
   const { data } = await sb.from('lucky_draw_tickets')
-    .select('id, member_id, source, note, created_at, used_at, prize')
+    .select('id, member_id, source, note, created_at, used_at, prize, expires_at')
     .order('created_at', { ascending: false });
   allDrawTickets = data || [];
 }
@@ -2661,30 +2662,34 @@ function drawPrizeText(p) {
 function renderDrawTicketsTable() {
   const body = document.getElementById('draw-tickets-body');
   if (!body) return;
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kuala_Lumpur' });
   body.innerHTML = allDrawTickets.length
     ? allDrawTickets.map(t => {
         const m = allMembers.find(x => x.id === t.member_id);
         const name = m ? (`${m.first_name||''} ${m.last_name||''}`.trim() || m.email || '—') : '—';
+        const expired = !t.used_at && t.expires_at && t.expires_at < today;
         return `<tr>
           <td>${escapeHtml(name)}</td>
-          <td>${t.used_at ? '<span class="pill pill-confirmed">Played</span>' : '<span class="pill pill-active">Unused</span>'}</td>
+          <td>${t.used_at ? '<span class="pill pill-confirmed">Played</span>' : expired ? '<span class="pill pill-cancelled">Expired</span>' : '<span class="pill pill-active">Unused</span>'}</td>
           <td>${t.used_at ? escapeHtml(drawPrizeText(t.prize)) : '—'}</td>
           <td style="font-size:0.75rem;color:var(--smoke);">${escapeHtml(t.note || '')}</td>
           <td style="font-size:0.75rem;color:var(--smoke);">${fmtDate(t.created_at)}</td>
+          <td style="font-size:0.75rem;color:var(--smoke);">${t.expires_at ? fmtDate(t.expires_at) : 'No expiry'}</td>
           <td>${t.used_at ? '' : `<button class="btn btn-danger btn-sm" onclick="deleteDrawTicket('${t.id}')">Delete</button>`}</td>
         </tr>`;
       }).join('')
-    : '<tr><td colspan="6" class="empty">No lucky draw vouchers yet.</td></tr>';
+    : '<tr><td colspan="7" class="empty">No lucky draw vouchers yet.</td></tr>';
 }
 async function giveDrawTickets() {
   const btn = document.getElementById('btn-create-voucher');
   const memberId = document.getElementById('vc-member').value;
   const n = parseInt(document.getElementById('vc-qty').value);
   const note = document.getElementById('vc-note').value.trim() || null;
+  const expires_at = document.getElementById('vc-expires').value || null;
   if (!memberId) { showToast('Pick the member to give it to.', true); return; }
   if (!n || n < 1 || n > 20) { showToast('Give between 1 and 20 at a time.', true); return; }
   btn.disabled = true; btn.textContent = 'Giving…';
-  const rows = Array.from({ length: n }, () => ({ member_id: memberId, source: 'manual', note, created_by: currentAdminId }));
+  const rows = Array.from({ length: n }, () => ({ member_id: memberId, source: 'manual', note, expires_at, created_by: currentAdminId }));
   const { error } = await sb.from('lucky_draw_tickets').insert(rows);
   btn.disabled = false; btn.textContent = 'Give Voucher';
   if (error) { showToast('Error: ' + error.message, true); return; }

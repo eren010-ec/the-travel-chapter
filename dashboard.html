@@ -507,6 +507,10 @@ textarea { resize:vertical; min-height:80px; }
       <p data-i18n="dash.luckydraw_subtitle">Every eligible booking or referral is an entry — check back here for results.</p>
     </div>
     <div class="card">
+      <div class="card-title" data-i18n="dash.draw_history">My 3×3 Prizes</div>
+      <div id="draw-plays"><div class="empty-state" data-i18n="dash.loading">Loading…</div></div>
+    </div>
+    <div class="card">
       <div class="card-title" data-i18n="dash.my_wins">My Wins</div>
       <div id="ref-wins"><div class="empty-state" data-i18n="dash.loading">Loading…</div></div>
     </div>
@@ -643,7 +647,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 let currentUser = null, profile = null, trips = [], bookings = [], bookingTrip = null;
 let activePromotions = [], myReferrals = [], myDrawWins = [];
 let products = [], productRequests = [], activeProduct = null;
-let checkins = [], checkinRewards = [], vouchers = [], drawTickets = [];
+let checkins = [], checkinRewards = [], vouchers = [], drawTickets = [], drawPlays = [];
 
 // ── NAVIGATION via event delegation ─────────────────────────
 document.getElementById('sidebar-nav').addEventListener('click', function(e) {
@@ -712,9 +716,9 @@ async function init() {
   }
 
   await Promise.all([loadProfile(), loadTrips(), loadBookings()]);
-  await Promise.all([loadReferralData(), loadProducts(), loadProductRequests(), loadCheckins(), loadCheckinRewards(), loadVouchers(), loadDrawTickets()]);
+  await Promise.all([loadReferralData(), loadProducts(), loadProductRequests(), loadCheckins(), loadCheckinRewards(), loadVouchers(), loadDrawTickets(), loadDrawPlays()]);
   buildTripFilters();
-  renderSidebar(); renderOverview(); renderCheckin(); renderTrips(); renderBookings(); renderVouchers(); renderPoints(); prefillProfile(); renderReferralsPage(); renderRewards();
+  renderSidebar(); renderOverview(); renderCheckin(); renderTrips(); renderBookings(); renderVouchers(); renderPoints(); prefillProfile(); renderReferralsPage(); renderDrawPlays(); renderRewards();
 }
 
 async function loadProfile() {
@@ -745,6 +749,19 @@ async function loadDrawTickets() {
     .order('expires_at', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: true });
   drawTickets = data || [];
+}
+// Every 3x3 prize won — Day-7 check-ins and played lucky-draw vouchers — newest first.
+async function loadDrawPlays() {
+  const [ci, tk] = await Promise.all([
+    sb.from('check_ins').select('check_in_date, streak_day, draw_prize')
+      .eq('member_id', currentUser.id).not('draw_prize', 'is', null),
+    sb.from('lucky_draw_tickets').select('used_at, prize')
+      .eq('member_id', currentUser.id).not('used_at', 'is', null),
+  ]);
+  drawPlays = [
+    ...(ci.data || []).map(c => ({ date: c.check_in_date, source: 'checkin', day: c.streak_day, prize: c.draw_prize })),
+    ...(tk.data || []).map(t => ({ date: t.used_at, source: 'voucher', prize: t.prize })),
+  ].sort((a, b) => new Date(b.date) - new Date(a.date));
 }
 async function loadProducts() {
   const { data } = await sb.from('products').select('*').eq('is_active', true)
@@ -814,6 +831,30 @@ function prizeEmoji(p) {
     case 'voucher':       return '🎟️';
     default:              return '⭐';
   }
+}
+function drawSourceLabel(d) {
+  return d.source === 'voucher' ? TC_I18N.t('dash.draw_src_voucher') : TC_I18N.t('dash.draw_src_checkin', { n: d.day || 7 });
+}
+// Where the member will find the prize elsewhere in the portal.
+function prizeWhere(p) {
+  switch (p && p.reward_type) {
+    case 'product':                                   return TC_I18N.t('dash.draw_where_rewards');
+    case 'cash': case 'trip_voucher':
+    case 'hotel_voucher': case 'voucher':             return TC_I18N.t('dash.draw_where_vouchers');
+    default:                                          return TC_I18N.t('dash.draw_where_points');
+  }
+}
+function renderDrawPlays() {
+  const box = document.getElementById('draw-plays');
+  if (!box) return;
+  box.innerHTML = drawPlays.length
+    ? drawPlays.map(d => `<div class="booking-row" style="grid-template-columns:auto 1fr auto;">
+        <span style="font-size:1.4rem;">${prizeEmoji(d.prize)}</span>
+        <div><div class="booking-trip">${String(prizeLabel(d.prize)).replace(/&/g, '&amp;').replace(/</g, '&lt;')}</div>
+        <div class="booking-meta">${fmtDate(d.date)} · ${drawSourceLabel(d)}</div></div>
+        <span class="status-pill status-confirmed">${prizeWhere(d.prize)}</span>
+      </div>`).join('')
+    : `<div class="empty-state"><div class="icon">🎲</div><p>${TC_I18N.t('dash.draw_history_none')}</p></div>`;
 }
 async function loadReferralData() {
   const [{ data: promos }, { data: referrals }, { data: wins }] = await Promise.all([
@@ -1025,8 +1066,8 @@ async function pickDrawCell(cell) {
   }
   revealDraw(data, false);
   if (data.reward_points != null && profile) profile.reward_points = data.reward_points;
-  await Promise.all([loadCheckins(), loadVouchers(), loadDrawTickets(), loadProductRequests()]);
-  renderCheckin(); renderSidebar(); renderOverview(); renderVouchers(); renderPoints(); renderMyRequests();
+  await Promise.all([loadCheckins(), loadVouchers(), loadDrawTickets(), loadDrawPlays(), loadProductRequests()]);
+  renderCheckin(); renderSidebar(); renderOverview(); renderVouchers(); renderPoints(); renderMyRequests(); renderDrawPlays();
 }
 function revealDraw(data, silent) {
   const grid = document.getElementById('draw-grid');
@@ -1219,8 +1260,15 @@ function renderPoints() {
     events.push({ date: b.booked_at || b.departure_date, label: b.trips?.title || TC_I18N.t('dash.rewards_pts'), delta: `+${n.toLocaleString()}`, kind: 'earn' });
   });
   checkins.filter(c => c.reward_kind !== 'voucher' && (c.points_awarded || 0) > 0).forEach(c => {
-    const label = `${TC_I18N.t('dash.checkin_activity_label')} · ${TC_I18N.t('dash.checkin_day_n', { n: c.streak_day })}`;
+    const label = c.reward_kind === 'luckydraw'
+      ? `${TC_I18N.t('dash.draw_title')} · ${TC_I18N.t('dash.draw_src_checkin', { n: c.streak_day })}`
+      : `${TC_I18N.t('dash.checkin_activity_label')} · ${TC_I18N.t('dash.checkin_day_n', { n: c.streak_day })}`;
     events.push({ date: c.check_in_date, label, delta: `+${Number(c.points_awarded || 0).toLocaleString()}`, kind: 'earn' });
+  });
+  // Points won by playing a lucky-draw voucher (Day-7 check-in wins are already counted above).
+  drawPlays.filter(d => d.source === 'voucher' && d.prize && d.prize.reward_type === 'points' && Number(d.prize.points) > 0).forEach(d => {
+    events.push({ date: d.date, label: `${TC_I18N.t('dash.draw_title')} · ${TC_I18N.t('dash.draw_src_voucher')}`,
+      delta: `+${Number(d.prize.points).toLocaleString()}`, kind: 'earn' });
   });
   // 0-cost rows are free gifts (check-in / lucky-draw products) — nothing was spent.
   productRequests.filter(r => r.method === 'points' && Number(r.points_cost_snapshot || 0) > 0 && r.status !== 'rejected' && r.status !== 'cancelled').forEach(r => {
@@ -1477,7 +1525,7 @@ init();
 TC_I18N.onChange(() => {
   if (!currentUser) return;
   buildTripFilters();
-  renderSidebar(); renderOverview(); renderCheckin(); renderTrips(); renderBookings(); renderVouchers(); renderPoints(); renderReferralsPage(); renderRewards();
+  renderSidebar(); renderOverview(); renderCheckin(); renderTrips(); renderBookings(); renderVouchers(); renderPoints(); renderReferralsPage(); renderDrawPlays(); renderRewards();
 });
 
 // ── PWA: service worker registration

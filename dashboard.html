@@ -851,7 +851,8 @@ function renderDrawPlays() {
     ? drawPlays.map(d => `<div class="booking-row" style="grid-template-columns:auto 1fr auto;">
         <span style="font-size:1.4rem;">${prizeEmoji(d.prize)}</span>
         <div><div class="booking-trip">${String(prizeLabel(d.prize)).replace(/&/g, '&amp;').replace(/</g, '&lt;')}</div>
-        <div class="booking-meta">${fmtDate(d.date)} · ${drawSourceLabel(d)}</div></div>
+        <div class="booking-meta">${fmtDate(d.date)} · ${drawSourceLabel(d)}${d.prize && d.prize.product_expires_at
+          ? ' · ' + TC_I18N.t('dash.draw_tickets_valid', { date: fmtDate(d.prize.product_expires_at) }) : ''}</div></div>
         <span class="status-pill status-confirmed">${prizeWhere(d.prize)}</span>
       </div>`).join('')
     : `<div class="empty-state"><div class="icon">🎲</div><p>${TC_I18N.t('dash.draw_history_none')}</p></div>`;
@@ -1366,11 +1367,16 @@ function renderMyRequests() {
           ? `${Number(r.points_cost_snapshot||0).toLocaleString()} ${TC_I18N.t('dash.rewards_pts')}`
           : `RM ${Number(r.price_snapshot||0).toLocaleString()}`;
         const canCancel = r.status === 'pending';
+        // Lucky-draw gifts can carry a validity date; past it, an unfulfilled gift shows as expired.
+        const expired = r.expires_at && (r.status === 'pending' || r.status === 'approved') && r.expires_at < ciToday();
+        const validity = r.expires_at && !expired && r.status !== 'fulfilled'
+          ? ' · ' + TC_I18N.t('dash.draw_tickets_valid', { date: fmtDate(r.expires_at) }) : '';
+        const st = expired ? 'expired' : r.status;
         return `<div class="booking-row" style="grid-template-columns:1fr auto auto;">
           <div><div class="booking-trip">${r.product_name} ${r.quantity>1?`× ${r.quantity}`:''}</div>
-          <div class="booking-meta">${amount} · ${fmtDate(r.created_at)}</div></div>
+          <div class="booking-meta">${amount} · ${fmtDate(r.created_at)}${validity}</div></div>
           ${canCancel ? `<button class="btn-ghost" style="flex:none;padding:6px 12px;font-size:0.7rem;" data-cancel-req="${r.id}">${TC_I18N.t('dash.cancel')}</button>` : '<span></span>'}
-          <span class="status-pill status-${productReqPill[r.status]||'pending'}">${TC_I18N.t('status.'+r.status)}</span>
+          <span class="status-pill status-${expired ? 'cancelled' : (productReqPill[r.status]||'pending')}">${TC_I18N.t('status.'+st)}</span>
         </div>`;
       }).join('')
     : `<div class="empty-state"><div class="icon">🧾</div><p>${TC_I18N.t('dash.rewards_no_requests')}</p></div>`;

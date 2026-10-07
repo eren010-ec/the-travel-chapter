@@ -2336,11 +2336,14 @@ function renderDrawPrizesTable() {
             <input type="number" min="1" id="dp-vdays-${s}" value="${p.voucher_valid_days ?? 30}" style="width:60px;">
             <span style="font-size:0.72rem;color:var(--smoke);">days</span>
           </div>
-          <div id="dp-product-${s}" style="display:${t === 'product' ? 'flex' : 'none'};align-items:center;gap:6px;">
+          <div id="dp-product-${s}" style="display:${t === 'product' ? 'flex' : 'none'};align-items:center;gap:6px;flex-wrap:wrap;">
             <select id="dp-prod-${s}" style="width:200px;">
               <option value="">— pick a product —</option>
               ${prods.map(pr => `<option value="${pr.id}"${p.product_id === pr.id ? ' selected' : ''}>${escapeHtml(pr.name)}</option>`).join('')}
             </select>
+            <span style="font-size:0.72rem;color:var(--smoke);">valid</span>
+            <input type="number" min="1" id="dp-gdays-${s}" value="${t === 'product' ? (p.voucher_valid_days ?? '') : ''}" placeholder="no limit" style="width:80px;">
+            <span style="font-size:0.72rem;color:var(--smoke);">days</span>
           </div>
         </div>
       </td>
@@ -2384,7 +2387,10 @@ async function saveDrawPrize(slot) {
   } else if (type === 'product') {
     const pid = document.getElementById('dp-prod-' + slot).value;
     if (!pid) { showToast('Pick a product for this box.', true); return; }
+    const gdays = (document.getElementById('dp-gdays-' + slot).value || '').trim();
+    if (gdays && !(parseInt(gdays) >= 1)) { showToast('Validity must be 1 day or more, or blank for no limit.', true); return; }
     payload.product_id = pid;
+    payload.voucher_valid_days = gdays ? parseInt(gdays) : null;
   }
   btn.disabled = true; btn.textContent = 'Saving…';
   const { error } = await sb.from('check_in_draw_prizes').update(payload).eq('slot', slot);
@@ -2400,8 +2406,12 @@ function renderProductRequestsTable() {
   let list = allProductRequests;
   if (f === 'open') list = list.filter(r => r.status === 'pending' || r.status === 'approved');
   else if (f)       list = list.filter(r => r.status === f);
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kuala_Lumpur' });
   document.getElementById('product-requests-body').innerHTML = list.length
     ? list.map(r=>{
+        const open = r.status === 'pending' || r.status === 'approved';
+        const validity = r.expires_at
+          ? `<br><span style="font-size:0.7rem;color:${open && r.expires_at < today ? 'var(--red)' : 'var(--smoke)'};">${open && r.expires_at < today ? 'Expired' : 'Valid until'} ${fmtDate(r.expires_at)}</span>` : '';
         const amount = r.method === 'points'
           ? `${Number(r.points_cost_snapshot||0).toLocaleString()} pts`
           : `RM ${Number(r.price_snapshot||0).toLocaleString()}`;
@@ -2409,7 +2419,7 @@ function renderProductRequestsTable() {
           `<button class="btn btn-ghost btn-sm" onclick="setProductRequestStatus('${r.id}','${s}')">${cap(s)}</button>`).join('');
         return `<tr>
           <td><strong>${escapeHtml(r.member_name||'—')}</strong><br><span style="font-size:0.7rem;color:var(--smoke);">${escapeHtml(r.member_email||'')}</span></td>
-          <td>${escapeHtml(r.product_name)}</td>
+          <td>${escapeHtml(r.product_name)}${validity}</td>
           <td>${r.method === 'points' ? 'Points' : 'Cash'}</td>
           <td>${r.quantity}</td>
           <td>${amount}</td>
@@ -2423,7 +2433,11 @@ function renderProductRequestsTable() {
 
 async function setProductRequestStatus(id, status) {
   const r = allProductRequests.find(x=>x.id===id);
-  if (status === 'fulfilled' && r && r.method === 'points') {
+  const today = new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kuala_Lumpur' });
+  if (status === 'fulfilled' && r && r.expires_at && r.expires_at < today) {
+    if (!confirm(`This gift expired on ${fmtDate(r.expires_at)}. Mark it fulfilled anyway?`)) return;
+  }
+  if (status === 'fulfilled' && r && r.method === 'points' && Number(r.points_cost_snapshot || 0) > 0) {
     if (!confirm(`Mark fulfilled. Remember to deduct ${Number(r.points_cost_snapshot||0)*r.quantity} points from ${r.member_name||'the member'} in the Members tab — this is not done automatically.`)) return;
   }
   const { error } = await sb.from('product_requests')

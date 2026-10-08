@@ -350,9 +350,23 @@ function esc(s) {
 
 // ── LOAD CMS CONTENT ────────────────────────────────────────
 async function loadGifts() {
-  const { data, error } = await sb.from('cms_content').select('content').eq('section', 'free_gifts').maybeSingle();
-  if (error) { console.warn('free_gifts CMS load failed:', error.message); return; }
-  const d = (data && data.content) || {};
+  const [cmsRes, prodRes] = await Promise.all([
+    sb.from('cms_content').select('content').eq('section', 'free_gifts').maybeSingle(),
+    sb.from('products').select('name, description, image_url, points_cost, price_myr')
+      .eq('is_active', true).order('sort_order').order('created_at'),
+  ]);
+  if (cmsRes.error)  console.warn('free_gifts CMS load failed:', cmsRes.error.message);
+  if (prodRes.error) console.warn('products load failed:', prodRes.error.message);
+  const d = (cmsRes.data && cmsRes.data.content) || {};
+
+  // Active rewards-store products (admin → Products), mapped to the CMS gift shape.
+  const productGifts = (prodRes.data || []).map(p => ({
+    name: p.name,
+    description: p.description,
+    image: p.image_url,
+    points: p.points_cost,
+    note: p.points_cost == null && p.price_myr != null ? `RM ${Number(p.price_myr).toFixed(2)}` : '',
+  }));
 
   if (d.eyebrow)  setText('gifts-eyebrow', d.eyebrow);
   if (d.heading) {
@@ -363,7 +377,7 @@ async function loadGifts() {
   }
   if (d.subtext)  setText('gifts-subtext', d.subtext);
 
-  allGifts = (Array.isArray(d.items) ? d.items : []).filter(g => g && (g.name || g.image || g.description));
+  allGifts = (Array.isArray(d.items) ? d.items : []).concat(productGifts).filter(g => g && (g.name || g.image || g.description));
   // Show the points filter whenever there are gifts to filter.
   document.getElementById('gifts-filter').style.display = allGifts.length ? 'flex' : 'none';
   applyGiftFilter();

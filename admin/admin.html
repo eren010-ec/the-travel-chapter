@@ -1964,9 +1964,21 @@ async function saveTrip() {
   const btn=document.getElementById('btn-save-trip');
   btn.disabled=true; btn.textContent='Saving…';
   const dates=document.getElementById('tm-dates').value.split(',').map(d=>d.trim()).filter(Boolean);
+  // Slug must be unique (trips_slug_key) — default it from the title and normalise to URL form
+  const title=document.getElementById('tm-title').value.trim();
+  const slug=(document.getElementById('tm-slug').value.trim() || title)
+    .toLowerCase().normalize('NFKD').replace(/[̀-ͯ]/g,'')
+    .replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'');
+  if (!slug) { showToast('Please enter a title or slug.', true); btn.disabled=false; btn.textContent='Save Trip'; return; }
+  const clash=allTrips.find(t=>t.slug===slug && t.id!==editingTripId);
+  if (clash) {
+    showToast(`Slug "${slug}" is already used by "${clash.title}". Please choose a different slug.`, true);
+    btn.disabled=false; btn.textContent='Save Trip'; return;
+  }
+  document.getElementById('tm-slug').value=slug;
   const payload={
-    title:document.getElementById('tm-title').value.trim(),
-    slug:document.getElementById('tm-slug').value.trim(),
+    title,
+    slug,
     summary:document.getElementById('tm-summary').value.trim(),
     description:document.getElementById('tm-description').value.trim() || null,
     itinerary:document.getElementById('tm-itinerary').value.trim() || null,
@@ -1991,7 +2003,12 @@ async function saveTrip() {
   const { data, error }=editingTripId
     ? await sb.from('trips').update(payload).eq('id',editingTripId).select().single()
     : await sb.from('trips').insert(payload).select().single();
-  if (error) { showToast('Error: '+error.message, true); btn.disabled=false; btn.textContent='Save Trip'; return; }
+  if (error) {
+    const msg = error.code==='23505' && /slug/.test(error.message)
+      ? `Slug "${slug}" is already used by another trip. Please choose a different slug.`
+      : 'Error: '+error.message;
+    showToast(msg, true); btn.disabled=false; btn.textContent='Save Trip'; return;
+  }
 
   // Cost price is a separate admin-only table — only touch it if the field was shown
   if (currentUserIsAdmin) {

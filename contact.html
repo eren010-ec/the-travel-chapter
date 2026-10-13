@@ -305,12 +305,6 @@ footer { background:var(--navy); padding:56px 6% 32px; }
           <label for="cf-interest" data-i18n="contact.form.interested">Interested In</label>
           <select id="cf-interest">
             <option value="" data-i18n="contact.form.select_placeholder">Select a destination or trip…</option>
-            <option data-i18n="trips.card1.name">Kyoto in Autumn</option>
-            <option data-i18n="trips.card2.name">Amalfi by Yacht</option>
-            <option data-i18n="trips.card3.name">Marrakech &amp; Beyond</option>
-            <option data-i18n="trips.card4.name">Mekong River Journey</option>
-            <option data-i18n="trips.card5.name">Patagonia Wilderness</option>
-            <option data-i18n="trips.card6.name">Elite Japan Immersion</option>
             <option data-i18n="contact.form.custom_option">Custom / Other</option>
           </select>
         </div>
@@ -375,8 +369,8 @@ const SUPABASE_ANON = 'sb_publishable_8mbRk904S5zktFv6UIlRUg_gp1PFAWm';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
-// ── CMS: contact details + interest options + footer ────────
-let cmsTripOptions = null;
+// ── CMS: contact details + footer; live trips for "Interested In" ──
+let tripOptions = null;   // active trip titles from public.trips
 
 function applyNavSocial(d) {
   d = d || {};
@@ -408,11 +402,6 @@ async function loadContact() {
   }
   if (d.address) document.getElementById('con-address').textContent = d.address;
 
-  if (Array.isArray(d.trip_options) && d.trip_options.length) {
-    cmsTripOptions = d.trip_options;
-    renderInterestOptions();
-  }
-
   const f = rows.footer || {};
   if (f.tagline)        document.getElementById('footer-tagline').textContent = f.tagline;
   if (f.copyright)      document.getElementById('footer-copyright').textContent = f.copyright;
@@ -424,13 +413,21 @@ async function loadContact() {
   if (fp && d.phone) { fp.textContent = d.phone; fp.href = 'tel:' + String(d.phone).replace(/[^\d+]/g, ''); }
 }
 
-// Rebuild the "Interested In" <select> from the CMS list, keeping the current pick.
+async function loadTripOptions() {
+  const { data, error } = await sb.from('trips').select('title').eq('is_active', true).order('created_at');
+  if (error) { console.warn('trips load failed:', error.message); return; }
+  tripOptions = [...new Set((data || []).map(t => (t.title || '').trim()).filter(Boolean))];
+  renderInterestOptions();
+}
+
+// Rebuild the "Interested In" <select> from the live trips, keeping the current pick.
 function renderInterestOptions() {
-  if (!cmsTripOptions) return;
   const sel = document.getElementById('cf-interest');
   const current = sel.value;
-  sel.innerHTML = `<option value="">${TC_I18N.t('contact.form.select_placeholder')}</option>`
-    + cmsTripOptions.map(o => `<option>${o.replace(/</g, '&lt;')}</option>`).join('');
+  const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+  sel.innerHTML = `<option value="">${esc(TC_I18N.t('contact.form.select_placeholder'))}</option>`
+    + (tripOptions || []).map(o => `<option value="${esc(o)}">${esc(o)}</option>`).join('')
+    + `<option>${esc(TC_I18N.t('contact.form.custom_option'))}</option>`;
   if ([...sel.options].some(o => o.value === current)) sel.value = current;
 }
 
@@ -506,6 +503,7 @@ TC_I18N.onChange(() => {
 });
 
 loadContact();
+loadTripOptions();
 
 // ── PWA: service worker registration
 // ── Mobile nav: hamburger dropdown + language picker

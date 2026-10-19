@@ -800,6 +800,37 @@ Several small UX changes that had accumulated uncommitted in the working tree, p
 
 ---
 
+## Workstream Z — Bright-blue redesign from the user's mockups + full admin link (added 2026-10-19)
+
+The whole customer site was redesigned from the old cream/gold/Cormorant look to the user's two mockups (`C:\Users\MGPC15\Pictures\The Travel Chapter_ Explore More.png` = mobile app, `Modern Travel Website Hero Banner.png` = desktop). Commits `8b34760` (redesign) + `9ddc146` (admin link) — both pushed, customer site auto-deployed, admin site deployed via CLI (`netlify deploy --prod --dir=admin --site c5f73ef7-…`, worked without `--no-build`).
+
+### Design system
+- Palette blue `#1f6fd6` / navy `#0f2557` / sun-gold `#f5b82e`, font **Nunito**. The old CSS vars are kept but remapped in every page (`--gold` is now blue, `--gold2` sun-gold, `--cream*` pale blues) — don't reintroduce Cormorant/DM Sans.
+- **`theme.css`** (new, repo root) is linked right after each customer page's own `<style>` and restyles the shared chrome: navbar (blue underline on the current link, set by `mobile-tabbar.js`), pill buttons, bold headings, `.page-head` banners (panorama + blue wash), navy footer (two columns on phones), mid-width nav tightening.
+- `img/` (new): `hero-panorama.webp/.jpg` + `hero-panorama-mobile.webp` (from the user's `Golden Hour Travel Panorama.png`, which stays untracked), `logo-emblem.png` (30 KB stand-in for the 2 MB icon, now used everywhere), `logo-horizontal.png` (transparent emblem + 新界旅游 / THE TRAVEL CHAPTER lockup built from `the-travel-chapter-logo.jpg` — no official horizontal file exists), `cat-sarawak.webp` / `cat-island.webp` (panorama crops), `svc-{tours,hotels,products,custom}.webp` (generated in the user's ChatGPT account via Chrome; originals in `Downloads/`).
+
+### Home page (`index.html`, rebuilt)
+- Header: white tab hanging from the top with the horizontal logo beside Home; no Destinations link, no search icon (user removed both). Phones: ☰ + language, logo hidden over the photo, shown once scrolled.
+- Hero: panorama + "Curated Journeys / Travel Beyond the Ordinary" + subtext + "Explore Trips" / "Become a Member" buttons, heavy text shadow.
+- Search card: Destination (trip collections + any uncovered category) · Travel Date as **separate Month + Year** selects · Travellers (cosmetic — trips have no pax data) → `trips.html?c=…&month=MM&year=YYYY` (or `?category=…`).
+- Category circles, Popular Destinations tiles, Special Packages wide cards, Travel Services (4 cards: Tour Packages, Hotels, Products, Custom Trip), Testimonials, footer. Trips cached in localStorage `tc_home_trips_v1` for instant repeat paint.
+- **`collections.js`** (new, `TC_COLLECTIONS`): named trip groups by `trips.category` (CHINA, JAPAN, KUCHING, CRUISE…) or title keyword — shared by home and `trips.html?c=`.
+
+### Other pages
+- `trips.html`: reads `?c=` (shows a "Showing: X ×" chip), `?month=MM` / `?year=YYYY` (or combined `YYYY-MM`), `?category=`, `?q=`; separate Month + Year filters; **trips with no `departure_dates` stay visible for any month** (all 87 trips are undated); phone filter grid (search / Month|Year / Destination|Category / Clear).
+- `free-gifts.html`: two products per row on phones, blue placeholder tile.
+- `mobile-tabbar.js`: floating rounded 4-tab bar (Home · Tours · Products · Profile) — the "More" tab was added then removed at the user's request; Hotels/About/Contact live in the ☰ menu.
+- `sw-customer.js` cache bumped to `tc-customer-v15`.
+
+### Admin link (`admin/admin-cms.html`)
+- New **Home Page Layout** panel → `cms_content` section `home`: `circles` / `popular` = `[{target, label, image}]`, `special` = `[trip slug]`, `services` = `[{kind, label, href, image}]` (kind = tours/hotels/products/custom/link), `popular_heading` / `special_heading` / `services_heading`. Target = a `collections.js` key, `cat:<CATEGORY>`, or `all`. Empty/absent = defaults. **`HOME_DEFAULTS` is duplicated in `index.html` and `admin-cms.html` — keep them in step.** The admin loads `collections.js` from `https://thetravelchapter.my` (fallback list built in).
+- Hero Banner: admin text + button labels now actually show (to **English** visitors; zh/ms keep the built-in i18n — before this, i18n overwrote CMS text for everyone). Empty secondary label hides that button. Cover photo uses a **new `hero_photo` field**; the old `background_image` (an Amalfi photo from the previous design) is deliberately ignored so it didn't replace the panorama. Settings cached in localStorage (`tc_hero_btns`, `tc_hero_bg`, `tc_home_layout`) so nothing pops in after load.
+- Testimonials heading follows the CMS (English). Destinations + CTA Banner panels removed from the admin menu (nothing on the site used them; DB rows kept). Navigation / Featured Trips notes updated.
+
+### Testing notes
+- Chrome extension was unavailable for most of the session; local preview used `npx http-server -a 0.0.0.0 -p 8765` + **puppeteer-core in the scratchpad** driving local Chrome (headless `--screenshot` can't go below ~500px wide, puppeteer emulates a real 390px phone). Admin editor was tested by stubbing supabase-js with live trips/CMS data — nothing was written to the real DB.
+- Two bugs worth remembering: percentage `padding` on an absolutely-positioned element resolves against the containing block (made the hero emblem tiny); and writing JS through Node template strings stripped `\d` in regexes twice — use the Edit tool or a file for regex-bearing code.
+
 ## Task checklist
 
 - [x] Open all 6 pages in a real browser, confirm logo renders correctly (sizing/placement) — done 2026-07-26 at desktop size.
@@ -843,3 +874,8 @@ Several small UX changes that had accumulated uncommitted in the working tree, p
 - [x] **Workstream X (2026-09-04) — SHIPPED 2026-09-07**, commit `a6b5ba6` (bundled with Workstream Y). Home trips grid capped at 6 + "More Trips" → `trips.html`; new standalone `hotels.html` (cover photo + Enquiry + WhatsApp CTA); "Hotels" nav/footer link on all 6 customer pages; `sitemap.xml` + `sw-customer.js` v14. Customer site auto-deployed; live and verified.
 - [ ] Follow-up (optional): build an `admin/admin-cms.html` "Hotels" section so the cover photo / heading / subtext are editable without SQL (currently `hotels.html` reads `cms_content` `section='hotels'` but nothing writes it).
 - [x] **Workstream Y (2026-09-07) — SHIPPED**, commit `a6b5ba6`. Members land on `index.html` after login; new `initNavAuth()` in `i18n.js` swaps the navbar Login/Register cluster for a single Profile button when signed in (`nav.profile`/`nav.logout`); `dashboard.html` mobile off-canvas drawer + hamburger topbar + "Back to Home" nav item (`dash.back_home`); `dashboard.html` "Browse Trips" filter/search bar (search + month + region + category + clear). Both sites live (admin re-synced via CLI). Real-phone check of the drawer + Profile-button swap still pending.
+- [x] **Workstream Z (2026-10-19) — SHIPPED.** Bright-blue redesign from the user's mockups (`theme.css`, `collections.js`, panorama hero, search card, circles/tiles/packages/services, 4-tab floating bottom bar, phone layouts) + admin Home Page Layout panel / Hero `hero_photo` field. Commits `8b34760` + `9ddc146`, both sites live.
+- [ ] Follow-up (content): try the admin **Home Page Layout** panel for real (first save creates the `home` row — the upsert path wasn't exercised against the live DB); optionally upload a new cover photo in Hero Banner (empty = panorama).
+- [ ] Follow-up (optional): add `departure_dates` to trips so the Month/Year search actually narrows results; the Travellers field is cosmetic until trips carry a group size.
+- [ ] Follow-up (optional): other pages still show the round emblem + `THE TRAVEL CHAPTER` text in the navbar (horizontal logo is home-only); `free-gifts.html` footer shows its hard-coded "since 2012 … Kuala Lumpur" tagline instead of the CMS footer text; About page's dark-green placeholder box is old content.
+- [ ] Follow-up (optional): admin site itself still uses the old cream/gold look — only the customer site was redesigned.

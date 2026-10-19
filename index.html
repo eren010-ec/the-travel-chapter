@@ -407,9 +407,16 @@ footer { padding: 56px 4% 32px; }
     </div>
   </div>
   <script>
-  // Apply the last-known CMS button settings right away so nothing pops in after load
-  // (applyHero() refreshes them once the CMS answers).
+  // Apply the last-known CMS hero settings (photo, button links) right away so nothing
+  // pops in after load; applyHero() refreshes them once the CMS answers.
+  function setHeroPhoto(url) {
+    var pic = document.querySelector('#hero picture'), im = document.querySelector('#hero .hero-img');
+    if (!pic || !im || !url) return;
+    pic.querySelectorAll('source').forEach(function (s) { s.remove(); });
+    if (im.getAttribute('src') !== url) im.src = url;
+  }
   (function () {
+    try { setHeroPhoto(localStorage.getItem('tc_hero_bg') || ''); } catch (e) {}
     var c = null;
     try { c = JSON.parse(localStorage.getItem('tc_hero_btns') || 'null'); } catch (e) {}
     if (!c) return;
@@ -464,7 +471,7 @@ footer { padding: 56px 4% 32px; }
   <div class="duo">
     <div>
       <div class="sec-head">
-        <h2 class="sec-title" data-i18n="home.popular">Popular Destinations</h2>
+        <h2 class="sec-title" id="popular-heading" data-i18n="home.popular">Popular Destinations</h2>
         <div class="sec-tools">
           <button class="rail-btn" type="button" data-rail="popular-rail" data-dir="-1" aria-label="Previous"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="m15 6-6 6 6 6"/></svg></button>
           <button class="rail-btn" type="button" data-rail="popular-rail" data-dir="1" aria-label="Next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg></button>
@@ -478,7 +485,7 @@ footer { padding: 56px 4% 32px; }
     </div>
     <div>
       <div class="sec-head">
-        <h2 class="sec-title" data-i18n="home.special">Special Packages</h2>
+        <h2 class="sec-title" id="special-heading" data-i18n="home.special">Special Packages</h2>
         <div class="sec-tools">
           <a class="view-all" href="trips.html"><span data-i18n="home.view_all">View All</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
         </div>
@@ -493,7 +500,7 @@ footer { padding: 56px 4% 32px; }
 <!-- ── TRAVEL SERVICES ── -->
 <section class="home-sec wrap" id="services">
   <div class="sec-head">
-    <h2 class="sec-title" data-i18n="home.services">Travel Services</h2>
+    <h2 class="sec-title" id="services-heading" data-i18n="home.services">Travel Services</h2>
   </div>
   <div class="svc-grid" id="svc-rail"></div>
 </section>
@@ -590,9 +597,12 @@ function fillSearch(trips) {
   const dest = document.getElementById('sf-dest');
   const cur = dest.value;
   const keys = trips ? DEST_KEYS.filter(k => COL.trips(k, trips).length) : [];
+  // Any trip category none of those collections covers (e.g. a new one added in the admin)
+  const extra = trips ? [...new Set(trips.filter(t => t.category && !keys.some(k => COL.all[k].match(t))).map(t => t.category))].sort() : [];
   dest.innerHTML = `<option value="">${esc(TC_I18N.t('home.search_dest_ph'))}</option>`
-    + keys.map(k => `<option value="${k}">${esc(COL.label(k))}</option>`).join('');
-  if (keys.includes(cur)) dest.value = cur;
+    + keys.map(k => `<option value="${k}">${esc(COL.label(k))}</option>`).join('')
+    + extra.map(c => `<option value="cat:${esc(c)}">${esc(prettyCat(c))}</option>`).join('');
+  if ([...dest.options].some(o => o.value === cur)) dest.value = cur;
 
   // Travel date = separate month + year pickers
   const month = document.getElementById('sf-month'), year = document.getElementById('sf-year');
@@ -622,23 +632,61 @@ document.getElementById('search-form').addEventListener('submit', (e) => {
   e.preventDefault();
   const p = new URLSearchParams();
   const c = document.getElementById('sf-dest').value, m = document.getElementById('sf-month').value, y = document.getElementById('sf-year').value;
-  if (c) p.set('c', c);
+  if (c) { if (c.startsWith('cat:')) p.set('category', c.slice(4)); else p.set('c', c); }
   if (m) p.set('month', m);
   if (y) p.set('year', y);
   location.href = 'trips.html' + (p.toString() ? '?' + p : '');
 });
 
 // ── TRIP-DRIVEN SECTIONS ────────────────────────────────────
-const CAT_KEYS = ['sarawak', 'malaysia', 'asia', 'europe', 'oceania', 'cruise', 'island', 'private', 'group'];
-const POPULAR_KEYS = ['sarawak', 'japan', 'korea', 'thailand', 'europe', 'bali', 'china', 'vietnam', 'taiwan', 'maldives'];
+// Layout comes from the admin's Content Editor → Home Page (cms_content 'home'); these
+// defaults apply until it has been saved. A "target" is a collection key from
+// collections.js, "cat:<CATEGORY>" for one trips.category value, or "all".
+const HOME_DEFAULTS = {
+  circles: ['sarawak', 'malaysia', 'asia', 'europe', 'oceania', 'cruise', 'island', 'private', 'group'].map(t => ({ target: t })),
+  popular: ['sarawak', 'japan', 'korea', 'thailand', 'europe', 'bali', 'china', 'vietnam', 'taiwan', 'maldives'].map(t => ({ target: t })),
+  special: [],   // trip slugs; empty = the showcase picks below, topped up with the newest trips
+  services: [{ kind: 'tours' }, { kind: 'hotels' }, { kind: 'products' }, { kind: 'custom' }],
+};
 const SPECIAL_PICKS = ['ROYAL', 'MALDIVES', 'NEW ZEALAND', 'AURORA', 'BHUTAN', 'SWITZERLAND', 'DISNEY', 'ICELAND'];
+const SERVICE_KINDS = {
+  tours:    { href: 'trips.html',      key: 'home.svc_tours' },
+  hotels:   { href: 'hotels.html',     key: 'home.svc_hotels' },
+  products: { href: 'free-gifts.html', key: 'tabbar.products' },
+  custom:   { href: 'contact.html',    key: 'home.svc_custom' },
+};
 const GIFT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg>';
 
-function colHref(k) { return k === 'group' ? 'trips.html' : `trips.html?c=${k}`; }
 function img(src, alt, eager) { return src ? `<img src="${esc(src)}" alt="${esc(alt || '')}"${eager ? '' : ' loading="lazy"'}>` : ''; }
 function coverOf(trips, word) {
   const t = trips.find(x => x.cover_image && String(x.title || '').toUpperCase().includes(word));
   return t ? t.cover_image : '';
+}
+function prettyCat(c) { c = String(c || ''); return c.length <= 3 ? c : c.toLowerCase().replace(/(^|[\s&+\/-])\S/g, m => m.toUpperCase()); }
+// target → { label, href, image, trips }
+function resolveTarget(target, trips) {
+  target = String(target || '');
+  if (target === 'all') return { label: COL.label('group'), href: 'trips.html', image: COL.image('group', trips), trips };
+  if (target.startsWith('cat:')) {
+    const cat = target.slice(4), list = trips.filter(t => String(t.category || '') === cat);
+    return { label: prettyCat(cat), href: `trips.html?category=${encodeURIComponent(cat)}`, image: (list.find(t => t.cover_image) || {}).cover_image || '', trips: list };
+  }
+  if (!COL.all[target]) return { label: '', href: 'trips.html', image: '', trips: [] };
+  return { label: COL.label(target), href: target === 'group' ? 'trips.html' : `trips.html?c=${target}`, image: COL.image(target, trips), trips: COL.trips(target, trips) };
+}
+let cmsHome = null;
+try { cmsHome = JSON.parse(localStorage.getItem('tc_home_layout') || 'null'); } catch (e) {}
+function homeList(key) {
+  const v = cmsHome && cmsHome[key];
+  return Array.isArray(v) && v.length ? v : HOME_DEFAULTS[key];
+}
+// Each item: an admin label (shown in every language) wins, else the built-in translated
+// label; an admin photo wins, else the cover of a matching trip.
+function tileItems(key, trips) {
+  return homeList(key).map(it => {
+    const r = resolveTarget(it.target, trips);
+    return { ...r, label: it.label || r.label, image: it.image || r.image };
+  }).filter(r => r.label && r.trips.length);
 }
 
 let lastTrips = null;
@@ -648,27 +696,30 @@ function renderHome(trips) {
   const nTours = n => TC_I18N.t('home.n_tours').replace('{n}', n);
 
   // Category circles
-  document.getElementById('cats-row').innerHTML = CAT_KEYS
-    .filter(k => COL.trips(k, trips).length)
-    .map(k => `<a class="cat" href="${colHref(k)}">
-        <span class="cat-img">${img(COL.image(k, trips), '', true)}</span>
-        <span class="cat-name">${esc(COL.label(k))}</span></a>`).join('');
+  document.getElementById('cats-row').innerHTML = tileItems('circles', trips)
+    .map(r => `<a class="cat" href="${esc(r.href)}">
+        <span class="cat-img">${img(r.image, '', true)}</span>
+        <span class="cat-name">${esc(r.label)}</span></a>`).join('');
 
   // Popular destinations
-  const popular = POPULAR_KEYS.filter(k => COL.trips(k, trips).length);
-  document.getElementById('popular-rail').innerHTML = popular.map(k => `
-    <a class="tile dest-tile" href="${colHref(k)}" aria-label="${esc(COL.label(k) + ' — ' + nTours(COL.trips(k, trips).length))}">
-      ${img(COL.image(k, trips), '')}
-      <span class="tile-body"><span class="tile-name">${esc(COL.label(k))}</span><span class="tile-go">${ARROW}</span></span>
+  document.getElementById('popular-rail').innerHTML = tileItems('popular', trips).map(r => `
+    <a class="tile dest-tile" href="${esc(r.href)}" aria-label="${esc(r.label + ' — ' + nTours(r.trips.length))}">
+      ${img(r.image, '')}
+      <span class="tile-body"><span class="tile-name">${esc(r.label)}</span><span class="tile-go">${ARROW}</span></span>
     </a>`).join('') || `<p class="home-empty"><a href="trips.html">${esc(TC_I18N.t('trips_page.empty'))}</a></p>`;
 
-  // Special packages: hand-picked showcase trips, topped up with the newest ones
+  // Special packages: the admin's chosen trips, else showcase picks topped up with the newest ones
   const picked = [];
-  SPECIAL_PICKS.forEach(w => {
-    const t = trips.find(x => x.cover_image && String(x.title || '').toUpperCase().includes(w) && !picked.includes(x));
-    if (t) picked.push(t);
-  });
-  trips.slice().reverse().forEach(t => { if (picked.length < 6 && t.cover_image && !picked.includes(t)) picked.push(t); });
+  const chosen = homeList('special');
+  if (chosen.length) {
+    chosen.forEach(slug => { const t = trips.find(x => (x.slug || x.id) === slug); if (t && !picked.includes(t)) picked.push(t); });
+  } else {
+    SPECIAL_PICKS.forEach(w => {
+      const t = trips.find(x => x.cover_image && String(x.title || '').toUpperCase().includes(w) && !picked.includes(x));
+      if (t) picked.push(t);
+    });
+    trips.slice().reverse().forEach(t => { if (picked.length < 6 && t.cover_image && !picked.includes(t)) picked.push(t); });
+  }
   document.getElementById('special-rail').innerHTML = picked.map(t => {
     const sub = t.summary || (Number(t.duration_days) > 0 ? `${t.duration_days} ${TC_I18N.t('trips.days')}` : '');
     return `<a class="tile pkg-tile" href="trip.html?slug=${encodeURIComponent(t.slug || t.id || '')}">
@@ -678,17 +729,28 @@ function renderHome(trips) {
   }).join('');
 
   // Travel services
-  const svcs = [
-    { href: 'trips.html',      key: 'home.svc_tours',   src: coverOf(trips, 'GUILIN') || COL.image('china', trips) },
-    { href: 'hotels.html',     key: 'home.svc_hotels',  src: coverOf(trips, 'MALDIVES') },
-    { href: 'free-gifts.html', key: 'tabbar.products',  icon: GIFT_ICON },
-    { href: 'contact.html',    key: 'home.svc_custom',  src: 'img/svc-custom.webp' },
-  ];
-  document.getElementById('svc-rail').innerHTML = svcs.map(s => `
-    <a class="svc" href="${s.href}">
-      <span class="svc-img">${s.src ? img(s.src, '') : (s.icon || '')}</span>
-      <span class="svc-name">${esc(TC_I18N.t(s.key))}</span>
-    </a>`).join('');
+  // Default service pictures (made for the site); the admin can replace each one
+  const autoImg = {
+    tours:    'img/svc-tours.webp',
+    hotels:   'img/svc-hotels.webp',
+    products: 'img/svc-products.webp',
+    custom:   'img/svc-custom.webp',
+  };
+  document.getElementById('svc-rail').innerHTML = homeList('services').map(s => {
+    const k = SERVICE_KINDS[s.kind] || {};
+    const href = s.href || k.href || 'trips.html';
+    const label = s.label || (k.key ? TC_I18N.t(k.key) : '');
+    const src = s.image || autoImg[s.kind] || '';
+    return `<a class="svc" href="${esc(href)}">
+      <span class="svc-img">${src ? img(src, '') : GIFT_ICON}</span>
+      <span class="svc-name">${esc(label)}</span>
+    </a>`;
+  }).join('');
+}
+function applyHomeLayout(d) {
+  cmsHome = d;
+  try { localStorage.setItem('tc_home_layout', JSON.stringify(d)); } catch (e) {}
+  if (lastTrips) renderHome(lastTrips);
 }
 
 // Paint from the last visit's copy at once, then refresh from the DB.
@@ -711,7 +773,7 @@ document.querySelectorAll('.rail-btn').forEach(b => b.addEventListener('click', 
   if (rail) rail.scrollBy({ left: Number(b.dataset.dir) * rail.clientWidth * 0.8, behavior: 'smooth' });
 }));
 
-// ── CMS CONTENT (testimonials, footer, contact, header links) ─
+// ── CMS CONTENT (hero, testimonials, home layout, footer, contact, header links) ─
 function txt(id, val) { const el = document.getElementById(id); if (el && val) el.textContent = val; }
 function italicHeading(plain, italic) {
   if (!plain || !italic) return esc(plain || '');
@@ -719,7 +781,7 @@ function italicHeading(plain, italic) {
 }
 async function loadCMS() {
   const { data, error } = await sb.from('cms_content').select('section,content')
-    .in('section', ['hero', 'testimonials', 'footer', 'contact', 'navbar']);
+    .in('section', ['hero', 'testimonials', 'footer', 'contact', 'navbar', 'home']);
   if (error || !data) return;
   const cms = {};
   data.forEach(row => { cms[row.section] = row.content; });
@@ -728,18 +790,44 @@ async function loadCMS() {
   if (cms.footer)       applyFooter(cms.footer);
   if (cms.contact)      applyFooterContact(cms.contact);
   if (cms.navbar)       applyNavbar(cms.navbar);
-  // Re-assert translated labels that CMS text may have overwritten (headings carry data-i18n).
-  TC_I18N.applyStatic();
+  applyHomeLayout(cms.home || null);
+  applyCmsText();
   document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 }
 
-function applyHero(d) {
+// Admin-written text is English, so it is shown to English visitors; Chinese / Malay
+// visitors keep the built-in translations of the same elements (they carry data-i18n).
+let cmsHero = null, cmsTest = null;
+function applyCmsText() {
+  if (TC_I18N.lang !== 'en') return;
+  const d = cmsHero || {};
   txt('hero-eyebrow', d.eyebrow);
   const h = document.getElementById('hero-heading');
   if (h && d.heading) h.innerHTML = italicHeading(d.heading, d.heading_italic);
   txt('hero-subtext', d.subtext);
-  // Button labels come from i18n (translated); the CMS decides links and whether the
-  // secondary button shows. In-page anchors from the old homepage now live on trips.html.
+  txt('hero-cta-primary', d.cta_primary_label);
+  txt('hero-cta-secondary', d.cta_secondary_label);
+  const t = cmsTest || {};
+  txt('test-eyebrow', t.eyebrow);
+  const th = document.getElementById('test-heading');
+  if (th && t.heading) th.innerHTML = italicHeading(t.heading, t.heading_italic);
+  const hm = cmsHome || {};
+  txt('popular-heading', hm.popular_heading);
+  txt('special-heading', hm.special_heading);
+  txt('services-heading', hm.services_heading);
+}
+TC_I18N.onChange(applyCmsText);
+
+function applyHero(d) {
+  cmsHero = d;
+  // Hero photo from the admin (Content Editor → Hero Banner). Empty = the default panorama.
+  // (The older background_image field belonged to the previous design and is ignored.)
+  setHeroPhoto(d.hero_photo || '');
+  try {
+    if (d.hero_photo) localStorage.setItem('tc_hero_bg', d.hero_photo);
+    else if (localStorage.getItem('tc_hero_bg')) { localStorage.removeItem('tc_hero_bg'); location.reload(); return; }
+  } catch (e) {}
+  // In-page anchors from the old homepage now live on trips.html.
   const fixHref = h => (!h || h === '#' || h === '#trips') ? 'trips.html' : h;
   const btns = { p1: fixHref(d.cta_primary_href), p2: fixHref(d.cta_secondary_href || 'login.html'), hide2: !d.cta_secondary_label };
   document.getElementById('hero-cta-primary').href = btns.p1;
@@ -749,9 +837,7 @@ function applyHero(d) {
   try { localStorage.setItem('tc_hero_btns', JSON.stringify(btns)); } catch (e) {}
 }
 function applyTestimonials(d) {
-  txt('test-eyebrow', d.eyebrow);
-  const h = document.getElementById('test-heading');
-  if (h && d.heading) h.innerHTML = italicHeading(d.heading, d.heading_italic);
+  cmsTest = d;
   if (d.items) {
     const grid = document.getElementById('test-grid');
     if (grid) grid.innerHTML = d.items.map(t => `

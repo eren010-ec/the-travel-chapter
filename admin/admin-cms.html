@@ -13,6 +13,7 @@
 <title>The Travel Chapter — Content Editor</title>
 <meta name="robots" content="noindex, nofollow">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://thetravelchapter.my/collections.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -168,11 +169,11 @@ textarea { resize:vertical; min-height:80px; line-height:1.6; }
   </div>
   <nav class="nav" id="cms-nav">
     <div class="nav-section-label">Page Sections</div>
+    <button class="nav-item" data-section="home">
+      <svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5"/><path d="M5 9.5V20h14V9.5"/></svg>Home Page Layout
+    </button>
     <button class="nav-item active" data-section="hero">
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="10" rx="2"/><path d="M3 17h18M3 21h12"/></svg>Hero Banner
-    </button>
-    <button class="nav-item" data-section="destinations">
-      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 3v18M3 12h18"/></svg>Destinations
     </button>
     <button class="nav-item" data-section="featured_trips">
       <svg viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.15 12 19.79 19.79 0 0 1 1.07 3.4 2 2 0 0 1 3 1h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.09 8.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21 16z"/></svg>Featured Trips
@@ -185,9 +186,6 @@ textarea { resize:vertical; min-height:80px; line-height:1.6; }
     </button>
     <button class="nav-item" data-section="testimonials">
       <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Testimonials
-    </button>
-    <button class="nav-item" data-section="cta_banner">
-      <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>CTA Banner
     </button>
     <button class="nav-item" data-section="contact">
       <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Contact
@@ -228,6 +226,7 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 let cmsData   = {};     // all sections loaded from DB
 let dirtyData = {};     // edited but not yet saved
 let currentSection = 'hero';
+let allTrips = [];      // active trips, for the Home Page editor
 
 // ── NAV ────────────────────────────────────────────────────
 document.getElementById('cms-nav').addEventListener('click', function(e) {
@@ -249,6 +248,8 @@ async function init() {
   const { data, error } = await sb.from('cms_content').select('*');
   if (error) { showToast('Error loading CMS: ' + error.message, true); return; }
   data.forEach(row => { cmsData[row.section] = row.content; });
+  const tr = await sb.from('trips').select('id,title,slug,category,cover_image').eq('is_active', true).order('created_at');
+  allTrips = tr.data || [];
   renderEditor('hero');
 }
 
@@ -275,7 +276,7 @@ function removeHeroBg() {
   const built = buildContentFromForm('hero');
   built._bg_file = null;
   built._bg_removed = true;
-  built.background_image = null;
+  built.hero_photo = null;
   cmsData['hero'] = built;
   renderEditor('hero');
 }
@@ -364,11 +365,25 @@ async function saveSection(section) {
     if (content._bg_file) {
       const url = await uploadCmsImage(content._bg_file, 'hero');
       if (url === null) { btn.disabled = false; btn.textContent = 'Save Changes'; return; }
-      content.background_image = url;
+      content.hero_photo = url;
     } else if (content._bg_removed) {
-      content.background_image = null;
+      content.hero_photo = null;
     }
     delete content._bg_file; delete content._bg_removed;
+  }
+  if (section === 'home') {
+    for (const key of ['circles', 'popular', 'services']) {
+      for (const item of (content[key] || [])) {
+        if (item._file) {
+          const url = await uploadCmsImage(item._file, 'home');
+          if (url === null) { btn.disabled = false; btn.textContent = 'Save Changes'; return; }
+          item.image = url;
+        } else if (item._removed) {
+          item.image = null;
+        }
+        delete item._file; delete item._removed;
+      }
+    }
   }
   if (section === 'destinations' && content.items) {
     for (const item of content.items) {
@@ -425,7 +440,7 @@ function renderEditor(section) {
   const data = cmsData[section] || {};
   const main = document.getElementById('editor-content');
   const sectionLabels = {
-    hero:'Hero Banner', destinations:'Destinations', featured_trips:'Featured Trips',
+    home:'Home Page Layout', hero:'Hero Banner', destinations:'Destinations', featured_trips:'Featured Trips',
     free_gifts:'Free Gifts', about:'About Us', testimonials:'Testimonials',
     cta_banner:'CTA Banner', contact:'Contact', footer:'Footer', navbar:'Navigation'
   };
@@ -453,6 +468,7 @@ function renderEditor(section) {
 
   // Render section-specific form
   switch(section) {
+    case 'home':        html += renderHomeForm(data); break;
     case 'hero':        html += renderHeroForm(data); break;
     case 'destinations':html += renderDestinationsForm(data); break;
     case 'featured_trips':html += renderFeaturedTripsForm(data); break;
@@ -476,6 +492,190 @@ function renderEditor(section) {
   });
 }
 
+// ── HOME PAGE LAYOUT (cms_content 'home') ──────────────────
+// Drives the customer home page: category circles, Popular Destinations tiles, Special
+// Packages and Travel Services. A tile "target" is a trip collection key (collections.js on
+// the live site), "cat:<CATEGORY>" for one trips.category value, or "all".
+// Keep these defaults in step with HOME_DEFAULTS in the site's index.html.
+const HOME_DEFAULTS = {
+  circles: ['sarawak', 'malaysia', 'asia', 'europe', 'oceania', 'cruise', 'island', 'private', 'group'].map(t => ({ target: t })),
+  popular: ['sarawak', 'japan', 'korea', 'thailand', 'europe', 'bali', 'china', 'vietnam', 'taiwan', 'maldives'].map(t => ({ target: t })),
+  special: [],
+  services: [{ kind: 'tours' }, { kind: 'hotels' }, { kind: 'products' }, { kind: 'custom' }],
+};
+const SERVICE_KIND_LABELS = { tours: 'Tour Packages', hotels: 'Hotels', products: 'Products', custom: 'Custom Trip', link: 'Other link…' };
+// Fallback if the live collections.js could not load
+const COLLECTION_FALLBACK = { sarawak:'Sarawak', malaysia:'Malaysia', asia:'Asia', europe:'Europe', oceania:'Oceania', cruise:'Cruise',
+  island:'Island & Beach', private:'Private Tour', group:'Group Tour', china:'China', japan:'Japan', korea:'Korea', thailand:'Thailand',
+  vietnam:'Vietnam', taiwan:'Taiwan', bali:'Bali', maldives:'Maldives', world:'Middle East & Africa' };
+
+function homeData(d) {
+  const out = {};
+  for (const k of ['circles', 'popular', 'special', 'services']) {
+    out[k] = Array.isArray(d[k]) && d[k].length ? d[k].map(x => (typeof x === 'object' ? { ...x } : x)) : HOME_DEFAULTS[k].map(x => (typeof x === 'object' ? { ...x } : x));
+  }
+  for (const k of ['popular_heading', 'special_heading', 'services_heading']) out[k] = d[k] || '';
+  return out;
+}
+function collectionOptions() {
+  const C = window.TC_COLLECTIONS && TC_COLLECTIONS.all;
+  if (C) return Object.keys(C).map(k => [k, C[k].label.en]);
+  return Object.entries(COLLECTION_FALLBACK);
+}
+function tripCountFor(target) {
+  const C = window.TC_COLLECTIONS && TC_COLLECTIONS.all;
+  if (target === 'all') return allTrips.length;
+  if (String(target).startsWith('cat:')) return allTrips.filter(t => t.category === target.slice(4)).length;
+  if (C && C[target]) return allTrips.filter(C[target].match).length;
+  return null;
+}
+function targetSelect(id, value) {
+  const cats = [...new Set(allTrips.map(t => t.category).filter(Boolean))].sort();
+  const opt = (v, label) => {
+    const n = tripCountFor(v);
+    return `<option value="${esc(v)}"${v === value ? ' selected' : ''}>${esc(label)}${n == null ? '' : ` (${n})`}</option>`;
+  };
+  return `<select id="${id}">
+    <optgroup label="Collections">${collectionOptions().map(([k, l]) => opt(k, l)).join('')}${opt('all', 'All trips')}</optgroup>
+    <optgroup label="Single trip category">${cats.map(c => opt('cat:' + c, c)).join('')}</optgroup>
+  </select>`;
+}
+function tileRows(key, items, title, hint) {
+  return `
+  <div class="card">
+    <div class="card-title"><span>${key === 'circles' ? '⭕' : '🗺️'}</span> ${title}</div>
+    <div class="field-hint" style="margin-bottom:12px;">${hint}</div>
+    ${items.map((it, i) => `
+      <div class="array-item">
+        <div class="array-item-header">
+          <div class="array-item-label">${key === 'circles' ? 'Circle' : 'Tile'} ${i + 1}</div>
+          <div class="array-item-actions">
+            <button class="btn-icon move" onclick="homeMove('${key}',${i},-1)" title="Move up">↑</button>
+            <button class="btn-icon move" onclick="homeMove('${key}',${i},1)" title="Move down">↓</button>
+            <button class="btn-icon" onclick="homeRemove('${key}',${i})" title="Remove">✕</button>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Shows trips from</label>${targetSelect(`home_${key}_target_${i}`, it.target)}</div>
+          <div class="field"><label>Label (optional)</label><input type="text" id="home_${key}_label_${i}" value="${esc(it.label || '')}" placeholder="Auto — translated name"></div>
+        </div>
+        <div class="field"><label>Photo (optional — empty uses a matching trip's cover photo)</label>
+          ${imageUploadField(imagePreviewUrl(it), `homeImageSelect(event,'${key}',${i})`, `homeImageRemove('${key}',${i})`)}
+        </div>
+      </div>`).join('')}
+    <button class="btn-add-item" onclick="homeAdd('${key}')">+ Add ${key === 'circles' ? 'Circle' : 'Tile'}</button>
+  </div>`;
+}
+function renderHomeForm(d) {
+  const h = homeData(d);
+  const tripOpts = sel => allTrips.map(t => `<option value="${esc(t.slug || t.id)}"${(t.slug || t.id) === sel ? ' selected' : ''}>${esc(t.title)}${t.cover_image ? '' : ' (no photo)'}</option>`).join('');
+  return `
+  <div class="card">
+    <div class="card-title"><span>📝</span> Section Headings (optional)</div>
+    <div class="field-row">
+      <div class="field"><label>Popular Destinations</label><input type="text" id="home_popular_heading" value="${esc(h.popular_heading)}" placeholder="Popular Destinations"></div>
+      <div class="field"><label>Special Packages</label><input type="text" id="home_special_heading" value="${esc(h.special_heading)}" placeholder="Special Packages"></div>
+    </div>
+    <div class="field"><label>Travel Services</label><input type="text" id="home_services_heading" value="${esc(h.services_heading)}" placeholder="Travel Services"></div>
+    <div class="field-hint">Shown to English visitors. Leave empty to use the built-in headings, which are translated into Chinese and Malay.</div>
+  </div>
+  ${tileRows('circles', h.circles, 'Category Circles', 'The round pictures under the search bar. A circle with no matching active trips is hidden automatically.')}
+  ${tileRows('popular', h.popular, 'Popular Destinations', 'Photo tiles that open the Tour Packages page filtered to that destination.')}
+  <div class="card">
+    <div class="card-title"><span>⭐</span> Special Packages</div>
+    <div class="field-hint" style="margin-bottom:12px;">Wide photo cards linking straight to a trip. With none chosen, the site shows a few showcase trips plus the newest ones.</div>
+    ${h.special.map((slug, i) => `
+      <div class="array-item">
+        <div class="array-item-header">
+          <div class="array-item-label">Package ${i + 1}</div>
+          <div class="array-item-actions">
+            <button class="btn-icon move" onclick="homeMove('special',${i},-1)" title="Move up">↑</button>
+            <button class="btn-icon move" onclick="homeMove('special',${i},1)" title="Move down">↓</button>
+            <button class="btn-icon" onclick="homeRemove('special',${i})" title="Remove">✕</button>
+          </div>
+        </div>
+        <div class="field"><label>Trip</label><select id="home_special_${i}">${tripOpts(slug)}</select></div>
+      </div>`).join('')}
+    <button class="btn-add-item" onclick="homeAdd('special')">+ Add Package</button>
+  </div>
+  <div class="card">
+    <div class="card-title"><span>🧳</span> Travel Services</div>
+    <div class="field-hint" style="margin-bottom:12px;">The picture cards in the Travel Services row. Four fit in one row on phones.</div>
+    ${h.services.map((sv, i) => `
+      <div class="array-item">
+        <div class="array-item-header">
+          <div class="array-item-label">Service ${i + 1}</div>
+          <div class="array-item-actions">
+            <button class="btn-icon move" onclick="homeMove('services',${i},-1)" title="Move up">↑</button>
+            <button class="btn-icon move" onclick="homeMove('services',${i},1)" title="Move down">↓</button>
+            <button class="btn-icon" onclick="homeRemove('services',${i})" title="Remove">✕</button>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field"><label>Opens</label><select id="home_services_kind_${i}">${Object.entries(SERVICE_KIND_LABELS).map(([k, l]) => `<option value="${k}"${(sv.kind || 'link') === k ? ' selected' : ''}>${l}</option>`).join('')}</select></div>
+          <div class="field"><label>Label (optional)</label><input type="text" id="home_services_label_${i}" value="${esc(sv.label || '')}" placeholder="Auto — translated name"></div>
+        </div>
+        <div class="field"><label>Link (only for "Other link…")</label><input type="text" id="home_services_href_${i}" value="${esc(sv.href || '')}" placeholder="e.g. trips.html?c=cruise or https://…"></div>
+        <div class="field"><label>Photo (optional)</label>
+          ${imageUploadField(imagePreviewUrl(sv), `homeImageSelect(event,'services',${i})`, `homeImageRemove('services',${i})`)}
+        </div>
+      </div>`).join('')}
+    <button class="btn-add-item" onclick="homeAdd('services')">+ Add Service</button>
+  </div>
+  <div class="card">
+    <div class="field-hint">The Hero Banner, Testimonials, Footer and Contact details on the home page have their own sections in this menu. Trip photos and titles come from <a href="admin.html" style="color:var(--gold);">Admin Panel → Trips</a>.</div>
+    <button class="btn btn-ghost" style="margin-top:12px;" onclick="homeReset()">Reset Home Page to the default layout</button>
+  </div>`;
+}
+function buildHomeFromForm(d) {
+  const h = homeData(d);
+  const v = id => { const el = document.getElementById(id); return el ? el.value : null; };
+  const tiles = key => h[key].map((it, i) => ({
+    target: v(`home_${key}_target_${i}`) ?? it.target,
+    label: (v(`home_${key}_label_${i}`) ?? it.label ?? '').trim(),
+    image: it.image || null, _file: it._file, _removed: it._removed,
+  }));
+  return {
+    popular_heading: (v('home_popular_heading') ?? h.popular_heading).trim(),
+    special_heading: (v('home_special_heading') ?? h.special_heading).trim(),
+    services_heading: (v('home_services_heading') ?? h.services_heading).trim(),
+    circles: tiles('circles'),
+    popular: tiles('popular'),
+    special: h.special.map((slug, i) => v(`home_special_${i}`) ?? slug),
+    services: h.services.map((sv, i) => {
+      const kind = v(`home_services_kind_${i}`) ?? sv.kind ?? 'link';
+      return { kind, label: (v(`home_services_label_${i}`) ?? sv.label ?? '').trim(),
+        href: kind === 'link' ? (v(`home_services_href_${i}`) ?? sv.href ?? '').trim() : '',
+        image: sv.image || null, _file: sv._file, _removed: sv._removed };
+    }),
+  };
+}
+function homeEdit(fn) { const b = buildHomeFromForm(cmsData.home || {}); fn(b); cmsData.home = b; renderEditor('home'); markHomeDirty(); }
+function markHomeDirty() { const el = document.getElementById('save-status'); if (el) { el.textContent = 'Unsaved changes'; el.className = 'save-status unsaved'; } }
+function homeAdd(key) {
+  homeEdit(b => {
+    if (key === 'special') b.special.push((allTrips.find(t => t.cover_image) || allTrips[0] || {}).slug || '');
+    else if (key === 'services') b.services.push({ kind: 'link', label: '', href: '' });
+    else b[key].push({ target: 'all', label: '' });
+  });
+}
+function homeRemove(key, i) { homeEdit(b => { b[key].splice(i, 1); }); }
+function homeMove(key, i, dir) { homeEdit(b => { const j = i + dir; if (j < 0 || j >= b[key].length) return; [b[key][i], b[key][j]] = [b[key][j], b[key][i]]; }); }
+function homeImageSelect(event, key, i) {
+  const file = event.target.files[0];
+  if (!file) return;
+  if (!file.type.startsWith('image/')) { showToast('Please choose an image file.', true); return; }
+  if (file.size > 5 * 1024 * 1024) { showToast('Image must be under 5MB.', true); return; }
+  homeEdit(b => { b[key][i]._file = file; b[key][i]._removed = false; });
+}
+function homeImageRemove(key, i) { homeEdit(b => { b[key][i]._file = null; b[key][i]._removed = true; b[key][i].image = null; }); }
+function homeReset() {
+  if (!confirm('Reset the Home Page layout to the default? Your custom circles, tiles, packages and services will be replaced once you click Save Changes.')) return;
+  cmsData.home = {};
+  renderEditor('home');
+  markHomeDirty();
+}
+
 // ── SECTION FORMS ──────────────────────────────────────────
 
 function renderHeroForm(d) {
@@ -486,9 +686,11 @@ function renderHeroForm(d) {
     <div class="field"><label>Main Heading</label><input type="text" id="hero_heading" value="${esc(d.heading||'')}" placeholder="Travel Beyond the Ordinary"><div class="field-hint">The italic word is set separately below</div></div>
     <div class="field"><label>Italic Word in Heading</label><input type="text" id="hero_heading_italic" value="${esc(d.heading_italic||'')}" placeholder="Ordinary"></div>
     <div class="field"><label>Subtext / Description</label><textarea id="hero_subtext">${esc(d.subtext||'')}</textarea></div>
+    <div class="field-hint">Text and button labels you type here show to English visitors. Chinese / Malay visitors see the built-in translations.</div>
   </div>
   <div class="card">
     <div class="card-title"><span>🔘</span> Call to Action Buttons</div>
+    <div class="field-hint" style="margin-bottom:10px;">Leave the Secondary Button Label empty to hide that button.</div>
     <div class="field-row">
       <div class="field"><label>Primary Button Label</label><input type="text" id="hero_cta_primary_label" value="${esc(d.cta_primary_label||'')}"></div>
       <div class="field"><label>Primary Button Link</label><input type="text" id="hero_cta_primary_href" value="${esc(d.cta_primary_href||'')}"></div>
@@ -499,10 +701,10 @@ function renderHeroForm(d) {
     </div>
   </div>
   <div class="card">
-    <div class="card-title"><span>🖼️</span> Background Photo</div>
+    <div class="card-title"><span>🖼️</span> Cover Photo</div>
     <div class="field">
-      <label>Hero Background Image</label>
-      ${imageUploadField(imagePreviewUrl({ image: d.background_image, _file: d._bg_file, _removed: d._bg_removed }), 'handleHeroBgSelect(event)', 'removeHeroBg()', '1920 × 1080 (16:9), ≥ 1600px wide, JPG under 1 MB — a dark overlay is added automatically. Empty = plain navy gradient.')}
+      <label>Home Page Cover Photo</label>
+      ${imageUploadField(imagePreviewUrl({ image: d.hero_photo, _file: d._bg_file, _removed: d._bg_removed }), 'handleHeroBgSelect(event)', 'removeHeroBg()', 'Wide landscape photo, ≥ 2000px wide (about 2.7 : 1 works best), JPG/WebP under 1 MB. Phones show the centre-right part. Empty = the default golden-hour panorama.')}
     </div>
   </div>`;
 }
@@ -575,7 +777,7 @@ function renderFeaturedTripsForm(d) {
     <div class="field" style="margin-top:8px;padding:14px;background:var(--cream2);border-radius:10px;border:1px solid var(--border);">
       <div style="display:flex;gap:8px;align-items:flex-start;">
         <span style="font-size:1rem;flex-shrink:0;">ℹ️</span>
-        <span style="font-size:0.78rem;color:var(--smoke);line-height:1.5;">Trip cards on the landing page are automatically pulled from your <strong>Trips</strong> database. To edit trip content, go to <a href="admin.html" style="color:var(--gold);">Admin Panel → Trips</a>.</span>
+        <span style="font-size:0.78rem;color:var(--smoke);line-height:1.5;">This header shows at the top of the <strong>Tour Packages</strong> page. Trip cards are pulled automatically from your <strong>Trips</strong> database; the home page sections are arranged under <strong>Home Page Layout</strong>. To edit trip content, go to <a href="admin.html" style="color:var(--gold);">Admin Panel → Trips</a>.</span>
       </div>
     </div>
   </div>`;
@@ -760,7 +962,7 @@ function renderNavbarForm(d) {
     <div class="field" style="margin-top:8px;padding:14px;background:var(--cream2);border-radius:10px;border:1px solid var(--border);">
       <div style="display:flex;gap:8px;align-items:flex-start;">
         <span style="font-size:1rem;flex-shrink:0;">ℹ️</span>
-        <span style="font-size:0.78rem;color:var(--smoke);line-height:1.5;">The navigation menu items (Destinations, Trips, Membership, etc.) are fixed in code and translated into English/Chinese/Malay — they aren't editable here, since CMS-authored labels would only ever show in one language.</span>
+        <span style="font-size:0.78rem;color:var(--smoke);line-height:1.5;">The navigation menu items (Home, Tour Packages, Hotels, Free Gifts, About, Contact) are fixed in code and translated into English/Chinese/Malay — they aren't editable here, since CMS-authored labels would only ever show in one language.</span>
       </div>
     </div>
   </div>
@@ -779,13 +981,14 @@ function buildContentFromForm(section) {
   const c = id => { const el=document.getElementById(id); return el?el.checked:false; };
 
   switch(section) {
+    case 'home': return buildHomeFromForm(d);
     case 'hero': {
       return { ...d,
         eyebrow:v('hero_eyebrow'), heading:v('hero_heading'), heading_italic:v('hero_heading_italic'),
         subtext:v('hero_subtext'), cta_primary_label:v('hero_cta_primary_label'),
         cta_primary_href:v('hero_cta_primary_href'), cta_secondary_label:v('hero_cta_secondary_label'),
         cta_secondary_href:v('hero_cta_secondary_href'),
-        background_image:d.background_image, _bg_file:d._bg_file, _bg_removed:d._bg_removed
+        hero_photo:d.hero_photo, _bg_file:d._bg_file, _bg_removed:d._bg_removed
       };
     }
     case 'destinations': {

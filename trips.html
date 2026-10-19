@@ -537,6 +537,8 @@ let pendingMonth = '', pendingYear = '';
   if (/^\d{4}$/.test(y)) pendingYear = y;
 })(urlParams.get('month') || '', urlParams.get('year') || '');
 if (urlParams.get('q')) tf.search.value = urlParams.get('q');
+// ?category=<trips.category> (home-page tiles for categories outside the built-in collections)
+let pendingCat = urlParams.get('category') || '';
 const tfCol = document.getElementById('tf-col');
 function paintColChip() {
   tfCol.hidden = !activeCol;
@@ -580,6 +582,7 @@ function buildFilters() {
   fillMonths();
   fillSelect(tf.region,   [...new Set(lastTrips.map(t => t.region).filter(Boolean))].sort(),   'trips_page.filter_dest_all');
   fillSelect(tf.category, [...new Set(lastTrips.map(t => t.category).filter(Boolean))].sort(), 'trips_page.filter_cat_all');
+  if (pendingCat && lastTrips.length) { tf.category.value = pendingCat; pendingCat = ''; }
 }
 
 function applyFilters() {

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="the-travel-chapter-icon.png">
 <link rel="manifest" href="manifest-customer.json">
-<meta name="theme-color" content="#1a1f2e">
+<meta name="theme-color" content="#0f2557">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Travel Chapter">
@@ -27,24 +27,24 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="i18n.js"></script>
 <script src="mobile-tabbar.js" defer></script>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,300..900;1,400..700&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --cream:  #faf7f2;
-  --cream2: #f2ede4;
-  --cream3: #ede5d8;
-  --navy:   #1a1f2e;
-  --navy2:  #252b3b;
-  --gold:   #b8955a;
-  --gold2:  #d4aa70;
+  --cream:  #f5f8fd;
+  --cream2: #eaf1fb;
+  --cream3: #dfe9f7;
+  --navy:   #0f2557;
+  --navy2:  #173a80;
+  --gold:   #1f6fd6;
+  --gold2:  #f5b82e;
   --smoke:  #6b7280;
-  --border: #e5ddd0;
+  --border: #e2e8f2;
   --white:  #ffffff;
-  --text:   #1a1f2e;
+  --text:   #0f2557;
 }
 html { scroll-behavior: smooth; }
-body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--text); overflow-x:hidden; }
+body { font-family:'Nunito',sans-serif; background:var(--cream); color:var(--text); overflow-x:hidden; }
 
 /* ── NAVBAR ── */
 .navbar {
@@ -56,10 +56,10 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
   backdrop-filter:blur(16px);
   transition:box-shadow 0.3s;
 }
-.navbar.scrolled { box-shadow:0 4px 24px rgba(26,31,46,0.08); }
+.navbar.scrolled { box-shadow:0 4px 24px rgba(15,37,87,0.08); }
 .nav-logo { display:flex; align-items:center; gap:10px; text-decoration:none; min-width:0; }
 .nav-logo-img { height:54px; width:auto; object-fit:contain; flex-shrink:0; }
-.nav-logo-text { font-family:'DM Sans',sans-serif; font-size:0.92rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold); min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.nav-logo-text { font-family:'Nunito',sans-serif; font-size:0.92rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold); min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .nav-links { display:flex; align-items:center; gap:36px; list-style:none; }
 .nav-links a { font-size:0.98rem; letter-spacing:0.03em; color:var(--smoke); text-decoration:none; transition:color 0.2s; }
 .nav-links a:hover { color:var(--navy); }
@@ -69,10 +69,10 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 .nav-social-link { display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:6px; color:var(--smoke); transition:color 0.2s, background 0.2s; }
 .nav-social-link:hover { color:var(--navy); background:var(--cream2); }
 .nav-social-link svg { width:16px; height:16px; }
-.btn-nav-ghost { padding:9px 20px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--smoke); font-family:'DM Sans',sans-serif; font-size:0.8rem; font-weight:400; letter-spacing:0.05em; text-decoration:none; transition:all 0.2s; }
+.btn-nav-ghost { padding:9px 20px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--smoke); font-family:'Nunito',sans-serif; font-size:0.8rem; font-weight:400; letter-spacing:0.05em; text-decoration:none; transition:all 0.2s; }
 .btn-nav-ghost:hover { border-color:var(--navy); color:var(--navy); }
-.btn-nav-primary { padding:9px 20px; border:none; border-radius:6px; background:var(--navy); color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.8rem; font-weight:500; letter-spacing:0.05em; text-decoration:none; transition:all 0.2s; }
-.btn-nav-primary:hover { background:var(--navy2); box-shadow:0 4px 14px rgba(26,31,46,0.2); }
+.btn-nav-primary { padding:9px 20px; border:none; border-radius:6px; background:var(--navy); color:var(--white); font-family:'Nunito',sans-serif; font-size:0.8rem; font-weight:500; letter-spacing:0.05em; text-decoration:none; transition:all 0.2s; }
+.btn-nav-primary:hover { background:var(--navy2); box-shadow:0 4px 14px rgba(15,37,87,0.2); }
 .lang-switch { display:flex; align-items:center; gap:2px; background:var(--cream2); border:1px solid var(--border); border-radius:6px; padding:2px; }
 /* ── MOBILE NAV (hamburger dropdown + single language toggle) ── */
 .nav-toggle { display:none; background:var(--cream2); border:1px solid var(--border); border-radius:6px; width:40px; height:40px; padding:0; cursor:pointer; align-items:center; justify-content:center; color:var(--navy); flex-shrink:0; }
@@ -100,7 +100,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
     display:inline-flex; align-items:center; justify-content:center;
     min-width:40px; height:40px; padding:0 10px;
     border:1px solid var(--border); border-radius:6px; background:var(--cream2);
-    color:var(--navy); font-family:'DM Sans',sans-serif; font-size:0.72rem; font-weight:600; letter-spacing:0.04em;
+    color:var(--navy); font-family:'Nunito',sans-serif; font-size:0.72rem; font-weight:600; letter-spacing:0.04em;
     cursor:pointer; flex-shrink:0;
   }
   .nav-toggle { display:flex; }
@@ -115,8 +115,8 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
   .nav-cta-row .btn-nav-ghost, .nav-cta-row .btn-nav-primary { flex:1; text-align:center; padding:12px 12px; font-size:0.82rem; }
   .nav-cta-row .btn-nav-ghost { color:var(--smoke); }
   .nav-cta-row .btn-nav-primary { color:var(--white); background:var(--navy); }
-  .nav-lang-menu:not([hidden]) { display:block; position:absolute; top:calc(100% + 8px); right:0; background:var(--white); border:1px solid var(--border); border-radius:10px; box-shadow:0 14px 40px rgba(26,31,46,0.16); overflow:hidden; min-width:168px; z-index:120; }
-  .nav-lang-menu button { display:block; width:100%; text-align:left; padding:12px 16px; border:none; background:transparent; font-family:'DM Sans',sans-serif; font-size:0.86rem; color:var(--navy); cursor:pointer; }
+  .nav-lang-menu:not([hidden]) { display:block; position:absolute; top:calc(100% + 8px); right:0; background:var(--white); border:1px solid var(--border); border-radius:10px; box-shadow:0 14px 40px rgba(15,37,87,0.16); overflow:hidden; min-width:168px; z-index:120; }
+  .nav-lang-menu button { display:block; width:100%; text-align:left; padding:12px 16px; border:none; background:transparent; font-family:'Nunito',sans-serif; font-size:0.86rem; color:var(--navy); cursor:pointer; }
   .nav-lang-menu button:hover { background:var(--cream2); }
   .nav-lang-menu button.active { color:var(--gold); font-weight:600; }
   .btn-nav-ghost, .btn-nav-primary { padding:9px 14px; font-size:0.76rem; }
@@ -126,7 +126,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
   .btn-nav-ghost, .btn-nav-primary { padding:8px 10px; font-size:0.72rem; }
   .nav-lang-toggle, .nav-toggle { min-width:36px; width:36px; height:36px; }
 }
-.lang-btn { padding:5px 9px; border:none; background:transparent; border-radius:4px; font-family:'DM Sans',sans-serif; font-size:0.68rem; font-weight:500; letter-spacing:0.03em; color:var(--smoke); cursor:pointer; transition:all 0.2s; }
+.lang-btn { padding:5px 9px; border:none; background:transparent; border-radius:4px; font-family:'Nunito',sans-serif; font-size:0.68rem; font-weight:500; letter-spacing:0.03em; color:var(--smoke); cursor:pointer; transition:all 0.2s; }
 .lang-btn:hover { color:var(--navy); }
 .lang-btn.active { background:var(--navy); color:var(--white); }
 
@@ -136,11 +136,11 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
   background: linear-gradient(135deg, var(--navy) 0%, #1e2a3a 50%, #141820 100%);
   padding:172px 6% 84px; text-align:center;
 }
-.page-head::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse 60% 70% at 70% 40%, rgba(184,149,90,0.15) 0%, transparent 60%),radial-gradient(ellipse 40% 50% at 10% 80%, rgba(184,149,90,0.08) 0%, transparent 50%); }
+.page-head::before { content:''; position:absolute; inset:0; background:radial-gradient(ellipse 60% 70% at 70% 40%, rgba(31,111,214,0.15) 0%, transparent 60%),radial-gradient(ellipse 40% 50% at 10% 80%, rgba(31,111,214,0.08) 0%, transparent 50%); }
 .page-head-inner { position:relative; z-index:1; max-width:720px; margin:0 auto; }
 .page-eyebrow { font-size:0.7rem; letter-spacing:0.35em; text-transform:uppercase; color:var(--gold2); margin-bottom:20px; display:flex; align-items:center; justify-content:center; gap:12px; }
 .page-eyebrow::before, .page-eyebrow::after { content:''; width:30px; height:1px; background:var(--gold2); }
-.page-head h1 { font-family:'Cormorant Garamond',serif; font-size:3.4rem; font-weight:300; line-height:1.15; color:var(--white); margin-bottom:20px; }
+.page-head h1 { font-family:'Nunito',sans-serif; font-size:3.4rem; font-weight:300; line-height:1.15; color:var(--white); margin-bottom:20px; }
 .page-head h1 em { font-style:italic; color:var(--gold2); }
 .page-head p { font-size:0.95rem; color:rgba(255,255,255,0.55); line-height:1.8; max-width:520px; margin:0 auto; }
 
@@ -148,19 +148,19 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 .about-section { padding:90px 6% 100px; }
 .about-grid { display:grid; grid-template-columns:1fr 1fr; gap:80px; align-items:center; max-width:1160px; margin:0 auto; }
 .about-visual { position:relative; }
-.about-slideshow { position:relative; width:100%; height:480px; border-radius:16px; overflow:hidden; box-shadow:0 20px 60px rgba(26,31,46,0.15); background:linear-gradient(160deg,#1a3a2a,#2d6a4f); }
+.about-slideshow { position:relative; width:100%; height:480px; border-radius:16px; overflow:hidden; box-shadow:0 20px 60px rgba(15,37,87,0.15); background:linear-gradient(160deg,#1a3a2a,#2d6a4f); }
 .about-slide { position:absolute; inset:0; background-size:cover; background-position:center; opacity:0; transition:opacity 0.9s ease; }
 .about-slide.active { opacity:1; }
 .about-slide-fallback { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:5rem; }
 .about-dots { position:absolute; left:0; right:0; bottom:16px; display:flex; gap:8px; justify-content:center; z-index:3; }
 .about-dot { width:8px; height:8px; border-radius:50%; border:none; padding:0; background:rgba(255,255,255,0.4); cursor:pointer; transition:background 0.2s, transform 0.2s; }
 .about-dot.active { background:var(--white); transform:scale(1.3); }
-.about-arrow { position:absolute; top:50%; transform:translateY(-50%); z-index:3; width:38px; height:38px; border-radius:50%; border:none; background:rgba(26,31,46,0.35); color:var(--white); font-size:1.1rem; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s; }
-.about-arrow:hover { background:rgba(26,31,46,0.6); }
+.about-arrow { position:absolute; top:50%; transform:translateY(-50%); z-index:3; width:38px; height:38px; border-radius:50%; border:none; background:rgba(15,37,87,0.35); color:var(--white); font-size:1.1rem; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:background 0.2s; }
+.about-arrow:hover { background:rgba(15,37,87,0.6); }
 .about-arrow.prev { left:12px; }
 .about-arrow.next { right:12px; }
-.about-badge { position:absolute; top:20px; right:20px; z-index:3; background:var(--white); border-radius:12px; padding:16px 20px; box-shadow:0 12px 40px rgba(26,31,46,0.18); border:1px solid var(--border); }
-.about-badge-val { font-family:'Cormorant Garamond',serif; font-size:1.8rem; font-weight:300; color:var(--navy); }
+.about-badge { position:absolute; top:20px; right:20px; z-index:3; background:var(--white); border-radius:12px; padding:16px 20px; box-shadow:0 12px 40px rgba(15,37,87,0.18); border:1px solid var(--border); }
+.about-badge-val { font-family:'Nunito',sans-serif; font-size:1.8rem; font-weight:300; color:var(--navy); }
 .about-badge-lbl { font-size:0.68rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--smoke); margin-top:2px; }
 .about-text p { font-size:0.95rem; color:var(--smoke); line-height:1.9; margin-bottom:18px; }
 .about-text p:first-child { font-size:1.05rem; color:var(--navy); }
@@ -172,13 +172,13 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 
 /* ── CTA ROW ── */
 .about-cta { text-align:center; margin-top:80px; }
-.btn-hero-primary { padding:14px 30px; border-radius:6px; border:none; background:linear-gradient(135deg,var(--gold),#8a6a38); color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.84rem; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; text-decoration:none; display:inline-block; transition:all 0.25s; box-shadow:0 4px 20px rgba(184,149,90,0.35); }
-.btn-hero-primary:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(184,149,90,0.45); }
+.btn-hero-primary { padding:14px 30px; border-radius:6px; border:none; background:linear-gradient(135deg,var(--gold),#1557b0); color:var(--white); font-family:'Nunito',sans-serif; font-size:0.84rem; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; text-decoration:none; display:inline-block; transition:all 0.25s; box-shadow:0 4px 20px rgba(31,111,214,0.35); }
+.btn-hero-primary:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(31,111,214,0.45); }
 
 /* ── FOOTER ── */
 footer { background:var(--navy); padding:56px 6% 32px; }
 .footer-grid { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:48px; margin-bottom:48px; }
-.footer-brand { display:flex; align-items:center; gap:10px; font-family:'DM Sans',sans-serif; font-size:0.88rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold2); margin-bottom:14px; }
+.footer-brand { display:flex; align-items:center; gap:10px; font-family:'Nunito',sans-serif; font-size:0.88rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold2); margin-bottom:14px; }
 .footer-brand-img { height:32px; width:auto; object-fit:contain; flex-shrink:0; }
 .footer-desc { font-size:0.8rem; color:rgba(255,255,255,0.35); line-height:1.7; max-width:260px; }
 .footer-col-title { font-size:0.65rem; font-weight:500; letter-spacing:0.18em; text-transform:uppercase; color:rgba(255,255,255,0.35); margin-bottom:16px; }
@@ -212,15 +212,16 @@ footer { background:var(--navy); padding:56px 6% 32px; }
   .btn-nav-primary, .btn-nav-ghost { padding:8px 12px; font-size:0.74rem; }
 }
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 <body>
 
 <!-- ── NAVBAR ── -->
 <nav class="navbar" id="navbar">
-  <a href="index.html" class="nav-logo" id="nav-logo"><img src="the-travel-chapter-icon.png" alt="The Travel Chapter" class="nav-logo-img"><span class="nav-logo-text" id="nav-logo-text">The Travel Chapter</span></a>
+  <a href="index.html" class="nav-logo" id="nav-logo"><img src="img/logo-emblem.png" alt="The Travel Chapter" class="nav-logo-img"><span class="nav-logo-text" id="nav-logo-text">The Travel Chapter</span></a>
   <ul class="nav-links">
     <li><a href="index.html" data-i18n="nav.home">Home</a></li>
-    <li><a href="trips.html" data-i18n="nav.trips">Trips</a></li>
+    <li><a href="trips.html" data-i18n="nav.tour_packages">Tour Packages</a></li>
     <li><a href="hotels.html" data-i18n="nav.hotels">Hotels</a></li>
     <li><a href="free-gifts.html" data-i18n="nav.free_gifts">Free Gifts</a></li>
     <li><a href="about.html" class="active" data-i18n="nav.about">About</a></li>
@@ -320,7 +321,7 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 <footer>
   <div class="footer-grid">
     <div>
-      <div class="footer-brand"><img src="the-travel-chapter-icon.png" alt="The Travel Chapter" class="footer-brand-img">The Travel Chapter</div>
+      <div class="footer-brand"><img src="img/logo-emblem.png" alt="The Travel Chapter" class="footer-brand-img">The Travel Chapter</div>
       <p class="footer-desc" id="footer-tagline">Curating extraordinary journeys for discerning travellers since 2012. Based in Kuala Lumpur, travelling the world.</p>
     </div>
     <div>

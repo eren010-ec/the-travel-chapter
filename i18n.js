@@ -23,6 +23,15 @@
 
       // ── index.html: nav ──
       'tabbar.products': 'Products', 'tabbar.profile': 'Profile',
+      'tabbar.tours': 'Tours', 'tabbar.more': 'More', 'nav.tour_packages': 'Tour Packages',
+      'home.search_dest': 'Destination', 'home.search_dest_ph': 'Where do you want to go?',
+      'home.search_date': 'Travel Date', 'home.search_date_any': 'Any month', 'home.month': 'Month', 'home.year': 'Year', 'trips_page.filter_year_any': 'Any year',
+      'home.search_pax': 'Travellers', 'home.pax_n': '{n} Adults', 'home.pax_1': '1 Adult',
+      'home.search_btn': 'Search Tours', 'home.view_all': 'View All',
+      'home.popular': 'Popular Destinations', 'home.special': 'Special Packages', 'home.services': 'Travel Services',
+      'home.n_tours': '{n} tours', 'home.svc_tours': 'Tour Packages', 'home.svc_cruise': 'Cruise Holidays',
+      'home.svc_private': 'Private Tour', 'home.svc_hotels': 'Hotels', 'home.svc_gifts': 'Free Gifts', 'home.svc_custom': 'Custom Trip',
+      'trips_page.showing': 'Showing:',
       'nav.home': 'Home',
       'nav.destinations': 'Destinations', 'nav.trips': 'Trips', 'nav.rewards': 'Rewards',
       'nav.free_gifts': 'Free Gifts', 'nav.hotels': 'Hotels',
@@ -43,7 +52,7 @@
       'hero.eyebrow': 'Curated Journeys',
       'hero.heading': 'Travel Beyond<br>the <em>Ordinary</em>',
       'hero.subtext': 'The Travel Chapter curates extraordinary journeys for discerning travellers — from intimate ryokans in Kyoto to private yacht charters along the Amalfi Coast.',
-      'hero.cta_primary': 'Explore Trips',
+      'hero.cta_primary': 'Explore Trips', 'hero.cta_secondary': 'Become a Member',
 
       // ── index.html: destinations ──
       'destinations.eyebrow': 'Where We Go',
@@ -334,6 +343,15 @@
       'journal.chapter_word6': '六', 'journal.chapter_word7': '七', 'journal.chapter_word8': '八', 'journal.chapter_word9': '九', 'journal.chapter_word10': '十',
 
       'tabbar.products': '产品', 'tabbar.profile': '我的',
+      'tabbar.tours': '行程', 'tabbar.more': '更多', 'nav.tour_packages': '旅游配套',
+      'home.search_dest': '目的地', 'home.search_dest_ph': '您想去哪里？',
+      'home.search_date': '出行日期', 'home.search_date_any': '任何月份', 'home.month': '月份', 'home.year': '年份', 'trips_page.filter_year_any': '任何年份',
+      'home.search_pax': '旅客', 'home.pax_n': '{n} 位成人', 'home.pax_1': '1 位成人',
+      'home.search_btn': '搜索行程', 'home.view_all': '查看全部',
+      'home.popular': '热门目的地', 'home.special': '特别配套', 'home.services': '旅游服务',
+      'home.n_tours': '{n} 个行程', 'home.svc_tours': '旅游配套', 'home.svc_cruise': '邮轮假期',
+      'home.svc_private': '私人团', 'home.svc_hotels': '酒店', 'home.svc_gifts': '免费礼品', 'home.svc_custom': '定制行程',
+      'trips_page.showing': '正在显示：',
       'nav.home': '首页', 'nav.destinations': '目的地', 'nav.trips': '行程', 'nav.rewards': '奖励', 'nav.free_gifts': '免费礼品', 'nav.hotels': '酒店', 'nav.about': '关于我们', 'nav.contact': '联系我们', 'nav.signin': '登录',
       'nav.login': '登录', 'nav.register': '注册', 'nav.profile': '会员中心', 'nav.logout': '退出登录',
 
@@ -349,7 +367,7 @@
       'hero.eyebrow': '精心策划的旅程',
       'hero.heading': '超越平凡<br>探索<em>非凡</em>',
       'hero.subtext': 'The Travel Chapter 为品味独到的旅行者精心策划非凡旅程——从京都的静谧旅馆到阿马尔菲海岸的私人游艇之旅。',
-      'hero.cta_primary': '探索行程',
+      'hero.cta_primary': '探索行程', 'hero.cta_secondary': '成为会员',
 
       'destinations.eyebrow': '我们的足迹',
       'destinations.heading': '精心甄选<br><em>目的地</em>',
@@ -625,6 +643,15 @@
       'journal.chapter_word6': 'Enam', 'journal.chapter_word7': 'Tujuh', 'journal.chapter_word8': 'Lapan', 'journal.chapter_word9': 'Sembilan', 'journal.chapter_word10': 'Sepuluh',
 
       'tabbar.products': 'Produk', 'tabbar.profile': 'Profil',
+      'tabbar.tours': 'Percutian', 'tabbar.more': 'Lagi', 'nav.tour_packages': 'Pakej Pelancongan',
+      'home.search_dest': 'Destinasi', 'home.search_dest_ph': 'Ke mana anda mahu pergi?',
+      'home.search_date': 'Tarikh Perjalanan', 'home.search_date_any': 'Mana-mana bulan', 'home.month': 'Bulan', 'home.year': 'Tahun', 'trips_page.filter_year_any': 'Mana-mana tahun',
+      'home.search_pax': 'Pengembara', 'home.pax_n': '{n} Dewasa', 'home.pax_1': '1 Dewasa',
+      'home.search_btn': 'Cari Percutian', 'home.view_all': 'Lihat Semua',
+      'home.popular': 'Destinasi Popular', 'home.special': 'Pakej Istimewa', 'home.services': 'Perkhidmatan Pelancongan',
+      'home.n_tours': '{n} percutian', 'home.svc_tours': 'Pakej Pelancongan', 'home.svc_cruise': 'Percutian Kapal Persiaran',
+      'home.svc_private': 'Lawatan Peribadi', 'home.svc_hotels': 'Hotel', 'home.svc_gifts': 'Hadiah Percuma', 'home.svc_custom': 'Percutian Khas',
+      'trips_page.showing': 'Dipaparkan:',
       'nav.home': 'Utama', 'nav.destinations': 'Destinasi', 'nav.trips': 'Percutian', 'nav.rewards': 'Ganjaran', 'nav.free_gifts': 'Hadiah Percuma', 'nav.hotels': 'Hotel', 'nav.about': 'Tentang Kami', 'nav.contact': 'Hubungi Kami', 'nav.signin': 'Log Masuk',
       'nav.login': 'Log Masuk', 'nav.register': 'Daftar', 'nav.profile': 'Akaun Saya', 'nav.logout': 'Log Keluar',
 
@@ -640,7 +667,7 @@
       'hero.eyebrow': 'Perjalanan Terancang',
       'hero.heading': 'Mengembara Melangkaui<br>yang <em>Biasa</em>',
       'hero.subtext': 'The Travel Chapter merancang perjalanan luar biasa untuk pengembara yang bercita rasa tinggi — dari ryokan intim di Kyoto hingga sewaan yacht peribadi di Pantai Amalfi.',
-      'hero.cta_primary': 'Terokai Percutian',
+      'hero.cta_primary': 'Terokai Percutian', 'hero.cta_secondary': 'Jadi Ahli',
 
       'destinations.eyebrow': 'Ke Mana Kami Pergi',
       'destinations.heading': 'Destinasi<br><em>Pilihan</em>',

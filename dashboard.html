@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="the-travel-chapter-icon.png">
 <link rel="manifest" href="manifest-customer.json">
-<meta name="theme-color" content="#1a1f2e">
+<meta name="theme-color" content="#0f2557">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Travel Chapter">
@@ -16,33 +16,24 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="i18n.js"></script>
 <script src="mobile-tabbar.js" defer></script>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,300..900;1,400..700&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-/* Render Arabic numerals in a sans face everywhere — Cormorant Garamond's "1"
-   reads as a capital "I". Merges into the Cormorant family for digits only;
-   if no local sans resolves, digits fall back to the element's own stack. */
-@font-face {
-  font-family: 'Cormorant Garamond';
-  font-weight: 100 900;
-  src: local('DM Sans'), local('Segoe UI'), local('Helvetica Neue'), local('Arial'), local('Roboto');
-  unicode-range: U+0030-0039;
-}
 :root {
-  --cream:  #faf7f2;
-  --cream2: #f2ede4;
-  --navy:   #1a1f2e;
-  --navy2:  #252b3b;
-  --gold:   #b8955a;
-  --gold2:  #d4aa70;
+  --cream:  #f5f8fd;
+  --cream2: #eaf1fb;
+  --navy:   #0f2557;
+  --navy2:  #173a80;
+  --gold:   #1f6fd6;
+  --gold2:  #f5b82e;
   --smoke:  #6b7280;
-  --border: #e5ddd0;
+  --border: #e2e8f2;
   --white:  #ffffff;
-  --text:   #1a1f2e;
+  --text:   #0f2557;
   --panel:  #ffffff;
   --sidebar-w: 240px;
 }
-body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--text); min-height:100vh; display:flex; }
+body { font-family:'Nunito',sans-serif; background:var(--cream); color:var(--text); min-height:100vh; display:flex; }
 
 /* ── SIDEBAR ── */
 .sidebar {
@@ -57,16 +48,16 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 .sidebar-brand img { width:40px; height:40px; object-fit:contain; flex-shrink:0; }
 .sidebar-brand > div { min-width:0; flex:1; }
 .sidebar-brand .name {
-  font-family:'DM Sans',sans-serif; font-size:0.78rem;
+  font-family:'Nunito',sans-serif; font-size:0.78rem;
   font-weight:700; letter-spacing:0.12em; text-transform:uppercase; color:var(--gold2);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
 }
 .sidebar-brand .tagline { font-size:0.62rem; letter-spacing:0.2em; color:rgba(255,255,255,0.35); text-transform:uppercase; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 
 .lang-switch { display:flex; align-items:center; gap:2px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); border-radius:6px; padding:2px; margin:0 12px 12px; }
-.lang-btn { flex:1; padding:5px 6px; border:none; background:transparent; border-radius:4px; font-family:'DM Sans',sans-serif; font-size:0.66rem; font-weight:500; letter-spacing:0.03em; color:rgba(255,255,255,0.5); cursor:pointer; transition:all 0.2s; }
+.lang-btn { flex:1; padding:5px 6px; border:none; background:transparent; border-radius:4px; font-family:'Nunito',sans-serif; font-size:0.66rem; font-weight:500; letter-spacing:0.03em; color:rgba(255,255,255,0.5); cursor:pointer; transition:all 0.2s; }
 .lang-btn:hover { color:rgba(255,255,255,0.85); }
-.lang-btn.active { background:rgba(184,149,90,0.25); color:var(--gold2); }
+.lang-btn.active { background:rgba(31,111,214,0.25); color:var(--gold2); }
 
 .nav { flex:1; padding:16px 12px; display:flex; flex-direction:column; gap:3px; }
 .nav-item {
@@ -77,11 +68,11 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 }
 .nav-item svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:1.5; stroke-linecap:round; stroke-linejoin:round; flex-shrink:0; }
 .nav-item:hover { background:rgba(255,255,255,0.07); color:rgba(255,255,255,0.85); }
-.nav-item.active { background:rgba(184,149,90,0.15); color:var(--gold2); }
+.nav-item.active { background:rgba(31,111,214,0.15); color:var(--gold2); }
 
 .sidebar-footer { padding:16px; border-top:1px solid rgba(255,255,255,0.08); }
 .member-pill { display:flex; align-items:center; gap:10px; padding:10px 12px; background:rgba(255,255,255,0.06); border-radius:10px; border:1px solid rgba(255,255,255,0.08); margin-bottom:8px; }
-.avatar { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,var(--gold),#8a6a38); display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:500; color:var(--white); flex-shrink:0; }
+.avatar { width:34px; height:34px; border-radius:50%; background:linear-gradient(135deg,var(--gold),#1557b0); display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:500; color:var(--white); flex-shrink:0; }
 .member-info { flex:1; min-width:0; }
 .member-name { font-size:0.78rem; font-weight:500; color:var(--white); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .member-tier { font-size:0.63rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold2); margin-top:1px; }
@@ -93,7 +84,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 @keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
 
 .page-header { margin-bottom:28px; }
-.page-header h1 { font-family:'Cormorant Garamond',serif; font-size:2rem; font-weight:300; color:var(--navy); }
+.page-header h1 { font-family:'Nunito',sans-serif; font-size:2rem; font-weight:300; color:var(--navy); }
 .page-header h1 em { font-style:italic; color:var(--gold); }
 .page-header p { font-size:0.82rem; color:var(--smoke); margin-top:4px; }
 
@@ -105,15 +96,15 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 
 /* ── STAT CARDS ── */
 .stat-card { background:var(--white); border:1px solid var(--border); border-radius:14px; padding:20px 22px; }
-.stat-value { font-family:'Cormorant Garamond',serif; font-size:2.2rem; font-weight:300; color:var(--navy); line-height:1; }
+.stat-value { font-family:'Nunito',sans-serif; font-size:2.2rem; font-weight:300; color:var(--navy); line-height:1; }
 .stat-label { font-size:0.68rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--smoke); margin-top:6px; }
 
 /* ── DAILY CHECK-IN ── */
 .checkin-card { padding:22px 24px; }
 .checkin-main { display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap; }
-.checkin-streak { font-family:'Cormorant Garamond',serif; font-size:1.9rem; font-weight:300; color:var(--navy); line-height:1; margin-top:8px; }
+.checkin-streak { font-family:'Nunito',sans-serif; font-size:1.9rem; font-weight:300; color:var(--navy); line-height:1; margin-top:8px; }
 .checkin-streak span:first-child { color:var(--gold); }
-.checkin-streak .lbl { font-family:'DM Sans',sans-serif; font-size:0.8rem; color:var(--smoke); }
+.checkin-streak .lbl { font-family:'Nunito',sans-serif; font-size:0.8rem; color:var(--smoke); }
 .checkin-hint { font-size:0.76rem; color:var(--smoke); margin-top:8px; }
 #btn-checkin { white-space:nowrap; }
 .checkin-boxes { display:flex; gap:7px; margin-top:16px; }
@@ -135,7 +126,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 .ci-box img { width:62%; height:62%; object-fit:contain; display:block; }
 .ci-box.lit {
   filter:none; opacity:1;
-  background:linear-gradient(135deg,rgba(184,149,90,0.16),rgba(212,170,112,0.30));
+  background:linear-gradient(135deg,rgba(31,111,214,0.16),rgba(212,170,112,0.30));
   border-color:var(--gold);
 }
 .ci-box.next {
@@ -155,7 +146,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
   display:flex; flex-direction:column; align-items:center; justify-content:center; gap:2px;
   font-size:1.7rem; cursor:pointer; transition:transform 0.15s, box-shadow 0.15s, background 0.3s; user-select:none;
 }
-.draw-cell:hover:not(.revealed) { transform:translateY(-2px); box-shadow:0 6px 18px rgba(26,31,46,0.12); }
+.draw-cell:hover:not(.revealed) { transform:translateY(-2px); box-shadow:0 6px 18px rgba(15,37,87,0.12); }
 .draw-cell.revealed { cursor:default; font-size:0.9rem; }
 .draw-cell.revealed .dc-emoji { font-size:1.3rem; }
 .draw-cell.dim { opacity:0.45; }
@@ -170,8 +161,8 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 /* ── TIER BADGE ── */
 .tier-badge { display:inline-flex; align-items:center; gap:5px; padding:4px 12px; border-radius:50px; font-size:0.7rem; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; }
 .tier-badge.explorer { background:rgba(92,184,122,0.1);  color:#27ae60; border:1px solid rgba(92,184,122,0.2); }
-.tier-badge.premier  { background:rgba(184,149,90,0.1);  color:var(--gold); border:1px solid rgba(184,149,90,0.2); }
-.tier-badge.elite    { background:rgba(26,31,46,0.08);   color:var(--navy); border:1px solid rgba(26,31,46,0.15); }
+.tier-badge.premier  { background:rgba(31,111,214,0.1);  color:var(--gold); border:1px solid rgba(31,111,214,0.2); }
+.tier-badge.elite    { background:rgba(15,37,87,0.08);   color:var(--navy); border:1px solid rgba(15,37,87,0.15); }
 
 /* ── PROGRESS ── */
 .progress-bar { height:4px; background:var(--border); border-radius:4px; overflow:hidden; margin:10px 0 6px; }
@@ -186,7 +177,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 .booking-price { font-size:0.9rem; color:var(--gold); font-weight:500; white-space:nowrap; }
 .status-pill { padding:3px 10px; border-radius:50px; font-size:0.63rem; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; white-space:nowrap; }
 .status-confirmed  { background:rgba(92,184,122,0.1);  color:#27ae60; border:1px solid rgba(92,184,122,0.2); }
-.status-pending    { background:rgba(184,149,90,0.1);  color:var(--gold); border:1px solid rgba(184,149,90,0.2); }
+.status-pending    { background:rgba(31,111,214,0.1);  color:var(--gold); border:1px solid rgba(31,111,214,0.2); }
 .status-cancelled  { background:rgba(224,82,82,0.1);   color:#e05252; border:1px solid rgba(224,82,82,0.2); }
 .status-completed  { background:rgba(107,114,128,0.1); color:var(--smoke); border:1px solid var(--border); }
 
@@ -198,41 +189,41 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 .voucher-amount { font-size:0.95rem; color:var(--gold); font-weight:500; }
 .voucher-meta { font-size:0.72rem; color:var(--smoke); margin-top:3px; }
 .voucher-right { display:flex; align-items:center; gap:10px; }
-.btn-copy-voucher { padding:7px 14px; border:1px solid var(--border); border-radius:8px; background:var(--white); color:var(--smoke); font-family:'DM Sans',sans-serif; font-size:0.74rem; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
+.btn-copy-voucher { padding:7px 14px; border:1px solid var(--border); border-radius:8px; background:var(--white); color:var(--smoke); font-family:'Nunito',sans-serif; font-size:0.74rem; cursor:pointer; transition:all 0.2s; white-space:nowrap; }
 .btn-copy-voucher:hover { color:var(--navy); border-color:var(--navy); }
 @media(max-width:600px){ .voucher-row{ grid-template-columns:1fr; } .voucher-right{ justify-content:space-between; } }
 
 /* ── TRIP CARDS ── */
 .trips-filter { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
-.trips-filter input, .trips-filter select { width:auto; padding:10px 12px; border:1px solid var(--border); border-radius:8px; background:var(--white); color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.84rem; font-weight:300; outline:none; transition:border-color 0.2s; }
+.trips-filter input, .trips-filter select { width:auto; padding:10px 12px; border:1px solid var(--border); border-radius:8px; background:var(--white); color:var(--text); font-family:'Nunito',sans-serif; font-size:0.84rem; font-weight:300; outline:none; transition:border-color 0.2s; }
 .trips-filter input:focus, .trips-filter select:focus { border-color:var(--gold); background:var(--white); }
 .trips-filter #tf-search { flex:1; min-width:180px; }
-.trips-filter #tf-clear { padding:10px 16px; border:1px solid var(--border); border-radius:8px; background:var(--cream2); color:var(--smoke); font-family:'DM Sans',sans-serif; font-size:0.8rem; cursor:pointer; transition:all 0.2s; }
+.trips-filter #tf-clear { padding:10px 16px; border:1px solid var(--border); border-radius:8px; background:var(--cream2); color:var(--smoke); font-family:'Nunito',sans-serif; font-size:0.8rem; cursor:pointer; transition:all 0.2s; }
 .trips-filter #tf-clear:hover { color:var(--text); border-color:var(--navy); }
 .trips-count { font-size:0.68rem; letter-spacing:0.12em; text-transform:uppercase; color:var(--smoke); margin-bottom:16px; }
 .trips-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:20px; }
 .trip-card { background:var(--white); border:1px solid var(--border); border-radius:14px; overflow:hidden; transition:transform 0.2s,box-shadow 0.2s; }
-.trip-card:hover { transform:translateY(-3px); box-shadow:0 12px 40px rgba(26,31,46,0.1); }
+.trip-card:hover { transform:translateY(-3px); box-shadow:0 12px 40px rgba(15,37,87,0.1); }
 .trip-thumb { height:130px; display:flex; align-items:center; justify-content:center; font-size:2.8rem; }
 .trip-thumb.cover { height:auto; aspect-ratio:16/10; }
 .trip-body { padding:16px; }
-.trip-name { font-family:'Cormorant Garamond',serif; font-size:1.15rem; font-weight:400; color:var(--navy); }
+.trip-name { font-family:'Nunito',sans-serif; font-size:1.15rem; font-weight:400; color:var(--navy); }
 .trip-desc { font-size:0.75rem; color:var(--smoke); margin-top:4px; line-height:1.5; }
 .trip-footer { display:flex; align-items:center; justify-content:space-between; margin-top:14px; padding-top:12px; border-top:1px solid var(--border); }
 .trip-price { font-size:0.95rem; color:var(--gold); font-weight:500; }
 .trip-price span { font-size:0.68rem; color:var(--smoke); font-weight:300; }
 .trip-tags { display:flex; gap:5px; flex-wrap:wrap; margin-top:8px; }
 .trip-tag { font-size:0.63rem; padding:2px 8px; border-radius:4px; background:var(--cream2); color:var(--smoke); border:1px solid var(--border); }
-.btn-book { padding:8px 14px; border-radius:6px; border:none; background:var(--navy); color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.72rem; font-weight:500; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; }
-.btn-book:hover { background:var(--navy2); box-shadow:0 4px 14px rgba(26,31,46,0.2); }
+.btn-book { padding:8px 14px; border-radius:6px; border:none; background:var(--navy); color:var(--white); font-family:'Nunito',sans-serif; font-size:0.72rem; font-weight:500; letter-spacing:0.06em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; }
+.btn-book:hover { background:var(--navy2); box-shadow:0 4px 14px rgba(15,37,87,0.2); }
 .locked-badge { padding:5px 10px; border-radius:6px; font-size:0.68rem; background:var(--cream2); color:var(--smoke); border:1px solid var(--border); }
 
 /* ── MEMBERSHIP ── */
 .tier-cards { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
 .tier-card { border-radius:12px; padding:20px 16px; border:1px solid var(--border); background:var(--cream); text-align:center; transition:all 0.2s; position:relative; }
-.tier-card.current { border-color:var(--gold); background:rgba(184,149,90,0.05); box-shadow:0 0 0 1px var(--gold); }
+.tier-card.current { border-color:var(--gold); background:rgba(31,111,214,0.05); box-shadow:0 0 0 1px var(--gold); }
 .tier-icon { font-size:1.8rem; margin-bottom:8px; }
-.tier-card h3 { font-family:'Cormorant Garamond',serif; font-size:1.15rem; font-weight:400; color:var(--navy); }
+.tier-card h3 { font-family:'Nunito',sans-serif; font-size:1.15rem; font-weight:400; color:var(--navy); }
 .tier-pts { font-size:0.7rem; color:var(--smoke); margin-top:3px; }
 .tier-perks { list-style:none; margin:12px 0 0; text-align:left; display:flex; flex-direction:column; gap:6px; }
 .tier-perks li { font-size:0.73rem; color:var(--smoke); display:flex; gap:6px; align-items:flex-start; line-height:1.4; }
@@ -243,28 +234,28 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 .profile-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
 .field { display:flex; flex-direction:column; gap:5px; }
 label { font-size:0.68rem; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--smoke); }
-input, select, textarea { padding:11px 14px; background:var(--cream); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:'DM Sans',sans-serif; font-size:0.88rem; font-weight:300; outline:none; transition:border-color 0.2s; width:100%; }
+input, select, textarea { padding:11px 14px; background:var(--cream); border:1px solid var(--border); border-radius:8px; color:var(--text); font-family:'Nunito',sans-serif; font-size:0.88rem; font-weight:300; outline:none; transition:border-color 0.2s; width:100%; }
 input:focus, select:focus, textarea:focus { border-color:var(--gold); background:var(--white); }
 input::placeholder, textarea::placeholder { color:#c5bdb4; }
 select option { background:var(--white); }
 textarea { resize:vertical; min-height:80px; }
-.btn-primary { padding:11px 28px; border:none; border-radius:8px; background:var(--navy); color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; box-shadow:0 4px 14px rgba(26,31,46,0.15); }
-.btn-primary:hover { background:var(--navy2); box-shadow:0 6px 20px rgba(26,31,46,0.25); transform:translateY(-1px); }
+.btn-primary { padding:11px 28px; border:none; border-radius:8px; background:var(--navy); color:var(--white); font-family:'Nunito',sans-serif; font-size:0.82rem; font-weight:500; letter-spacing:0.1em; text-transform:uppercase; cursor:pointer; transition:all 0.2s; box-shadow:0 4px 14px rgba(15,37,87,0.15); }
+.btn-primary:hover { background:var(--navy2); box-shadow:0 6px 20px rgba(15,37,87,0.25); transform:translateY(-1px); }
 .btn-primary:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
 
 /* ── MODAL ── */
-.modal-overlay { position:fixed; inset:0; background:rgba(26,31,46,0.5); backdrop-filter:blur(8px); z-index:100; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.25s; padding:20px; }
+.modal-overlay { position:fixed; inset:0; background:rgba(15,37,87,0.5); backdrop-filter:blur(8px); z-index:100; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none; transition:opacity 0.25s; padding:20px; }
 .modal-overlay.open { opacity:1; pointer-events:all; }
-.modal { background:var(--white); border:1px solid var(--border); border-radius:16px; padding:32px; width:100%; max-width:430px; transform:translateY(16px); transition:transform 0.25s; box-shadow:0 24px 60px rgba(26,31,46,0.15); }
+.modal { background:var(--white); border:1px solid var(--border); border-radius:16px; padding:32px; width:100%; max-width:430px; transform:translateY(16px); transition:transform 0.25s; box-shadow:0 24px 60px rgba(15,37,87,0.15); }
 .modal-overlay.open .modal { transform:translateY(0); }
-.modal h2 { font-family:'Cormorant Garamond',serif; font-size:1.5rem; font-weight:300; color:var(--navy); margin-bottom:22px; }
+.modal h2 { font-family:'Nunito',sans-serif; font-size:1.5rem; font-weight:300; color:var(--navy); margin-bottom:22px; }
 .modal-fields { display:flex; flex-direction:column; gap:14px; }
 .modal-actions { display:flex; gap:10px; margin-top:22px; }
-.btn-ghost { flex:1; padding:11px; border:1px solid var(--border); border-radius:8px; background:transparent; color:var(--smoke); font-family:'DM Sans',sans-serif; font-size:0.82rem; cursor:pointer; transition:all 0.2s; }
+.btn-ghost { flex:1; padding:11px; border:1px solid var(--border); border-radius:8px; background:transparent; color:var(--smoke); font-family:'Nunito',sans-serif; font-size:0.82rem; cursor:pointer; transition:all 0.2s; }
 .btn-ghost:hover { background:var(--cream); color:var(--text); }
 .total-box { padding:14px 16px; background:var(--cream2); border:1px solid var(--border); border-radius:10px; }
 .total-box .lbl { font-size:0.68rem; letter-spacing:0.1em; text-transform:uppercase; color:var(--smoke); margin-bottom:4px; }
-.total-box .val { font-family:'Cormorant Garamond',serif; font-size:1.6rem; font-weight:300; color:var(--gold); }
+.total-box .val { font-family:'Nunito',sans-serif; font-size:1.6rem; font-weight:300; color:var(--gold); }
 
 /* ── TOAST ── */
 .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); padding:11px 22px; border-radius:50px; font-size:0.8rem; transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1); z-index:200; white-space:nowrap; border:1px solid; background:var(--white); }
@@ -320,12 +311,13 @@ textarea { resize:vertical; min-height:80px; }
 
   .sidebar-backdrop {
     display:block; position:fixed; inset:0; z-index:48;
-    background:rgba(26,31,46,0.5); backdrop-filter:blur(2px);
+    background:rgba(15,37,87,0.5); backdrop-filter:blur(2px);
     opacity:0; pointer-events:none; transition:opacity 0.28s;
   }
   .sidebar-backdrop.show { opacity:1; pointer-events:auto; }
 }
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 <body>
 
@@ -335,7 +327,7 @@ textarea { resize:vertical; min-height:80px; }
     <span></span><span></span><span></span>
   </button>
   <a class="tb-brand" href="index.html" aria-label="Back to Home">
-    <img src="the-travel-chapter-icon.png" alt="">
+    <img src="img/logo-emblem.png" alt="">
     <div class="name">The Travel Chapter</div>
   </a>
 </header>
@@ -344,7 +336,7 @@ textarea { resize:vertical; min-height:80px; }
 <!-- SIDEBAR -->
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-brand">
-    <img src="the-travel-chapter-icon.png" alt="The Travel Chapter">
+    <img src="img/logo-emblem.png" alt="The Travel Chapter">
     <div>
       <div class="name">The Travel Chapter</div>
       <div class="tagline" data-i18n="dash.tagline">Member Portal</div>
@@ -491,7 +483,7 @@ textarea { resize:vertical; min-height:80px; }
     <div class="card">
       <div class="card-title" data-i18n="dash.your_code">Your Referral Code</div>
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-        <div style="font-family:'Cormorant Garamond',serif;font-size:2rem;letter-spacing:0.04em;color:var(--navy);background:var(--cream2);border:1px solid var(--border);border-radius:10px;padding:10px 22px;" id="ref-code">—</div>
+        <div style="font-family:'Nunito',sans-serif;font-size:2rem;letter-spacing:0.04em;color:var(--navy);background:var(--cream2);border:1px solid var(--border);border-radius:10px;padding:10px 22px;" id="ref-code">—</div>
         <button class="btn-ghost" style="flex:none;padding:11px 20px;" id="btn-copy-code" data-i18n="dash.copy_code">📋 Copy Code</button>
       </div>
     </div>
@@ -524,7 +516,7 @@ textarea { resize:vertical; min-height:80px; }
       <p data-i18n="dash.rewards_subtitle">Redeem your points for gifts, or request a member product to buy.</p>
     </div>
     <div class="card" style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-      <span style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;color:var(--gold);" id="rw-balance">0</span>
+      <span style="font-family:'Nunito',sans-serif;font-size:1.8rem;color:var(--gold);" id="rw-balance">0</span>
       <span style="font-size:0.85rem;color:var(--smoke);" data-i18n="dash.rewards_balance_label">redeemable points available</span>
     </div>
     <div class="trips-grid" id="rewards-grid" style="margin-top:20px;"><div class="empty-state" style="grid-column:1/-1;" data-i18n="dash.loading">Loading…</div></div>
@@ -899,7 +891,7 @@ function renderOverview() {
     <div style="display:flex;flex-direction:column;gap:10px;">
       <div style="display:flex;align-items:center;justify-content:space-between;">
         <span style="font-size:0.82rem;color:var(--smoke);">${TC_I18N.t('dash.points_balance')}</span>
-        <span style="font-family:'Cormorant Garamond',serif;font-size:1.3rem;color:var(--gold);">${(profile?.reward_points || 0).toLocaleString()}</span>
+        <span style="font-family:'Nunito',sans-serif;font-size:1.3rem;color:var(--gold);">${(profile?.reward_points || 0).toLocaleString()}</span>
       </div>
       <div style="font-size:0.76rem;color:var(--smoke);line-height:1.6;">${TC_I18N.t('dash.points_subtitle')}</div>
     </div>`;
@@ -1283,7 +1275,7 @@ function renderPoints() {
     ? events.map(e => `<div class="booking-row" style="grid-template-columns:1fr auto;">
         <div><div class="booking-trip">${e.label}</div>
         <div class="booking-meta">${fmtDate(e.date)}${e.pending ? ' · ' + TC_I18N.t('status.pending') : ''}</div></div>
-        <span style="font-family:'Cormorant Garamond',serif;font-size:1.2rem;color:${e.kind === 'earn' ? '#27ae60' : 'var(--gold)'};">${e.delta} ${TC_I18N.t('dash.rewards_pts')}</span>
+        <span style="font-family:'Nunito',sans-serif;font-size:1.2rem;color:${e.kind === 'earn' ? '#27ae60' : 'var(--gold)'};">${e.delta} ${TC_I18N.t('dash.rewards_pts')}</span>
       </div>`).join('')
     : `<div class="empty-state"><div class="icon">✨</div><p>${TC_I18N.t('dash.points_no_activity')}</p></div>`;
 }

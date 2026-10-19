@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="the-travel-chapter-icon.png">
 <link rel="manifest" href="manifest-customer.json">
-<meta name="theme-color" content="#1a1f2e">
+<meta name="theme-color" content="#1f6fd6">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Travel Chapter">
@@ -45,316 +45,320 @@
   ]
 }
 </script>
-<script>
-// Hero background photo + secondary CTA come from the CMS (cms_content.hero), which normally
-// isn't known until supabase-js has loaded and queried. Remember the last hero so repeat
-// visits paint it at once, and on a first visit fetch just that row right now (plain REST,
-// no supabase-js needed) and preload the photo. loadCMS() still applies + re-caches the
-// latest hero afterwards.
-(function () {
-  var cached = null;
-  try { cached = JSON.parse(localStorage.getItem('tc_hero_cms') || 'null'); } catch (e) {}
-  function preload(url) {
-    if (!url) return;
-    var l = document.createElement('link');
-    l.rel = 'preload'; l.as = 'image'; l.href = url;
-    document.head.appendChild(l);
-  }
-  if (cached) { preload(cached.background_image); window.TC_HERO_EARLY = Promise.resolve(cached); return; }
-  window.TC_HERO_EARLY = fetch('https://nkrpkfqibsudqsonljve.supabase.co/rest/v1/cms_content?section=eq.hero&select=content',
-      { headers: { apikey: 'sb_publishable_8mbRk904S5zktFv6UIlRUg_gp1PFAWm' } })
-    .then(function (r) { return r.ok ? r.json() : []; })
-    .then(function (rows) { var c = rows && rows[0] && rows[0].content; if (c) preload(c.background_image); return c || null; })
-    .catch(function () { return null; });
-})();
-</script>
+<link rel="preload" as="image" href="img/hero-panorama.webp" media="(min-width: 769px)">
+<link rel="preload" as="image" href="img/hero-panorama-mobile.webp" media="(max-width: 768px)">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="i18n.js"></script>
+<script src="collections.js"></script>
 <script src="mobile-tabbar.js" defer></script>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,300..900;1,400..700&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --cream:  #faf7f2;
-  --cream2: #f2ede4;
-  --cream3: #ede5d8;
-  --navy:   #1a1f2e;
-  --navy2:  #252b3b;
-  --gold:   #b8955a;
-  --gold2:  #d4aa70;
-  --smoke:  #6b7280;
-  --border: #e5ddd0;
+  --cream:  #f5f8fd;
+  --cream2: #eaf1fb;
+  --navy:   #0f2557;
+  --navy2:  #173a80;
+  --gold:   #1f6fd6;
+  --gold2:  #f5b82e;
+  --smoke:  #64748b;
+  --border: #e2e8f2;
   --white:  #ffffff;
-  --text:   #1a1f2e;
-  --wa:     #25d366;
+  --text:   #0f2557;
+  --bg:     #fbfcff;
 }
 html { scroll-behavior: smooth; }
-body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--text); overflow-x:hidden; }
+body { background: var(--bg); color: var(--text); overflow-x: hidden; }
+img { display: block; max-width: 100%; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.wrap { width: 100%; max-width: 1440px; margin: 0 auto; padding: 0 4%; }
 
-/* ── NAVBAR ── */
-.navbar {
-  position: fixed; top:0; left:0; right:0; z-index:100;
-  display:flex; align-items:center; justify-content:space-between;
-  padding:0 6%; height:72px;
-  background:rgba(250,247,242,0.92);
-  border-bottom:1px solid var(--border);
-  backdrop-filter:blur(16px);
-  transition:box-shadow 0.3s;
+/* ── NAVBAR (base) ── */
+.navbar { position: fixed; top: 0; left: 0; right: 0; z-index: 100; display: flex; align-items: center; justify-content: space-between; transition: background 0.25s, box-shadow 0.25s; }
+.nav-card { display: flex; align-items: center; gap: 30px; min-width: 0; transition: background 0.25s, box-shadow 0.25s, padding 0.25s; }
+.nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; min-width: 0; }
+.nav-logo-img { width: auto; object-fit: contain; flex-shrink: 0; }
+.navbar .nav-logo-wide { height: 58px; }
+@media (max-width: 860px) { .navbar .nav-logo-wide { height: 46px; } }
+.nav-logo-text { white-space: nowrap; }
+.nav-links { display: flex; align-items: center; list-style: none; }
+.nav-links a { text-decoration: none; transition: color 0.2s; }
+.nav-cta { display: flex; align-items: center; gap: 10px; }
+.nav-social { display: flex; align-items: center; gap: 4px; }
+.nav-social-link { display: flex; align-items: center; justify-content: center; width: 34px; height: 34px; color: var(--smoke); }
+.nav-social-link svg { width: 16px; height: 16px; }
+.btn-nav-ghost, .btn-nav-primary { text-decoration: none; transition: all 0.2s; white-space: nowrap; }
+.lang-switch { display: flex; align-items: center; gap: 2px; }
+.lang-btn { padding: 5px 10px; border: none; background: transparent; color: var(--smoke); cursor: pointer; }
+.lang-btn.active { color: #fff; }
+.nav-toggle { display: none; cursor: pointer; align-items: center; justify-content: center; flex-shrink: 0; }
+.nav-toggle svg { width: 20px; height: 20px; }
+.nav-lang-toggle, .nav-links-cta { display: none; }
+.nav-lang { position: relative; }
+.nav-lang-menu { display: none; }
+
+/* Home, before scrolling: links sit in a white tab hanging from the top edge,
+   the emblem lives in the hero so the nav logo hides. */
+@media (min-width: 861px) {
+  .navbar:not(.scrolled) { background: transparent; box-shadow: none; align-items: flex-start; }
+  .navbar:not(.scrolled) .nav-card { background: #fff; height: 70px; padding: 0 30px; border-radius: 0 0 22px 22px; box-shadow: 0 10px 30px rgba(15,37,87,0.14); }
+  .navbar:not(.scrolled) .nav-cta { height: 70px; margin-top: 4px; }
+  .navbar:not(.scrolled) .lang-switch,
+  .navbar:not(.scrolled) .btn-nav-ghost { background: rgba(255,255,255,0.94); box-shadow: 0 6px 18px rgba(15,37,87,0.15); border-color: transparent; }
+  .navbar:not(.scrolled) .nav-social { background: rgba(255,255,255,0.94); border-radius: 999px; padding: 3px; box-shadow: 0 6px 18px rgba(15,37,87,0.15); }
 }
-.navbar.scrolled { box-shadow:0 4px 24px rgba(26,31,46,0.08); }
-.nav-logo { display:flex; align-items:center; gap:10px; text-decoration:none; min-width:0; }
-.nav-logo-img { height:54px; width:auto; object-fit:contain; flex-shrink:0; }
-.nav-logo-text { font-family:'DM Sans',sans-serif; font-size:0.92rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold); min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-.nav-links { display:flex; align-items:center; gap:36px; list-style:none; }
-.nav-links a { font-size:0.98rem; letter-spacing:0.03em; color:var(--smoke); text-decoration:none; transition:color 0.2s; }
-.nav-links a:hover { color:var(--navy); }
-.nav-cta { display:flex; align-items:center; gap:12px; }
-.nav-social { display:flex; align-items:center; gap:4px; }
-.nav-social-link { display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:6px; color:var(--smoke); transition:color 0.2s, background 0.2s; }
-.nav-social-link:hover { color:var(--navy); background:var(--cream2); }
-.nav-social-link svg { width:16px; height:16px; }
-.btn-nav-ghost { padding:9px 20px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--smoke); font-family:'DM Sans',sans-serif; font-size:0.8rem; font-weight:400; letter-spacing:0.05em; text-decoration:none; transition:all 0.2s; }
-.btn-nav-ghost:hover { border-color:var(--navy); color:var(--navy); }
-.btn-nav-primary { padding:9px 20px; border:none; border-radius:6px; background:var(--navy); color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.8rem; font-weight:500; letter-spacing:0.05em; text-decoration:none; transition:all 0.2s; }
-.btn-nav-primary:hover { background:var(--navy2); box-shadow:0 4px 14px rgba(26,31,46,0.2); }
-.lang-switch { display:flex; align-items:center; gap:2px; background:var(--cream2); border:1px solid var(--border); border-radius:6px; padding:2px; }
-/* ── MOBILE NAV (hamburger dropdown + single language toggle) ── */
-.nav-toggle { display:none; background:var(--cream2); border:1px solid var(--border); border-radius:6px; width:40px; height:40px; padding:0; cursor:pointer; align-items:center; justify-content:center; color:var(--navy); flex-shrink:0; }
-.nav-toggle svg { width:20px; height:20px; }
-.nav-lang-toggle { display:none; }
-.nav-links-cta { display:none; }
-.nav-lang { position:relative; }
-.nav-lang-menu { display:none; }
-@media(max-width:860px) {
-  .nav-links {
-    position:absolute; top:100%; left:0; right:0;
-    display:flex; flex-direction:column; align-items:stretch; gap:0;
-    background:rgba(250,247,242,0.98); border-bottom:1px solid var(--border);
-    backdrop-filter:blur(16px);
-    max-height:0; overflow:hidden; opacity:0; pointer-events:none;
-    transition:max-height 0.32s ease, opacity 0.2s ease;
-  }
-  .navbar.menu-open .nav-links { max-height:75vh; opacity:1; pointer-events:auto; }
-  .nav-links li { list-style:none; }
-  .nav-links a { display:block; padding:15px 7%; font-size:0.95rem; color:var(--navy); border-bottom:1px solid var(--border); }
-  .nav-links li:last-child a { border-bottom:none; }
-  .nav-social { display:none !important; }
-  .lang-switch { display:none; }
-  .nav-lang-toggle {
-    display:inline-flex; align-items:center; justify-content:center;
-    min-width:40px; height:40px; padding:0 10px;
-    border:1px solid var(--border); border-radius:6px; background:var(--cream2);
-    color:var(--navy); font-family:'DM Sans',sans-serif; font-size:0.72rem; font-weight:600; letter-spacing:0.04em;
-    cursor:pointer; flex-shrink:0;
-  }
-  .nav-toggle { display:flex; }
-  .nav-cta { gap:8px; }
-  .nav-logo { flex-shrink:0; }
-  .nav-logo-text { font-size:0.72rem; letter-spacing:0.07em; }
-  .nav-logo-img { height:44px; }
-  .nav-cta .btn-nav-ghost, .nav-cta .btn-nav-primary { display:none; }
-  .nav-links-cta { display:block; padding:6px 0; }
-  .nav-cta-row { display:flex; gap:10px; padding:12px 7%; }
-  .nav-cta-row a { border-bottom:none; }
-  .nav-cta-row .btn-nav-ghost, .nav-cta-row .btn-nav-primary { flex:1; text-align:center; padding:12px 12px; font-size:0.82rem; }
-  .nav-cta-row .btn-nav-ghost { color:var(--smoke); }
-  .nav-cta-row .btn-nav-primary { color:var(--white); background:var(--navy); }
-  .nav-lang-menu:not([hidden]) { display:block; position:absolute; top:calc(100% + 8px); right:0; background:var(--white); border:1px solid var(--border); border-radius:10px; box-shadow:0 14px 40px rgba(26,31,46,0.16); overflow:hidden; min-width:168px; z-index:120; }
-  .nav-lang-menu button { display:block; width:100%; text-align:left; padding:12px 16px; border:none; background:transparent; font-family:'DM Sans',sans-serif; font-size:0.86rem; color:var(--navy); cursor:pointer; }
-  .nav-lang-menu button:hover { background:var(--cream2); }
-  .nav-lang-menu button.active { color:var(--gold); font-weight:600; }
-  .btn-nav-ghost, .btn-nav-primary { padding:9px 14px; font-size:0.76rem; }
+@media (max-width: 860px) {
+  .nav-card { display: contents; }
+  .nav-toggle { display: flex; }
+  .nav-lang-toggle { display: inline-flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.74rem; cursor: pointer; }
+  .lang-switch, .nav-cta > .btn-nav-ghost, .nav-cta > .btn-nav-primary { display: none; }
+  .nav-links { position: absolute; top: 100%; left: 0; right: 0; flex-direction: column; align-items: stretch; gap: 0; max-height: 0; overflow: hidden; opacity: 0; pointer-events: none; transition: max-height 0.32s ease, opacity 0.2s ease; }
+  .navbar.menu-open .nav-links { max-height: 80vh; opacity: 1; pointer-events: auto; }
+  .nav-links a { display: block; color: var(--navy); border-bottom: 1px solid var(--border); }
+  .nav-links li:last-child a { border-bottom: none; }
+  .nav-links-cta { display: block; }
+  .nav-cta-row { display: flex; gap: 10px; }
+  .nav-cta-row a { flex: 1; text-align: center; border-bottom: none !important; padding: 12px !important; }
+  .nav-cta-row .btn-nav-primary { color: #fff; }
+  .nav-lang-menu:not([hidden]) { display: block; position: absolute; top: calc(100% + 8px); right: 0; background: #fff; box-shadow: 0 14px 40px rgba(15,37,87,0.16); overflow: hidden; min-width: 168px; z-index: 120; }
+  .nav-lang-menu button { display: block; width: 100%; text-align: left; padding: 12px 16px; border: none; background: transparent; font-size: 0.88rem; font-weight: 600; color: var(--navy); cursor: pointer; }
+  /* Over the hero photo: transparent bar, frosted round buttons, no logo (the emblem is right below) */
+  .navbar:not(.scrolled):not(.menu-open) { background: transparent; box-shadow: none; }
+  .navbar:not(.scrolled):not(.menu-open) .nav-logo { visibility: hidden; }
+  .navbar:not(.scrolled):not(.menu-open) .nav-toggle,
+  .navbar:not(.scrolled):not(.menu-open) .nav-lang-toggle { background: rgba(255,255,255,0.92); box-shadow: 0 4px 14px rgba(0,0,0,0.18); }
+  .nav-cta { gap: 8px; }
 }
-@media(max-width:400px) {
-  .nav-cta { gap:6px; }
-  .btn-nav-ghost, .btn-nav-primary { padding:8px 10px; font-size:0.72rem; }
-  .nav-lang-toggle, .nav-toggle { min-width:36px; width:36px; height:36px; }
-}
-.lang-btn { padding:5px 9px; border:none; background:transparent; border-radius:4px; font-family:'DM Sans',sans-serif; font-size:0.68rem; font-weight:500; letter-spacing:0.03em; color:var(--smoke); cursor:pointer; transition:all 0.2s; }
-.lang-btn:hover { color:var(--navy); }
-.lang-btn.active { background:var(--navy); color:var(--white); }
 
 /* ── HERO ── */
-.hero {
-  min-height:100vh; position:relative; overflow:hidden;
-  display:flex; align-items:center;
-  background: linear-gradient(135deg, var(--navy) 0%, #1e2a3a 50%, #141820 100%);
-}
-.hero-bg {
-  position:absolute; inset:0;
-  background:
-    radial-gradient(ellipse 60% 70% at 70% 40%, rgba(184,149,90,0.15) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 50% at 10% 80%, rgba(184,149,90,0.08) 0%, transparent 50%);
-}
-.hero-grid {
-  position:absolute; inset:0;
-  background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);
-  background-size:60px 60px;
-}
-.hero-inner {
-  position:relative; z-index:1; width:90%; max-width:1200px;
-  margin:0 auto; padding:120px 0 80px;
-}
-.hero-text { max-width:640px; }
-.hero-eyebrow { font-size:0.7rem; letter-spacing:0.35em; text-transform:uppercase; color:var(--gold2); margin-bottom:22px; display:flex; align-items:center; gap:10px; }
-.hero-eyebrow::before { content:''; width:30px; height:1px; background:var(--gold2); }
-.hero-text h1 { font-family:'Cormorant Garamond',serif; font-size:4rem; font-weight:300; line-height:1.1; color:var(--white); margin-bottom:22px; }
-.hero-text h1 em { font-style:italic; color:var(--gold2); }
-.hero-text p { font-size:0.95rem; color:rgba(255,255,255,0.55); line-height:1.8; max-width:420px; margin-bottom:36px; }
-.hero-actions { display:flex; gap:14px; flex-wrap:wrap; }
-.btn-hero-primary { padding:14px 30px; border-radius:6px; border:none; background:linear-gradient(135deg,var(--gold),#8a6a38); color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.84rem; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; text-decoration:none; display:inline-block; transition:all 0.25s; box-shadow:0 4px 20px rgba(184,149,90,0.35); }
-.btn-hero-primary:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(184,149,90,0.45); }
-.btn-hero-ghost { padding:14px 30px; border-radius:6px; border:1px solid rgba(255,255,255,0.2); color:rgba(255,255,255,0.8); font-family:'DM Sans',sans-serif; font-size:0.84rem; font-weight:400; letter-spacing:0.08em; text-transform:uppercase; cursor:pointer; text-decoration:none; display:inline-block; transition:all 0.25s; background:transparent; }
-.btn-hero-ghost:hover { background:rgba(255,255,255,0.08); border-color:rgba(255,255,255,0.4); }
+.hero { position: relative; height: clamp(540px, 46vw, 720px); overflow: hidden; background: #f4a259; }
+.hero-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 45%; }
+.hero-shade { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(10,30,80,0.28) 0%, rgba(10,30,80,0) 26%, rgba(10,30,80,0) 70%, rgba(10,30,80,0.18) 100%); }
+.hero-shade::after { content: ''; position: absolute; inset: 0; background: radial-gradient(ellipse 46% 42% at 50% 44%, rgba(8,24,64,0.42) 0%, rgba(8,24,64,0) 100%); }
+.hero-copy { position: absolute; left: 50%; top: 44%; transform: translate(-50%, -50%); width: min(820px, 90%); text-align: center; color: #fff; animation: hero-in 0.9s cubic-bezier(.2,.8,.2,1) both; }
+.hero-copy .hero-eyebrow { display: inline-flex; align-items: center; gap: 12px; font-size: 0.82rem; font-weight: 800; letter-spacing: 0.3em; text-transform: uppercase; color: #fff; margin-bottom: 14px; text-shadow: 0 2px 4px rgba(0,0,0,0.6), 0 3px 16px rgba(0,0,0,0.55); }
+.hero-copy .hero-eyebrow::before, .hero-copy .hero-eyebrow::after { content: ''; width: 34px; height: 2px; border-radius: 2px; background: var(--sun); }
+.hero-copy h1 { font-size: clamp(2.6rem, 5vw, 4.4rem); line-height: 1.06; color: #fff; text-shadow: 0 2px 3px rgba(0,0,0,0.45), 0 4px 14px rgba(0,0,0,0.5), 0 10px 40px rgba(0,0,0,0.45); margin-bottom: 16px; }
+.hero-copy p { font-size: 1.05rem; font-weight: 600; line-height: 1.7; color: rgba(255,255,255,0.95); max-width: 600px; margin: 0 auto; text-shadow: 0 1px 3px rgba(0,0,0,0.75), 0 2px 14px rgba(0,0,0,0.6); }
+.hero-actions { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; margin-top: 26px; }
+.hero-actions a { display: inline-flex; align-items: center; justify-content: center; height: 50px; padding: 0 30px; font-size: 1rem; text-decoration: none; transition: transform 0.2s, background 0.2s; }
+.hero-actions a:hover { transform: translateY(-2px); }
+.btn-hero-ghost { border: 2px solid rgba(255,255,255,0.85); color: #fff; background: rgba(10,30,80,0.25); backdrop-filter: blur(6px); text-shadow: 0 1px 4px rgba(0,0,0,0.4); }
+.btn-hero-ghost:hover { background: rgba(255,255,255,0.18); }
+@keyframes hero-in { from { opacity: 0; transform: translate(-50%, -44%); } to { opacity: 1; transform: translate(-50%, -50%); } }
+.hero-wave { position: absolute; left: 0; right: 0; bottom: -1px; width: 100%; height: clamp(50px, 7vw, 110px); }
+.hero-wave path { fill: var(--bg); }
 
-/* ── SECTION COMMONS ── */
-section { padding:100px 6%; }
-.section-eyebrow { font-size:0.68rem; letter-spacing:0.3em; text-transform:uppercase; color:var(--gold); margin-bottom:14px; display:flex; align-items:center; gap:10px; }
-.section-eyebrow::before { content:''; width:24px; height:1px; background:var(--gold); }
-.section-title { font-family:'Cormorant Garamond',serif; font-size:2.8rem; font-weight:300; color:var(--navy); line-height:1.2; margin-bottom:16px; }
-.section-title em { font-style:italic; color:var(--gold); }
-.section-sub { font-size:0.9rem; color:var(--smoke); line-height:1.8; max-width:520px; }
-.section-header { margin-bottom:56px; }
-.section-header-split { display:flex; align-items:flex-end; justify-content:space-between; gap:32px; margin-bottom:56px; flex-wrap:wrap; }
+/* ── SEARCH CARD ── */
+.search-wrap { position: relative; z-index: 5; margin-top: clamp(-120px, -8vw, -70px); }
+.search-card { display: grid; grid-template-columns: 1.25fr 1fr 1fr auto; align-items: center; background: #fff; border-radius: 26px; padding: 12px 12px 12px 8px; box-shadow: 0 22px 50px rgba(15,37,87,0.16); max-width: 1140px; margin: 0 auto; }
+.sf { position: relative; display: flex; align-items: center; gap: 14px; padding: 10px 22px; min-width: 0; cursor: pointer; }
+.sf + .sf::before { content: ''; position: absolute; left: 0; top: 18%; bottom: 18%; width: 1px; background: var(--border); }
+.sf-icon { width: 30px; height: 30px; flex-shrink: 0; color: var(--blue); }
+.sf-icon svg { width: 100%; height: 100%; }
+.sf-text { display: flex; flex-direction: column; min-width: 0; flex: 1; }
+.sf-label { font-size: 1rem; font-weight: 800; color: var(--navy); line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sf select { appearance: none; -webkit-appearance: none; border: none; background: transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230f2557' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") right center / 14px no-repeat; padding: 2px 22px 0 0; width: 100%; font-size: 0.9rem; font-weight: 500; color: var(--smoke); cursor: pointer; outline: none; text-overflow: ellipsis; white-space: nowrap; overflow: hidden; }
+.sf-pair { display: flex; gap: 10px; min-width: 0; }
+.sf-pair select { flex: 1 1 0; min-width: 0; }
+.sf:focus-within { background: var(--blue-soft); border-radius: 18px; }
+.sf:focus-within::before { display: none; }
+.btn-search { display: inline-flex; align-items: center; justify-content: center; gap: 10px; height: 58px; padding: 0 34px; border: none; border-radius: 999px; background: var(--blue); color: #fff; font-size: 1.02rem; font-weight: 800; cursor: pointer; box-shadow: 0 10px 24px rgba(31,111,214,0.32); transition: background 0.2s, transform 0.2s; white-space: nowrap; }
+.btn-search:hover { background: var(--blue-dark); transform: translateY(-1px); }
+.btn-search svg { width: 20px; height: 20px; }
+.btn-search .chev { display: none; }
 
-/* ── DESTINATIONS + TRIPS (each card is a real trip — same card as the Trips page) ── */
-#destinations { background:var(--cream); }
-.destinations-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:26px; }
-.destinations-cta { text-align:center; margin-top:52px; }
-.trip-card {
-  background:var(--white); border:1px solid var(--border); border-radius:16px;
-  overflow:hidden; display:flex; flex-direction:column;
-  text-decoration:none; color:inherit;
-  transition:transform 0.3s ease, box-shadow 0.3s ease;
+/* ── SECTIONS ── */
+.home-sec { padding-top: 46px; padding-bottom: 6px; }
+.sec-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 18px; }
+.sec-title { font-size: 2rem; color: var(--navy); line-height: 1.15; }
+.sec-tools { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+.view-all { display: inline-flex; align-items: center; gap: 6px; color: var(--blue); font-weight: 800; font-size: 1rem; text-decoration: none; white-space: nowrap; }
+.view-all svg { width: 18px; height: 18px; transition: transform 0.2s; }
+.view-all:hover svg { transform: translateX(3px); }
+.rail-btn { display: none; width: 36px; height: 36px; border-radius: 50%; border: 1.5px solid var(--border); background: #fff; color: var(--navy); cursor: pointer; align-items: center; justify-content: center; transition: all 0.2s; }
+.rail-btn:hover { border-color: var(--blue); color: var(--blue); }
+.rail-btn svg { width: 16px; height: 16px; }
+@media (hover: hover) and (min-width: 861px) { .rail-btn { display: inline-flex; } }
+
+.rail { display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory; scroll-padding: 0 4%; scrollbar-width: none; padding: 4px 0 18px; }
+.rail::-webkit-scrollbar { display: none; }
+.rail > * { scroll-snap-align: start; flex-shrink: 0; }
+
+/* Category circles */
+.cats { padding-top: 40px; padding-bottom: 8px; }
+.cats-row { display: flex; justify-content: space-between; gap: 18px; overflow-x: auto; scrollbar-width: none; padding: 6px 2px 8px; }
+.cats-row::-webkit-scrollbar { display: none; }
+.cat { display: flex; flex-direction: column; align-items: center; gap: 12px; text-decoration: none; flex: 0 0 auto; width: 128px; }
+.cat-img { width: 120px; height: 120px; border-radius: 50%; overflow: hidden; background: var(--cream2); box-shadow: 0 0 0 4px #fff, 0 10px 26px rgba(15,37,87,0.16); position: relative; transition: transform 0.25s, box-shadow 0.25s; }
+.cat-img::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 14%; background: linear-gradient(90deg, var(--sun), #f7cd5c); opacity: 0; transition: opacity 0.25s; }
+.cat-img img { width: 100%; height: 100%; object-fit: cover; }
+.cat:hover .cat-img { transform: translateY(-4px); box-shadow: 0 0 0 4px #fff, 0 16px 32px rgba(15,37,87,0.22); }
+.cat:hover .cat-img::after { opacity: 1; }
+.cat-name { font-size: 1rem; font-weight: 800; color: var(--navy); text-align: center; line-height: 1.2; }
+
+/* Photo tiles (Popular Destinations / Special Packages) */
+.tile { position: relative; display: block; border-radius: 18px; overflow: hidden; background: linear-gradient(160deg, #2f6fd0, #0f2557); text-decoration: none; box-shadow: 0 8px 22px rgba(15,37,87,0.14); isolation: isolate; }
+.tile img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; z-index: -1; }
+.tile:hover img { transform: scale(1.06); }
+.tile::after { content: ''; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0) 45%, rgba(5,20,55,0.72) 100%); z-index: -1; }
+.tile-body { position: absolute; left: 0; right: 0; bottom: 0; display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; padding: 16px 14px 14px 18px; color: #fff; }
+.tile-name { font-size: 1.32rem; font-weight: 800; line-height: 1.15; text-shadow: 0 2px 10px rgba(0,0,0,0.35); overflow-wrap: break-word; min-width: 0; }
+.tile-sub { font-size: 0.86rem; font-weight: 600; opacity: 0.92; margin-top: 4px; text-shadow: 0 1px 6px rgba(0,0,0,0.4); }
+.tile-go { width: 34px; height: 34px; border-radius: 50%; background: #fff; color: var(--navy); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0,0,0,0.2); transition: transform 0.2s, background 0.2s, color 0.2s; }
+.tile-go svg { width: 18px; height: 18px; }
+.tile:hover .tile-go { background: var(--blue); color: #fff; transform: translateX(2px); }
+.dest-tile { width: calc((100% - 5 * 14px) / 6); min-width: 168px; aspect-ratio: 0.88; }
+.pkg-tile { width: 92%; aspect-ratio: 1.72; }
+.pkg-tile .tile-name { font-size: 1.55rem; }
+
+.duo { display: grid; grid-template-columns: minmax(0, 1fr); gap: 0 36px; }
+@media (min-width: 1280px) {
+  .duo { grid-template-columns: minmax(0, 1fr) minmax(340px, 30%); }
+  .duo .dest-tile { min-width: 172px; }
+  .duo .tile-name { font-size: 1.16rem; }
 }
-.trip-card:hover { transform:translateY(-4px); box-shadow:0 16px 40px rgba(26,31,46,0.1); }
-.trip-img { width:100%; aspect-ratio:16/10; object-fit:cover; background:var(--cream2); display:block; }
-.trip-img-fallback { width:100%; aspect-ratio:16/10; display:flex; align-items:center; justify-content:center; font-size:3.4rem; background:linear-gradient(160deg,#2d3561,#1a2a3a); }
-.trip-body { padding:24px 24px 26px; display:flex; flex-direction:column; gap:12px; flex:1; }
-.trip-name { font-family:'Cormorant Garamond',serif; font-size:1.55rem; font-weight:400; color:var(--navy); line-height:1.25; }
-.trip-desc { font-size:0.86rem; color:var(--smoke); line-height:1.7; }
-.trip-meta { display:flex; flex-direction:column; gap:7px; margin-top:2px; font-size:0.78rem; color:var(--smoke); }
-.trip-meta-row { display:flex; gap:8px; }
-.trip-meta-row span:first-child { color:var(--gold); flex-shrink:0; }
-.trip-foot { margin-top:auto; padding-top:16px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
-.trip-price { font-family:'Cormorant Garamond',serif; font-size:1.35rem; color:var(--navy); }
-.trip-price small { font-family:'DM Sans',sans-serif; font-size:0.72rem; color:var(--smoke); }
-.trip-actions { display:flex; align-items:center; gap:8px; }
-.btn-trip { padding:10px 20px; border-radius:6px; border:none; background:var(--navy); color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.76rem; font-weight:500; letter-spacing:0.05em; text-decoration:none; transition:all 0.2s; white-space:nowrap; }
-.btn-trip:hover { background:var(--navy2); box-shadow:0 4px 14px rgba(26,31,46,0.2); }
-.btn-wa { display:inline-flex; align-items:center; justify-content:center; width:38px; height:36px; border-radius:6px; background:var(--wa); color:#fff; text-decoration:none; flex-shrink:0; transition:filter 0.2s, box-shadow 0.2s; }
-.btn-wa:hover { filter:brightness(0.94); box-shadow:0 4px 12px rgba(37,211,102,0.3); }
-.btn-wa svg { width:17px; height:17px; fill:currentColor; }
-/* Loading skeletons — shown until loadTrips() swaps in the real DB rows. */
-.trip-card-skeleton { pointer-events:none; }
-.trip-card-skeleton .trip-body { gap:14px; }
-.sk { display:block; background:linear-gradient(90deg,#e9e3d5 25%,#f3eee3 37%,#e9e3d5 63%); background-size:400% 100%; animation:sk-shimmer 1.4s ease infinite; border-radius:6px; }
-@keyframes sk-shimmer { 0% { background-position:100% 0; } 100% { background-position:-100% 0; } }
-.trip-card-skeleton .sk-img { width:100%; aspect-ratio:16/10; border-radius:0; }
-.trip-card-skeleton .sk-line { height:13px; }
-.trips-inline-empty { grid-column:1/-1; text-align:center; color:var(--smoke); font-size:0.9rem; line-height:1.8; }
-.trips-inline-empty a { color:var(--gold); text-decoration:none; }
+@media (max-width: 1279px) { .pkg-tile { width: min(520px, 70%); } }
 
+/* Travel services */
+.svc-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 20px; padding: 4px 0 18px; }
+.svc { display: flex; flex-direction: column; gap: 12px; text-decoration: none; min-width: 0; }
+.svc-img { aspect-ratio: 1.6; border-radius: 16px; overflow: hidden; background: linear-gradient(150deg, #3d86e8, #1557b0); box-shadow: 0 8px 20px rgba(15,37,87,0.13); display: flex; align-items: center; justify-content: center; }
+.svc-img img { width: 100%; height: 100%; object-fit: cover; transition: transform 0.4s; }
+.svc-img svg { width: 42%; height: 42%; color: #fff; }
+.svc:hover .svc-img img { transform: scale(1.06); }
+.svc-name { font-size: 1.08rem; font-weight: 800; color: var(--navy); text-align: center; }
+
+/* Skeletons */
+.sk { background: linear-gradient(90deg, #e3eaf5 25%, #f1f5fb 37%, #e3eaf5 63%); background-size: 400% 100%; animation: sk 1.4s ease infinite; }
+@keyframes sk { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+.tile.sk, .svc-img.sk { box-shadow: none; }
+.tile.sk::after { display: none; }
+.home-empty { color: var(--smoke); padding: 10px 0 20px; }
+.home-empty a { color: var(--blue); font-weight: 700; }
 
 /* ── TESTIMONIALS ── */
-#testimonials { background:var(--cream2); }
-.testimonials-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; }
-.testimonial-card { background:var(--white); border:1px solid var(--border); border-radius:14px; padding:28px; }
-.testimonial-stars { color:var(--gold); font-size:0.85rem; margin-bottom:14px; letter-spacing:2px; }
-.testimonial-text { font-family:'Cormorant Garamond',serif; font-size:1.05rem; font-weight:300; font-style:italic; color:var(--navy); line-height:1.7; margin-bottom:20px; }
-.testimonial-author { display:flex; align-items:center; gap:12px; }
-.testimonial-avatar { width:38px; height:38px; border-radius:50%; background:linear-gradient(135deg,var(--gold),#8a6a38); display:flex; align-items:center; justify-content:center; font-size:0.85rem; font-weight:500; color:var(--white); flex-shrink:0; }
-.testimonial-name { font-size:0.82rem; font-weight:500; color:var(--navy); }
-.testimonial-trip { font-size:0.72rem; color:var(--smoke); margin-top:2px; }
+#testimonials { padding-top: 64px; padding-bottom: 72px; }
+.test-head { text-align: center; margin-bottom: 30px; }
+.test-eyebrow { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; color: var(--blue); margin-bottom: 8px; }
+.testimonials-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+.testimonial-card { background: #fff; border: 1px solid #e6ecf5; border-radius: 20px; padding: 26px; }
+.testimonial-stars { color: var(--sun); font-size: 1rem; margin-bottom: 12px; letter-spacing: 2px; }
+.testimonial-text { font-size: 0.98rem; color: #33415c; line-height: 1.7; margin-bottom: 18px; }
+.testimonial-author { display: flex; align-items: center; gap: 12px; }
+.testimonial-avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, var(--blue), var(--blue-dark)); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 800; color: #fff; flex-shrink: 0; }
+.testimonial-name { font-size: 0.92rem; font-weight: 800; color: var(--navy); }
+.testimonial-trip { font-size: 0.78rem; color: var(--smoke); margin-top: 2px; }
 
 /* ── FOOTER ── */
-footer { background:var(--navy); padding:56px 6% 32px; }
-.footer-grid { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:48px; margin-bottom:48px; }
-.footer-brand { display:flex; align-items:center; gap:10px; font-family:'DM Sans',sans-serif; font-size:0.88rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold2); margin-bottom:14px; }
-.footer-brand-img { height:32px; width:auto; object-fit:contain; flex-shrink:0; }
-.footer-desc { font-size:0.8rem; color:rgba(255,255,255,0.35); line-height:1.7; max-width:260px; }
-.footer-col-title { font-size:0.65rem; font-weight:500; letter-spacing:0.18em; text-transform:uppercase; color:rgba(255,255,255,0.35); margin-bottom:16px; }
-.footer-links { list-style:none; display:flex; flex-direction:column; gap:10px; }
-.footer-links a { font-size:0.8rem; color:rgba(255,255,255,0.45); text-decoration:none; transition:color 0.2s; }
-.footer-links a:hover { color:var(--gold2); }
-.footer-bottom { display:flex; align-items:center; justify-content:space-between; padding-top:28px; border-top:1px solid rgba(255,255,255,0.06); font-size:0.75rem; color:rgba(255,255,255,0.25); flex-wrap:wrap; gap:12px; }
+footer { padding: 56px 4% 32px; }
+.footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 44px; max-width: 1440px; margin-left: auto; margin-right: auto; }
+.footer-brand { display: flex; align-items: center; gap: 12px; font-size: 1rem; margin-bottom: 14px; }
+.footer-brand-img { width: auto; object-fit: contain; flex-shrink: 0; }
+.footer-desc { font-size: 0.88rem; line-height: 1.7; max-width: 300px; }
+.footer-col-title { font-size: 0.74rem; letter-spacing: 0.16em; text-transform: uppercase; margin-bottom: 16px; }
+.footer-links { list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.footer-links a { font-size: 0.9rem; text-decoration: none; transition: color 0.2s; }
+.footer-bottom { display: flex; align-items: center; justify-content: space-between; padding-top: 26px; border-top: 1px solid; font-size: 0.8rem; flex-wrap: wrap; gap: 12px; max-width: 1440px; margin: 0 auto; }
 
-/* ── SCROLL REVEAL ── */
-.reveal { opacity:0; transform:translateY(28px); transition:opacity 0.7s ease, transform 0.7s ease; }
-.reveal.visible { opacity:1; transform:translateY(0); }
-.destinations-grid > .reveal:nth-child(2), .tiers-grid > .reveal:nth-child(2), .testimonials-grid > .reveal:nth-child(2) { transition-delay:0.08s; }
-.destinations-grid > .reveal:nth-child(3), .tiers-grid > .reveal:nth-child(3), .testimonials-grid > .reveal:nth-child(3) { transition-delay:0.16s; }
-.destinations-grid > .reveal:nth-child(4) { transition-delay:0.24s; }
-.destinations-grid > .reveal:nth-child(5) { transition-delay:0.32s; }
-.destinations-grid > .reveal:nth-child(6) { transition-delay:0.4s; }
-
-/* ── TOAST ── */
-.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); padding:11px 22px; border-radius:50px; font-size:0.8rem; transition:transform 0.4s cubic-bezier(0.34,1.56,0.64,1); z-index:200; white-space:nowrap; border:1px solid; background:var(--white); }
-.toast.show { transform:translateX(-50%) translateY(0); }
+/* ── Reveal + toast ── */
+.reveal { opacity: 0; transform: translateY(24px); transition: opacity 0.6s ease, transform 0.6s ease; }
+.reveal.visible { opacity: 1; transform: none; }
+.toast { position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px); padding: 11px 22px; border-radius: 50px; font-size: 0.85rem; transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1); z-index: 200; white-space: nowrap; border: 1px solid; background: #fff; }
+.toast.show { transform: translateX(-50%) translateY(0); }
 
 /* ── RESPONSIVE ── */
-@media(max-width:1024px) {
-  .hero-text h1 { font-size:3rem; }
-  .destinations-grid { grid-template-columns:repeat(2,1fr); }
-  .footer-grid { grid-template-columns:1fr 1fr; }
+@media (max-width: 1024px) {
+  .cats-row { justify-content: flex-start; }
+  .footer-grid { grid-template-columns: 1fr 1fr; }
 }
-@media(max-width:768px) {
-  section { padding:64px 16px; }
-  #destinations { padding-left:16px; padding-right:16px; }
-  .section-title { font-size:2.2rem; }
-  .testimonials-grid { grid-template-columns:1fr; gap:18px; }
-  .nav-social { display:none; }
-  .hero-text h1 { font-size:2.4rem; }
-  .footer-grid { grid-template-columns:1fr; gap:32px; }
-  /* Phones: two trips per row — compact cards (no summary, stacked price + buttons) */
-  .destinations-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
-  .destinations-grid .trip-card { border-radius:12px; }
-  .destinations-grid .trip-img-fallback { font-size:2.2rem; }
-  .destinations-grid .trip-body { padding:12px 11px 13px; gap:7px; }
-  .destinations-grid .trip-name { font-size:1.08rem; line-height:1.2; overflow-wrap:anywhere; }
-  .destinations-grid .trip-desc { display:none; }
-  .destinations-grid .trip-meta { gap:4px; font-size:0.7rem; }
-  .destinations-grid .trip-meta-row { gap:5px; }
-  .destinations-grid .trip-foot { flex-direction:column; align-items:stretch; gap:9px; padding-top:10px; }
-  .destinations-grid .trip-price { font-size:1rem; line-height:1.2; }
-  .destinations-grid .trip-price small { font-size:0.62rem; }
-  .destinations-grid .trip-actions { width:100%; gap:6px; }
-  .destinations-grid .btn-trip { flex:1; min-width:0; text-align:center; padding:8px 6px; font-size:0.7rem; }
-  .destinations-grid .btn-wa { width:34px; height:32px; }
-  .destinations-grid .btn-wa svg { width:15px; height:15px; }
+@media (max-width: 900px) {
+  .search-card { grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 10px; row-gap: 8px; }
+  .btn-search { grid-column: 1 / -1; width: 100%; }
 }
-@media(max-width:480px) {
-  section { padding:56px 12px; }
-  #destinations { padding-left:12px; padding-right:12px; }
-  .trip-foot { flex-direction:column; align-items:stretch; gap:14px; }
-  .trip-actions { width:100%; }
-  .btn-trip { flex:1; text-align:center; }
+@media (max-width: 768px) {
+  .wrap { padding: 0 16px; }
+  .hero { height: min(124vw, 540px); }
+  .hero-img { object-position: center 40%; }
+  .hero-copy { top: 46%; width: calc(100% - 32px); }
+  .hero-copy .hero-eyebrow { font-size: 0.68rem; letter-spacing: 0.24em; margin-bottom: 10px; }
+  .hero-copy .hero-eyebrow::before, .hero-copy .hero-eyebrow::after { width: 22px; }
+  .hero-copy h1 { font-size: 2.2rem; margin-bottom: 10px; }
+  .hero-actions { margin-top: 14px; gap: 10px; }
+  .hero-actions a { height: 42px; padding: 0 20px; font-size: 0.88rem; }
+  .hero-copy p { font-size: 0.84rem; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .hero-wave { display: none; }
+  .hero { border-radius: 0 0 28px 28px; }
+  .search-wrap { margin-top: -56px; }
+  .search-card { border-radius: 22px; padding: 10px 10px 12px; box-shadow: 0 16px 36px rgba(15,37,87,0.16); }
+  .sf { flex-direction: row; align-items: center; gap: 6px; padding: 10px 4px 10px 7px; }
+  .sf + .sf::before { top: 22%; bottom: 22%; }
+  .sf-icon { width: 20px; height: 20px; }
+  .sf-label { font-size: 0.78rem; }
+  .sf select { font-size: 0.68rem; padding-right: 0; background-image: none; }
+  .sf:nth-child(3) select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230f2557' stroke-width='2.4' stroke-linecap='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-size: 11px; padding-right: 14px; }
+  .btn-search { height: 52px; font-size: 1rem; margin-top: 2px; }
+  .btn-search .chev { display: block; width: 16px; height: 16px; }
+
+  .cats { padding-top: 22px; padding-bottom: 0; }
+  .cats-row { gap: 6px; margin: 0 -16px; padding: 6px 16px 8px; }
+  .cat { width: 76px; gap: 8px; }
+  .cat-img { width: 68px; height: 68px; box-shadow: 0 0 0 3px #fff, 0 6px 16px rgba(15,37,87,0.16); }
+  .cat-name { font-size: 0.8rem; }
+
+  .home-sec { padding-top: 26px; padding-bottom: 0; }
+  .sec-head { margin-bottom: 12px; }
+  .sec-title { font-size: 1.45rem; }
+  .view-all { font-size: 0.9rem; }
+  .rail { margin: 0 -16px; padding: 2px 16px 14px; scroll-padding: 0 16px; gap: 10px; }
+  .dest-tile { width: 36vw; min-width: 0; aspect-ratio: 1.08; border-radius: 14px; }
+  .tile-body { padding: 10px 8px 10px 11px; }
+  .tile-name { font-size: 1.06rem; }
+  .tile-go { width: 28px; height: 28px; }
+  .tile-go svg { width: 15px; height: 15px; }
+  .pkg-tile { width: 76vw; aspect-ratio: 1.85; border-radius: 16px; }
+  .pkg-tile .tile-name { font-size: 1.22rem; }
+  .pkg-tile .tile-sub { font-size: 0.74rem; }
+  .svc-grid { gap: 10px; padding-bottom: 14px; }
+  .svc { gap: 7px; }
+  .svc-img { aspect-ratio: 1.05; border-radius: 12px; }
+  .svc-name { font-size: 0.74rem; line-height: 1.2; }
+
+  #testimonials { padding-top: 40px; padding-bottom: 40px; }
+  .testimonials-grid { grid-template-columns: 1fr; gap: 14px; }
+  .footer-grid { grid-template-columns: 1fr; gap: 30px; }
 }
-@media(max-width:400px) {
-  .navbar { padding:0 4%; }
-  .nav-logo-text { font-size:0.72rem; letter-spacing:0.08em; }
-  .nav-logo-img { height:40px; }
-  .btn-nav-primary, .btn-nav-ghost { padding:8px 12px; font-size:0.74rem; }
+@media (max-width: 380px) {
+  .sf-icon { display: none; }
+  .sf { padding-left: 10px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-copy { animation: none; }
+  .reveal { opacity: 1; transform: none; transition: none; }
+  .tile img, .svc-img img { transition: none; }
 }
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
-<body>
+<body class="home">
 
 <!-- ── NAVBAR ── -->
 <nav class="navbar" id="navbar">
-  <a href="#" class="nav-logo" id="nav-logo"><img src="the-travel-chapter-icon.png" alt="The Travel Chapter" class="nav-logo-img"><span class="nav-logo-text" id="nav-logo-text">The Travel Chapter</span></a>
-  <ul class="nav-links">
-    <li><a href="index.html" data-i18n="nav.home">Home</a></li>
-    <li><a href="trips.html" data-i18n="nav.trips">Trips</a></li>
-    <li><a href="hotels.html" data-i18n="nav.hotels">Hotels</a></li>
-    <li><a href="free-gifts.html" data-i18n="nav.free_gifts">Free Gifts</a></li>
-    <li><a href="about.html" data-i18n="nav.about">About</a></li>
-    <li><a href="contact.html" data-i18n="nav.contact">Contact</a></li>
-    <li class="nav-links-cta"><div class="nav-cta-row">
-      <a href="login.html" class="btn-nav-ghost" data-i18n="nav.login">Login</a>
-      <a href="login.html?tab=register" class="btn-nav-primary" data-i18n="nav.register">Register</a>
-    </div></li>
-  </ul>
+  <div class="nav-card">
+    <a href="index.html" class="nav-logo" id="nav-logo"><img src="img/logo-horizontal.png" alt="The Travel Chapter 新界旅游" class="nav-logo-img nav-logo-wide" width="1444" height="400"><span class="nav-logo-text sr-only" id="nav-logo-text">The Travel Chapter</span></a>
+    <ul class="nav-links">
+      <li><a href="index.html" data-i18n="nav.home">Home</a></li>
+      <li><a href="trips.html" data-i18n="nav.tour_packages">Tour Packages</a></li>
+      <li><a href="hotels.html" data-i18n="nav.hotels">Hotels</a></li>
+      <li><a href="free-gifts.html" data-i18n="nav.free_gifts">Free Gifts</a></li>
+      <li><a href="about.html" data-i18n="nav.about">About</a></li>
+      <li><a href="contact.html" data-i18n="nav.contact">Contact</a></li>
+      <li class="nav-links-cta"><div class="nav-cta-row">
+        <a href="login.html" class="btn-nav-ghost" data-i18n="nav.login">Login</a>
+        <a href="login.html?tab=register" class="btn-nav-primary" data-i18n="nav.register">Register</a>
+      </div></li>
+    </ul>
+  </div>
   <div class="nav-cta">
     <div class="nav-social">
       <a href="https://www.facebook.com/thetravelchapter" id="nav-fb" class="nav-social-link" target="_blank" rel="noopener" aria-label="Facebook">
@@ -380,136 +384,141 @@ footer { background:var(--navy); padding:56px 6% 32px; }
     <a href="login.html" class="btn-nav-ghost" data-i18n="nav.login">Login</a>
     <a href="login.html?tab=register" class="btn-nav-primary" data-i18n="nav.register">Register</a>
     <button class="nav-toggle" id="nav-toggle" type="button" aria-label="Menu" aria-expanded="false">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
     </button>
   </div>
 </nav>
 
 <!-- ── HERO ── -->
-<section class="hero" id="hero">
-  <div class="hero-bg"></div>
-  <div class="hero-grid"></div>
-  <div class="hero-inner">
-    <div class="hero-text">
-      <div class="hero-eyebrow" id="hero-eyebrow" data-i18n="hero.eyebrow">Curated Journeys</div>
-      <h1 id="hero-heading" data-i18n="hero.heading" data-i18n-html>Travel Beyond<br>the <em>Ordinary</em></h1>
-      <p id="hero-subtext" data-i18n="hero.subtext">The Travel Chapter curates extraordinary journeys for discerning travellers — from intimate ryokans in Kyoto to private yacht charters along the Amalfi Coast.</p>
-      <div class="hero-actions">
-        <a href="#trips" class="btn-hero-primary" id="hero-cta-primary" data-i18n="hero.cta_primary">Explore Trips</a>
-        <a href="#" class="btn-hero-ghost" id="hero-cta-secondary" style="display:none;"></a>
-      </div>
+<header class="hero" id="hero">
+  <picture>
+    <source media="(max-width: 768px)" srcset="img/hero-panorama-mobile.webp" type="image/webp">
+    <source srcset="img/hero-panorama.webp" type="image/webp">
+    <img class="hero-img" src="img/hero-panorama.jpg" alt="Sunset over Kuching's waterfront and a bay of limestone islands, with a traveller looking out" fetchpriority="high">
+  </picture>
+  <div class="hero-shade"></div>
+  <div class="hero-copy">
+    <div class="hero-eyebrow" id="hero-eyebrow" data-i18n="hero.eyebrow">Curated Journeys</div>
+    <h1 id="hero-heading" data-i18n="hero.heading" data-i18n-html>Travel Beyond<br>the <em>Ordinary</em></h1>
+    <p id="hero-subtext" data-i18n="hero.subtext">The Travel Chapter curates extraordinary journeys for discerning travellers — from intimate ryokans in Kyoto to private yacht charters along the Amalfi Coast.</p>
+    <div class="hero-actions">
+      <a href="trips.html" class="btn-hero-primary" id="hero-cta-primary" data-i18n="hero.cta_primary">Explore Trips</a>
+      <a href="login.html" class="btn-hero-ghost" id="hero-cta-secondary" data-i18n="hero.cta_secondary">Become a Member</a>
     </div>
   </div>
-</section>
-<script>
-// Paint the hero photo / secondary CTA as soon as they're known (see the head script).
-window.TC_HERO_EARLY && TC_HERO_EARLY.then(function (c) { if (c) applyHeroMedia(c); });
-function applyHeroMedia(d) {
-  var heroEl = document.getElementById('hero');
-  // Optional editable background photo — a dark overlay gradient is layered on top so the heading stays readable.
-  if (heroEl && d.background_image) {
-    heroEl.style.backgroundImage =
-      "linear-gradient(135deg, rgba(20,24,34,0.82) 0%, rgba(30,42,58,0.72) 50%, rgba(20,24,34,0.9) 100%), url('" + d.background_image + "')";
-    heroEl.style.backgroundSize = 'cover';
-    heroEl.style.backgroundPosition = 'center';
-  } else if (heroEl) {
-    heroEl.style.backgroundImage = ''; // photo removed in the CMS — back to the plain gradient
-  }
-  var p2 = document.getElementById('hero-cta-secondary');
-  if (p2) {
-    if (d.cta_secondary_label) { p2.textContent = d.cta_secondary_label; p2.href = d.cta_secondary_href || '#'; p2.style.display = ''; }
-    else { p2.style.display = 'none'; }
-  }
-}
-</script>
+  <script>
+  // Apply the last-known CMS button settings right away so nothing pops in after load
+  // (applyHero() refreshes them once the CMS answers).
+  (function () {
+    var c = null;
+    try { c = JSON.parse(localStorage.getItem('tc_hero_btns') || 'null'); } catch (e) {}
+    if (!c) return;
+    var p1 = document.getElementById('hero-cta-primary'), p2 = document.getElementById('hero-cta-secondary');
+    if (c.p1) p1.href = c.p1;
+    if (c.p2) p2.href = c.p2;
+    if (c.hide2) p2.style.display = 'none';
+  })();
+  </script>
+  <svg class="hero-wave" viewBox="0 0 1440 110" preserveAspectRatio="none" aria-hidden="true"><path d="M0,58 C240,108 520,104 760,70 C1010,34 1250,40 1440,16 L1440,110 L0,110 Z"/></svg>
+</header>
 
-<!-- ── DESTINATIONS ── -->
-<section id="destinations">
-  <div class="section-header-split reveal">
+<!-- ── SEARCH ── -->
+<div class="search-wrap wrap">
+  <form class="search-card" action="trips.html" method="get" id="search-form">
+    <label class="sf">
+      <span class="sf-icon"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a7.5 7.5 0 0 0-7.5 7.5C4.5 15.1 12 22 12 22s7.5-6.9 7.5-12.5A7.5 7.5 0 0 0 12 2zm0 10.3a2.8 2.8 0 1 1 0-5.6 2.8 2.8 0 0 1 0 5.6z"/></svg></span>
+      <span class="sf-text"><span class="sf-label" data-i18n="home.search_dest">Destination</span>
+        <select name="c" id="sf-dest" aria-label="Destination"><option value="" data-i18n="home.search_dest_ph">Where do you want to go?</option></select></span>
+    </label>
+    <label class="sf">
+      <span class="sf-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/><path d="M7.5 14h.01M12 14h.01M16.5 14h.01M7.5 17.5h.01M12 17.5h.01" stroke-width="2.6"/></svg></span>
+      <span class="sf-text"><span class="sf-label" data-i18n="home.search_date">Travel Date</span>
+        <span class="sf-pair">
+          <select name="month" id="sf-month" aria-label="Travel month"><option value="" data-i18n="home.month">Month</option></select>
+          <select name="year" id="sf-year" aria-label="Travel year"><option value="" data-i18n="home.year">Year</option></select>
+        </span></span>
+    </label>
+    <label class="sf">
+      <span class="sf-icon"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="7.5" r="3.6"/><path d="M2 20c0-3.9 3.1-7 7-7s7 3.1 7 7v1H2z"/><circle cx="17" cy="8.5" r="2.8" opacity=".75"/><path d="M17.5 13.2c2.6.4 4.5 2.6 4.5 5.3V20h-4.3c0-2.6-.8-4.9-2.3-6.6.6-.1 1.4-.2 2.1-.2z" opacity=".75"/></svg></span>
+      <span class="sf-text"><span class="sf-label" data-i18n="home.search_pax">Travellers</span>
+        <select name="pax" id="sf-pax" aria-label="Travellers"></select></span>
+    </label>
+    <button type="submit" class="btn-search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+      <span data-i18n="home.search_btn">Search Tours</span>
+      <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" aria-hidden="true"><path d="m9 6 6 6-6 6"/></svg>
+    </button>
+  </form>
+</div>
+
+<!-- ── CATEGORY CIRCLES ── -->
+<section class="cats wrap" id="destinations" aria-label="Browse by destination">
+  <div class="cats-row" id="cats-row">
+    <div class="cat"><div class="cat-img sk"></div></div><div class="cat"><div class="cat-img sk"></div></div><div class="cat"><div class="cat-img sk"></div></div>
+    <div class="cat"><div class="cat-img sk"></div></div><div class="cat"><div class="cat-img sk"></div></div><div class="cat"><div class="cat-img sk"></div></div>
+  </div>
+</section>
+
+<!-- ── POPULAR DESTINATIONS + SPECIAL PACKAGES ── -->
+<section class="home-sec wrap">
+  <div class="duo">
     <div>
-      <div class="section-eyebrow" id="dest-eyebrow" data-i18n="destinations.eyebrow">Where We Go</div>
-      <h2 class="section-title" id="dest-heading" data-i18n="destinations.heading" data-i18n-html>Handpicked<br><em>Destinations</em></h2>
+      <div class="sec-head">
+        <h2 class="sec-title" data-i18n="home.popular">Popular Destinations</h2>
+        <div class="sec-tools">
+          <button class="rail-btn" type="button" data-rail="popular-rail" data-dir="-1" aria-label="Previous"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="m15 6-6 6 6 6"/></svg></button>
+          <button class="rail-btn" type="button" data-rail="popular-rail" data-dir="1" aria-label="Next"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="m9 6 6 6-6 6"/></svg></button>
+          <a class="view-all" href="trips.html"><span data-i18n="home.view_all">View All</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        </div>
+      </div>
+      <div class="rail" id="popular-rail">
+        <div class="tile dest-tile sk"></div><div class="tile dest-tile sk"></div><div class="tile dest-tile sk"></div>
+        <div class="tile dest-tile sk"></div><div class="tile dest-tile sk"></div><div class="tile dest-tile sk"></div>
+      </div>
     </div>
-    <p class="section-sub" id="dest-subtext" data-i18n="destinations.subtext">Every destination is personally vetted by our travel curators — chosen for their cultural depth, natural beauty and rare experiences.</p>
-  </div>
-  <!-- Loading skeletons only. loadTrips() replaces the whole grid with the real DB rows
-       (renderDbTrips) — or with a "browse all" line if none are active. Nothing here is a
-       real trip, so a slow DB fetch never flashes placeholder content at the visitor. -->
-  <div class="destinations-grid" id="trips">
-    <article class="trip-card trip-card-skeleton reveal visible" aria-hidden="true">
-      <div class="sk sk-img"></div>
-      <div class="trip-body">
-        <div class="sk sk-line" style="width:65%;height:22px;"></div>
-        <div class="sk sk-line" style="width:100%;"></div>
-        <div class="sk sk-line" style="width:80%;"></div>
-        <div class="trip-foot"><div class="sk sk-line" style="width:45%;height:20px;"></div></div>
+    <div>
+      <div class="sec-head">
+        <h2 class="sec-title" data-i18n="home.special">Special Packages</h2>
+        <div class="sec-tools">
+          <a class="view-all" href="trips.html"><span data-i18n="home.view_all">View All</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+        </div>
       </div>
-    </article>
-    <article class="trip-card trip-card-skeleton reveal visible" aria-hidden="true">
-      <div class="sk sk-img"></div>
-      <div class="trip-body">
-        <div class="sk sk-line" style="width:55%;height:22px;"></div>
-        <div class="sk sk-line" style="width:100%;"></div>
-        <div class="sk sk-line" style="width:75%;"></div>
-        <div class="trip-foot"><div class="sk sk-line" style="width:45%;height:20px;"></div></div>
+      <div class="rail" id="special-rail">
+        <div class="tile pkg-tile sk"></div><div class="tile pkg-tile sk"></div>
       </div>
-    </article>
-    <article class="trip-card trip-card-skeleton reveal visible" aria-hidden="true">
-      <div class="sk sk-img"></div>
-      <div class="trip-body">
-        <div class="sk sk-line" style="width:70%;height:22px;"></div>
-        <div class="sk sk-line" style="width:100%;"></div>
-        <div class="sk sk-line" style="width:85%;"></div>
-        <div class="trip-foot"><div class="sk sk-line" style="width:45%;height:20px;"></div></div>
-      </div>
-    </article>
-  </div>
-  <!-- Home shows only the first 6 active trips (see renderDbTrips); the full list lives on trips.html -->
-  <div class="destinations-cta reveal">
-    <a href="trips.html" class="btn-hero-primary" data-i18n="destinations.view_all">More Trips</a>
+    </div>
   </div>
 </section>
 
+<!-- ── TRAVEL SERVICES ── -->
+<section class="home-sec wrap" id="services">
+  <div class="sec-head">
+    <h2 class="sec-title" data-i18n="home.services">Travel Services</h2>
+  </div>
+  <div class="svc-grid" id="svc-rail"></div>
+</section>
 
 <!-- ── TESTIMONIALS ── -->
-<section id="testimonials">
-  <div class="section-header" style="text-align:center;">
-    <div class="section-eyebrow" style="justify-content:center;" id="test-eyebrow" data-i18n="testimonials.eyebrow">Traveller Stories</div>
-    <h2 class="section-title reveal" id="test-heading" data-i18n="testimonials.heading" data-i18n-html>What Our Members <em>Say</em></h2>
+<section id="testimonials" class="wrap">
+  <div class="test-head">
+    <div class="test-eyebrow" id="test-eyebrow" data-i18n="testimonials.eyebrow">Traveller Stories</div>
+    <h2 class="sec-title reveal" id="test-heading" data-i18n="testimonials.heading" data-i18n-html>What Our Members <em>Say</em></h2>
   </div>
   <div class="testimonials-grid" id="test-grid">
     <div class="testimonial-card reveal">
       <div class="testimonial-stars">★★★★★</div>
       <div class="testimonial-text" data-i18n="testimonials.card1.text">"Kyoto in autumn was everything I imagined and more. The access to private temples at dawn was something I could never have arranged on my own."</div>
-      <div class="testimonial-author">
-        <div class="testimonial-avatar">SA</div>
-        <div>
-          <div class="testimonial-name">Sarah A.</div>
-          <div class="testimonial-trip" data-i18n="testimonials.card1.trip">Kyoto in Autumn · Premier Member</div>
-        </div>
-      </div>
+      <div class="testimonial-author"><div class="testimonial-avatar">SA</div><div><div class="testimonial-name">Sarah A.</div><div class="testimonial-trip" data-i18n="testimonials.card1.trip">Kyoto in Autumn · Premier Member</div></div></div>
     </div>
     <div class="testimonial-card reveal">
       <div class="testimonial-stars">★★★★★</div>
       <div class="testimonial-text" data-i18n="testimonials.card2.text">"The Amalfi yacht trip was beyond anything I expected. Waking up in a secluded cove every morning — absolute perfection. Already booked my next trip."</div>
-      <div class="testimonial-author">
-        <div class="testimonial-avatar">MR</div>
-        <div>
-          <div class="testimonial-name">Marcus R.</div>
-          <div class="testimonial-trip" data-i18n="testimonials.card2.trip">Amalfi by Yacht · Elite Member</div>
-        </div>
-      </div>
+      <div class="testimonial-author"><div class="testimonial-avatar">MR</div><div><div class="testimonial-name">Marcus R.</div><div class="testimonial-trip" data-i18n="testimonials.card2.trip">Amalfi by Yacht · Elite Member</div></div></div>
     </div>
     <div class="testimonial-card reveal">
       <div class="testimonial-stars">★★★★★</div>
       <div class="testimonial-text" data-i18n="testimonials.card3.text">"The Travel Chapter doesn't just plan trips — they craft experiences. My Mekong River journey felt like a dream I didn't want to wake up from."</div>
-      <div class="testimonial-author">
-        <div class="testimonial-avatar">LN</div>
-        <div>
-          <div class="testimonial-name">Liana N.</div>
-          <div class="testimonial-trip" data-i18n="testimonials.card3.trip">Mekong River Journey · Explorer Member</div>
-        </div>
-      </div>
+      <div class="testimonial-author"><div class="testimonial-avatar">LN</div><div><div class="testimonial-name">Liana N.</div><div class="testimonial-trip" data-i18n="testimonials.card3.trip">Mekong River Journey · Explorer Member</div></div></div>
     </div>
   </div>
 </section>
@@ -518,7 +527,7 @@ function applyHeroMedia(d) {
 <footer>
   <div class="footer-grid">
     <div>
-      <div class="footer-brand"><img src="the-travel-chapter-icon.png" alt="The Travel Chapter" class="footer-brand-img">The Travel Chapter</div>
+      <div class="footer-brand"><img src="img/logo-emblem.png" alt="The Travel Chapter" class="footer-brand-img">The Travel Chapter</div>
       <p class="footer-desc" id="footer-tagline">Curating extraordinary journeys for discerning travellers since 2012. Based in Kuala Lumpur, travelling the world.</p>
     </div>
     <div>
@@ -564,194 +573,203 @@ const SUPABASE_URL  = 'https://nkrpkfqibsudqsonljve.supabase.co';
 const SUPABASE_ANON = 'sb_publishable_8mbRk904S5zktFv6UIlRUg_gp1PFAWm';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+const COL = TC_COLLECTIONS;
 
-// ── LOAD CMS CONTENT ────────────────────────────────────────
-async function loadCMS() {
-  const { data, error } = await sb.from('cms_content').select('*');
-  if (error || !data) { await loadTrips(); return; } // CMS down — still fill the trips grid
-  const cms = {};
-  data.forEach(row => { cms[row.section] = row.content; });
-
-  // Apply each section
-  if (cms.hero)         applyHero(cms.hero);
-  if (cms.destinations) applyDestinations(cms.destinations);
-  if (cms.featured_trips) applyFeaturedTrips(cms.featured_trips);
-  if (cms.testimonials) applyTestimonials(cms.testimonials);
-  if (cms.footer)       applyFooter(cms.footer);
-  if (cms.navbar)       applyNavbar(cms.navbar);
-
-  // WhatsApp number for the trip-card WhatsApp button (falls back to the phone number)
-  if (cms.contact) waNumber = String(cms.contact.whatsapp || cms.contact.phone || '').replace(/[^\d]/g, '');
-  if (cms.contact) applyFooterContact(cms.contact);
-
-  // Trip cards live in the `trips` table, not cms_content
-  await loadTrips();
-
-  // CMS rows are authored in whatever language the admin typed them in (currently English)
-  // and several apply* calls above set textContent directly on elements that also carry a
-  // data-i18n label attribute (eyebrow/heading/subtext) — re-assert the current site language
-  // over those specific labels now that CMS has finished writing to the DOM. This does NOT
-  // touch freeform CMS content (footer tagline/copyright/location, addresses, perks,
-  // testimonials, paragraphs), since those elements carry no data-i18n attribute.
-  TC_I18N.applyStatic();
-
-  // Re-run scroll reveal after DOM updates
-  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-}
-
-function txt(id, val) { const el=document.getElementById(id); if(el&&val) el.textContent=val; }
-function html(id, val) { const el=document.getElementById(id); if(el&&val!==undefined) el.innerHTML=val; }
-function attr(id, attr, val) { const el=document.getElementById(id); if(el&&val) el.setAttribute(attr,val); }
-function italicHeading(plain, italic) {
-  if (!plain||!italic) return plain||'';
-  return plain.replace(italic, `<em>${italic}</em>`);
-}
-
-function applyHero(d) {
-  txt('hero-eyebrow', d.eyebrow);
-  html('hero-heading', italicHeading(d.heading, d.heading_italic));
-  txt('hero-subtext', d.subtext);
-  const p1 = document.getElementById('hero-cta-primary');
-  if(p1) { p1.textContent=d.cta_primary_label||''; p1.href=d.cta_primary_href||'#'; }
-  applyHeroMedia(d);
-  // Remember the photo + secondary CTA so the next visit paints them before the CMS loads.
-  try {
-    localStorage.setItem('tc_hero_cms', JSON.stringify({
-      background_image: d.background_image || null,
-      cta_secondary_label: d.cta_secondary_label || null,
-      cta_secondary_href: d.cta_secondary_href || null,
-    }));
-  } catch (e) {}
-}
-
-function applyDestinations(d) {
-  txt('dest-eyebrow', d.eyebrow);
-  html('dest-heading', italicHeading(d.heading, d.heading_italic));
-  txt('dest-subtext', d.subtext);
-  if (d.items) {
-    const grid = document.getElementById('dest-grid');
-    if (grid) grid.innerHTML = d.items.map(item => {
-      const hasImage = !!item.image;
-      const bgStyle = hasImage ? `background:url('${item.image}') center/cover no-repeat;` : `background:${item.gradient||'var(--navy)'};`;
-      return `
-      <div class="dest-card ${item.wide?'dest-card-wide':''} reveal">
-        <div class="dest-card-bg" style="${bgStyle}">${hasImage?'':(item.emoji||'✈️')}</div>
-        <div class="dest-always">
-          <div class="dest-name">${item.name||''}</div>
-          <div class="dest-country">${item.region||''}</div>
-        </div>
-      </div>`;
-    }).join('');
-  }
-}
-
-function applyFeaturedTrips(d) {
-  txt('ft-eyebrow', d.eyebrow);
-  html('ft-heading', italicHeading(d.heading, d.heading_italic));
-  txt('ft-subtext', d.subtext);
-}
-
-// Rotating thumb styling — trips table has no gradient/emoji columns of its own
-const TRIP_THUMBS = [
-  { gradient:'linear-gradient(160deg,#1a3a2a,#2d6a4f)', emoji:'🍁' },
-  { gradient:'linear-gradient(160deg,#1a2a3a,#1e6091)', emoji:'⛵' },
-  { gradient:'linear-gradient(160deg,#3a1a1a,#7a3520)', emoji:'🐪' },
-  { gradient:'linear-gradient(160deg,#1a2a3a,#2d3561)', emoji:'🛶' },
-  { gradient:'linear-gradient(160deg,#2a1a3a,#4a2f6a)', emoji:'🏔️' },
-  { gradient:'linear-gradient(160deg,#1a1a3a,#2d3561)', emoji:'🏯' },
-];
-function cap(s) { return s ? s[0].toUpperCase()+s.slice(1) : ''; }
-
-const WA_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.477-.907zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.767.967-.94 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg>';
-
-let lastDbTrips = null;
-let waNumber = '';
-async function loadTrips() {
-  // Home page previews only the first 6 active trips — "More Trips" links to the full list on trips.html
-  const { data, error } = await sb.from('trips').select('*').eq('is_active', true).order('created_at').limit(6);
-  if (error || !data || !data.length) {   // no active trips — clear the skeletons
-    const grid = document.getElementById('trips');
-    if (grid) grid.innerHTML = `<p class="trips-inline-empty"><a href="trips.html">${esc(TC_I18N.t('trips_page.empty'))}</a></p>`;
-    return;
-  }
-  lastDbTrips = data;
-  renderDbTrips(data);
-}
 function esc(s) {
   return String(s == null ? '' : s)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
-function renderDbTrips(data) {
-  const grid = document.getElementById('trips');
-  if (!grid) return;
-  const L = {
-    from: TC_I18N.t('trips.from'), per: TC_I18N.t('trips.per_person'),
-    days: TC_I18N.t('trips.days'), details: TC_I18N.t('trips.details'),
-    priceTba: TC_I18N.t('trips.price_tba'), wa: TC_I18N.t('trips.whatsapp'),
-  };
-  const waMsgTpl = TC_I18N.t('trip_page.enquiry_text');
-  grid.innerHTML = data.map((t, i) => {
-    const thumb = TRIP_THUMBS[i % TRIP_THUMBS.length];
-    const media = t.cover_image
-      ? `<img class="trip-img" src="${esc(t.cover_image)}" alt="${esc(t.title || '')}" loading="lazy">`
-      : `<div class="trip-img-fallback">${thumb.emoji}</div>`;
-    const hasPrice = Number(t.price_usd) > 0;
-    const price = Number(t.price_usd || 0).toLocaleString();
-    const tripHref = `trip.html?slug=${encodeURIComponent(t.slug || t.id || '')}`;
-    const waHref = waNumber
-      ? `https://wa.me/${waNumber}?text=${encodeURIComponent(waMsgTpl.replace('{trip}', t.title || ''))}`
-      : '';
-    return `
-      <article class="trip-card reveal">
-        ${media}
-        <div class="trip-body">
-          ${t.title ? `<h3 class="trip-name">${esc(t.title)}</h3>` : ''}
-          ${t.summary ? `<p class="trip-desc">${esc(t.summary)}</p>` : ''}
-          ${(t.region || t.duration_days) ? `<div class="trip-meta">
-            ${t.region ? `<div class="trip-meta-row"><span>◍</span><span>${esc(t.region)}</span></div>` : ''}
-            ${t.duration_days ? `<div class="trip-meta-row"><span>◷</span><span>${t.duration_days} ${esc(L.days)}</span></div>` : ''}
-          </div>` : ''}
-          <div class="trip-foot">
-            <span class="trip-price">${hasPrice
-              ? `${esc(L.from)} RM ${price} <small>${esc(L.per)}</small>`
-              : esc(L.priceTba)}</span>
-            <div class="trip-actions">
-              <a class="btn-trip" href="${tripHref}">${esc(L.details)}</a>
-              ${waHref ? `<a class="btn-wa" href="${esc(waHref)}" target="_blank" rel="noopener" aria-label="${esc(L.wa)}">${WA_ICON}</a>` : ''}
-            </div>
-          </div>
-        </div>
-      </article>`;
-  }).join('');
-}
-TC_I18N.onChange(() => { if (lastDbTrips) renderDbTrips(lastDbTrips); });
+const ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>';
+const LOCALE = { en: 'en-GB', zh: 'zh-CN', ms: 'ms-MY' };
 
+// ── SEARCH CARD ─────────────────────────────────────────────
+// Destination = a trip collection (trips.html?c=…), Travel Date = departure month.
+const DEST_KEYS = ['sarawak', 'malaysia', 'china', 'japan', 'korea', 'thailand', 'vietnam', 'taiwan', 'bali', 'maldives',
+                   'asia', 'europe', 'oceania', 'world', 'cruise', 'island', 'private'];
+function fillSearch(trips) {
+  const dest = document.getElementById('sf-dest');
+  const cur = dest.value;
+  const keys = trips ? DEST_KEYS.filter(k => COL.trips(k, trips).length) : [];
+  dest.innerHTML = `<option value="">${esc(TC_I18N.t('home.search_dest_ph'))}</option>`
+    + keys.map(k => `<option value="${k}">${esc(COL.label(k))}</option>`).join('');
+  if (keys.includes(cur)) dest.value = cur;
+
+  // Travel date = separate month + year pickers
+  const month = document.getElementById('sf-month'), year = document.getElementById('sf-year');
+  const curM = month.value, curY = year.value;
+  const loc = LOCALE[TC_I18N.lang] || 'en-GB';
+  let mh = `<option value="">${esc(TC_I18N.t('home.month'))}</option>`;
+  for (let m = 1; m <= 12; m++) {
+    mh += `<option value="${String(m).padStart(2, '0')}">${esc(new Date(2021, m - 1, 1).toLocaleDateString(loc, { month: 'short' }))}</option>`;
+  }
+  month.innerHTML = mh;
+  month.value = curM;
+  const y0 = new Date().getFullYear();
+  let yh = `<option value="">${esc(TC_I18N.t('home.year'))}</option>`;
+  for (let y = y0; y <= y0 + 2; y++) yh += `<option value="${y}">${y}</option>`;
+  year.innerHTML = yh;
+  year.value = curY;
+
+  const pax = document.getElementById('sf-pax');
+  const curP = pax.value || '2';
+  let ph = '';
+  for (let n = 1; n <= 10; n++) ph += `<option value="${n}">${esc(n === 1 ? TC_I18N.t('home.pax_1') : TC_I18N.t('home.pax_n').replace('{n}', n))}</option>`;
+  pax.innerHTML = ph;
+  pax.value = curP;
+}
+// Drop empty fields so the trips page URL stays clean.
+document.getElementById('search-form').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const p = new URLSearchParams();
+  const c = document.getElementById('sf-dest').value, m = document.getElementById('sf-month').value, y = document.getElementById('sf-year').value;
+  if (c) p.set('c', c);
+  if (m) p.set('month', m);
+  if (y) p.set('year', y);
+  location.href = 'trips.html' + (p.toString() ? '?' + p : '');
+});
+
+// ── TRIP-DRIVEN SECTIONS ────────────────────────────────────
+const CAT_KEYS = ['sarawak', 'malaysia', 'asia', 'europe', 'oceania', 'cruise', 'island', 'private', 'group'];
+const POPULAR_KEYS = ['sarawak', 'japan', 'korea', 'thailand', 'europe', 'bali', 'china', 'vietnam', 'taiwan', 'maldives'];
+const SPECIAL_PICKS = ['ROYAL', 'MALDIVES', 'NEW ZEALAND', 'AURORA', 'BHUTAN', 'SWITZERLAND', 'DISNEY', 'ICELAND'];
+const GIFT_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5C10 3 12 8 12 8s2-5 4.5-5a2.5 2.5 0 0 1 0 5"/></svg>';
+
+function colHref(k) { return k === 'group' ? 'trips.html' : `trips.html?c=${k}`; }
+function img(src, alt, eager) { return src ? `<img src="${esc(src)}" alt="${esc(alt || '')}"${eager ? '' : ' loading="lazy"'}>` : ''; }
+function coverOf(trips, word) {
+  const t = trips.find(x => x.cover_image && String(x.title || '').toUpperCase().includes(word));
+  return t ? t.cover_image : '';
+}
+
+let lastTrips = null;
+function renderHome(trips) {
+  lastTrips = trips;
+  fillSearch(trips);
+  const nTours = n => TC_I18N.t('home.n_tours').replace('{n}', n);
+
+  // Category circles
+  document.getElementById('cats-row').innerHTML = CAT_KEYS
+    .filter(k => COL.trips(k, trips).length)
+    .map(k => `<a class="cat" href="${colHref(k)}">
+        <span class="cat-img">${img(COL.image(k, trips), '', true)}</span>
+        <span class="cat-name">${esc(COL.label(k))}</span></a>`).join('');
+
+  // Popular destinations
+  const popular = POPULAR_KEYS.filter(k => COL.trips(k, trips).length);
+  document.getElementById('popular-rail').innerHTML = popular.map(k => `
+    <a class="tile dest-tile" href="${colHref(k)}" aria-label="${esc(COL.label(k) + ' — ' + nTours(COL.trips(k, trips).length))}">
+      ${img(COL.image(k, trips), '')}
+      <span class="tile-body"><span class="tile-name">${esc(COL.label(k))}</span><span class="tile-go">${ARROW}</span></span>
+    </a>`).join('') || `<p class="home-empty"><a href="trips.html">${esc(TC_I18N.t('trips_page.empty'))}</a></p>`;
+
+  // Special packages: hand-picked showcase trips, topped up with the newest ones
+  const picked = [];
+  SPECIAL_PICKS.forEach(w => {
+    const t = trips.find(x => x.cover_image && String(x.title || '').toUpperCase().includes(w) && !picked.includes(x));
+    if (t) picked.push(t);
+  });
+  trips.slice().reverse().forEach(t => { if (picked.length < 6 && t.cover_image && !picked.includes(t)) picked.push(t); });
+  document.getElementById('special-rail').innerHTML = picked.map(t => {
+    const sub = t.summary || (Number(t.duration_days) > 0 ? `${t.duration_days} ${TC_I18N.t('trips.days')}` : '');
+    return `<a class="tile pkg-tile" href="trip.html?slug=${encodeURIComponent(t.slug || t.id || '')}">
+      ${img(t.cover_image, t.title)}
+      <span class="tile-body"><span><span class="tile-name" style="display:block">${esc(t.title)}</span>${sub ? `<span class="tile-sub" style="display:block">${esc(sub)}</span>` : ''}</span><span class="tile-go">${ARROW}</span></span>
+    </a>`;
+  }).join('');
+
+  // Travel services
+  const svcs = [
+    { href: 'trips.html',      key: 'home.svc_tours',   src: coverOf(trips, 'GUILIN') || COL.image('china', trips) },
+    { href: 'hotels.html',     key: 'home.svc_hotels',  src: coverOf(trips, 'MALDIVES') },
+    { href: 'free-gifts.html', key: 'tabbar.products',  icon: GIFT_ICON },
+    { href: 'contact.html',    key: 'home.svc_custom',  src: 'img/svc-custom.webp' },
+  ];
+  document.getElementById('svc-rail').innerHTML = svcs.map(s => `
+    <a class="svc" href="${s.href}">
+      <span class="svc-img">${s.src ? img(s.src, '') : (s.icon || '')}</span>
+      <span class="svc-name">${esc(TC_I18N.t(s.key))}</span>
+    </a>`).join('');
+}
+
+// Paint from the last visit's copy at once, then refresh from the DB.
+const TRIPS_CACHE = 'tc_home_trips_v1';
+try { const c = JSON.parse(localStorage.getItem(TRIPS_CACHE) || 'null'); if (Array.isArray(c) && c.length) renderHome(c); } catch (e) {}
+fillSearch(lastTrips);
+async function loadTrips() {
+  const { data, error } = await sb.from('trips')
+    .select('id,title,slug,cover_image,category,region,duration_days,summary')
+    .eq('is_active', true).order('created_at');
+  if (error || !Array.isArray(data)) { if (!lastTrips) renderHome([]); return; }
+  renderHome(data);
+  try { localStorage.setItem(TRIPS_CACHE, JSON.stringify(data)); } catch (e) {}
+}
+TC_I18N.onChange(() => { if (lastTrips) renderHome(lastTrips); else fillSearch(null); });
+
+// Desktop rail arrows
+document.querySelectorAll('.rail-btn').forEach(b => b.addEventListener('click', () => {
+  const rail = document.getElementById(b.dataset.rail);
+  if (rail) rail.scrollBy({ left: Number(b.dataset.dir) * rail.clientWidth * 0.8, behavior: 'smooth' });
+}));
+
+// ── CMS CONTENT (testimonials, footer, contact, header links) ─
+function txt(id, val) { const el = document.getElementById(id); if (el && val) el.textContent = val; }
+function italicHeading(plain, italic) {
+  if (!plain || !italic) return esc(plain || '');
+  return esc(plain).replace(esc(italic), `<em>${esc(italic)}</em>`);
+}
+async function loadCMS() {
+  const { data, error } = await sb.from('cms_content').select('section,content')
+    .in('section', ['hero', 'testimonials', 'footer', 'contact', 'navbar']);
+  if (error || !data) return;
+  const cms = {};
+  data.forEach(row => { cms[row.section] = row.content; });
+  if (cms.hero)         applyHero(cms.hero);
+  if (cms.testimonials) applyTestimonials(cms.testimonials);
+  if (cms.footer)       applyFooter(cms.footer);
+  if (cms.contact)      applyFooterContact(cms.contact);
+  if (cms.navbar)       applyNavbar(cms.navbar);
+  // Re-assert translated labels that CMS text may have overwritten (headings carry data-i18n).
+  TC_I18N.applyStatic();
+  document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+}
+
+function applyHero(d) {
+  txt('hero-eyebrow', d.eyebrow);
+  const h = document.getElementById('hero-heading');
+  if (h && d.heading) h.innerHTML = italicHeading(d.heading, d.heading_italic);
+  txt('hero-subtext', d.subtext);
+  // Button labels come from i18n (translated); the CMS decides links and whether the
+  // secondary button shows. In-page anchors from the old homepage now live on trips.html.
+  const fixHref = h => (!h || h === '#' || h === '#trips') ? 'trips.html' : h;
+  const btns = { p1: fixHref(d.cta_primary_href), p2: fixHref(d.cta_secondary_href || 'login.html'), hide2: !d.cta_secondary_label };
+  document.getElementById('hero-cta-primary').href = btns.p1;
+  const p2 = document.getElementById('hero-cta-secondary');
+  p2.href = btns.p2;
+  p2.style.display = btns.hide2 ? 'none' : '';
+  try { localStorage.setItem('tc_hero_btns', JSON.stringify(btns)); } catch (e) {}
+}
 function applyTestimonials(d) {
   txt('test-eyebrow', d.eyebrow);
-  html('test-heading', italicHeading(d.heading, d.heading_italic));
+  const h = document.getElementById('test-heading');
+  if (h && d.heading) h.innerHTML = italicHeading(d.heading, d.heading_italic);
   if (d.items) {
     const grid = document.getElementById('test-grid');
-    if (grid) grid.innerHTML = d.items.map(t=>`
+    if (grid) grid.innerHTML = d.items.map(t => `
       <div class="testimonial-card reveal">
-        <div class="testimonial-stars">${'★'.repeat(t.stars||5)}</div>
-        <div class="testimonial-text">"${t.text||''}"</div>
+        <div class="testimonial-stars">${'★'.repeat(t.stars || 5)}</div>
+        <div class="testimonial-text">"${esc(t.text)}"</div>
         <div class="testimonial-author">
-          <div class="testimonial-avatar">${t.initials||'?'}</div>
-          <div>
-            <div class="testimonial-name">${t.name||''}</div>
-            <div class="testimonial-trip">${t.trip||''}</div>
-          </div>
+          <div class="testimonial-avatar">${esc(t.initials || '?')}</div>
+          <div><div class="testimonial-name">${esc(t.name)}</div><div class="testimonial-trip">${esc(t.trip)}</div></div>
         </div>
       </div>`).join('');
   }
 }
-
 function applyFooter(d) {
   txt('footer-tagline', d.tagline);
   txt('footer-copyright', d.copyright);
   txt('footer-location', d.location_badge);
 }
-
 function applyFooterContact(d) {
   d = d || {};
   const e = document.getElementById('footer-email');
@@ -759,18 +777,12 @@ function applyFooterContact(d) {
   const p = document.getElementById('footer-phone');
   if (p && d.phone) { p.textContent = d.phone; p.href = 'tel:' + String(d.phone).replace(/[^\d+]/g, ''); }
 }
-
 function applyNavbar(d) {
-  const logo=document.getElementById('nav-logo-text');
-  if(logo&&d.logo) logo.textContent=d.logo;
-  applyNavSocial(d);
-}
-
-// Facebook / Instagram header links. CMS key present & filled -> use it; present &
-// blank -> hide that icon; key absent (never saved) -> leave the hard-coded href.
-function applyNavSocial(d) {
-  d = d || {};
-  [['facebook_url','nav-fb'], ['instagram_url','nav-ig']].forEach(([key, id]) => {
+  const logo = document.getElementById('nav-logo-text');
+  if (logo && d.logo) logo.textContent = d.logo;
+  // Facebook / Instagram header links. CMS key present & filled -> use it; present &
+  // blank -> hide that icon; key absent (never saved) -> leave the hard-coded href.
+  [['facebook_url', 'nav-fb'], ['instagram_url', 'nav-ig']].forEach(([key, id]) => {
     const el = document.getElementById(id);
     if (!el || d[key] === undefined) return;
     if (d[key]) { el.href = d[key]; el.style.display = ''; }
@@ -784,35 +796,27 @@ const observer = new IntersectionObserver((entries) => {
 }, { threshold: 0.12 });
 document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
 
-// ── Scroll-linked effects: navbar shadow
+// ── Navbar: transparent over the hero, solid once scrolled
 const navbarEl = document.getElementById('navbar');
-
-function updateScrollEffects() {
-  navbarEl.classList.toggle('scrolled', window.scrollY > 40);
-}
-
+function updateNav() { navbarEl.classList.toggle('scrolled', window.scrollY > 30); }
+updateNav();
 let scrollTicking = false;
 window.addEventListener('scroll', () => {
-  if (!scrollTicking) {
-    requestAnimationFrame(() => { updateScrollEffects(); scrollTicking = false; });
-    scrollTicking = true;
-  }
+  if (!scrollTicking) { requestAnimationFrame(() => { updateNav(); scrollTicking = false; }); scrollTicking = true; }
 }, { passive: true });
 
-// ── Load CMS content from Supabase
+loadTrips();
 loadCMS();
 
-// ── Smooth scroll for nav links.
-// Re-check href at click time: loadCMS() may later repoint a hero CTA (e.g. "Become a
-// Member") to a real page like login.html, and we must not swallow that navigation.
+// ── Smooth scroll for in-page links
 document.querySelectorAll('a[href^="#"]').forEach(a => {
   a.addEventListener('click', e => {
     const href = a.getAttribute('href') || '';
-    if (href.charAt(0) !== '#' || href === '#') return;   // repointed or bare "#" -> let the browser handle it
+    if (href.charAt(0) !== '#' || href === '#') return;
     const target = document.querySelector(href);
     if (!target) return;
     e.preventDefault();
-    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    window.scrollTo({ top: target.getBoundingClientRect().top + window.scrollY - 90, behavior: 'smooth' });
   });
 });
 
@@ -829,7 +833,6 @@ function showToast(msg, err) {
   tt = setTimeout(() => t.classList.remove('show'), 3500);
 }
 
-// ── PWA: service worker registration
 // ── Mobile nav: hamburger dropdown + language picker
 (function initMobileNav() {
   const bar = document.getElementById('navbar');
@@ -873,6 +876,7 @@ function showToast(msg, err) {
   }
 })();
 
+// ── PWA: service worker registration
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('sw-customer.js').catch(() => {});

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="icon" type="image/png" href="the-travel-chapter-icon.png">
 <link rel="manifest" href="manifest-customer.json">
-<meta name="theme-color" content="#1a1f2e">
+<meta name="theme-color" content="#0f2557">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Travel Chapter">
@@ -22,25 +22,25 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="i18n.js"></script>
 <script src="mobile-tabbar.js" defer></script>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,300..900;1,400..700&display=swap" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
-  --cream:  #faf7f2;
-  --cream2: #f2ede4;
-  --cream3: #ede5d8;
-  --navy:   #1a1f2e;
-  --navy2:  #252b3b;
-  --gold:   #b8955a;
-  --gold2:  #d4aa70;
+  --cream:  #f5f8fd;
+  --cream2: #eaf1fb;
+  --cream3: #dfe9f7;
+  --navy:   #0f2557;
+  --navy2:  #173a80;
+  --gold:   #1f6fd6;
+  --gold2:  #f5b82e;
   --smoke:  #6b7280;
-  --border: #e5ddd0;
+  --border: #e2e8f2;
   --white:  #ffffff;
-  --text:   #1a1f2e;
+  --text:   #0f2557;
   --wa:     #25d366;
 }
 html { scroll-behavior: smooth; }
-body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--text); overflow-x:hidden; }
+body { font-family:'Nunito',sans-serif; background:var(--cream); color:var(--text); overflow-x:hidden; }
 
 /* ── NAVBAR ── */
 .navbar {
@@ -52,10 +52,10 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
   backdrop-filter:blur(16px);
   transition:box-shadow 0.3s;
 }
-.navbar.scrolled { box-shadow:0 4px 24px rgba(26,31,46,0.08); }
+.navbar.scrolled { box-shadow:0 4px 24px rgba(15,37,87,0.08); }
 .nav-logo { display:flex; align-items:center; gap:10px; text-decoration:none; min-width:0; }
 .nav-logo-img { height:54px; width:auto; object-fit:contain; flex-shrink:0; }
-.nav-logo-text { font-family:'DM Sans',sans-serif; font-size:0.92rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold); min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.nav-logo-text { font-family:'Nunito',sans-serif; font-size:0.92rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold); min-width:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .nav-links { display:flex; align-items:center; gap:36px; list-style:none; }
 .nav-links a { font-size:0.98rem; letter-spacing:0.03em; color:var(--smoke); text-decoration:none; transition:color 0.2s; }
 .nav-links a:hover { color:var(--navy); }
@@ -65,10 +65,10 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 .nav-social-link { display:flex; align-items:center; justify-content:center; width:32px; height:32px; border-radius:6px; color:var(--smoke); transition:color 0.2s, background 0.2s; }
 .nav-social-link:hover { color:var(--navy); background:var(--cream2); }
 .nav-social-link svg { width:16px; height:16px; }
-.btn-nav-ghost { padding:9px 20px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--smoke); font-family:'DM Sans',sans-serif; font-size:0.8rem; font-weight:400; letter-spacing:0.05em; text-decoration:none; transition:all 0.2s; }
+.btn-nav-ghost { padding:9px 20px; border:1px solid var(--border); border-radius:6px; background:transparent; color:var(--smoke); font-family:'Nunito',sans-serif; font-size:0.8rem; font-weight:400; letter-spacing:0.05em; text-decoration:none; transition:all 0.2s; }
 .btn-nav-ghost:hover { border-color:var(--navy); color:var(--navy); }
-.btn-nav-primary { padding:9px 20px; border:none; border-radius:6px; background:var(--navy); color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.8rem; font-weight:500; letter-spacing:0.05em; text-decoration:none; transition:all 0.2s; }
-.btn-nav-primary:hover { background:var(--navy2); box-shadow:0 4px 14px rgba(26,31,46,0.2); }
+.btn-nav-primary { padding:9px 20px; border:none; border-radius:6px; background:var(--navy); color:var(--white); font-family:'Nunito',sans-serif; font-size:0.8rem; font-weight:500; letter-spacing:0.05em; text-decoration:none; transition:all 0.2s; }
+.btn-nav-primary:hover { background:var(--navy2); box-shadow:0 4px 14px rgba(15,37,87,0.2); }
 .lang-switch { display:flex; align-items:center; gap:2px; background:var(--cream2); border:1px solid var(--border); border-radius:6px; padding:2px; }
 /* ── MOBILE NAV (hamburger dropdown + single language toggle) ── */
 .nav-toggle { display:none; background:var(--cream2); border:1px solid var(--border); border-radius:6px; width:40px; height:40px; padding:0; cursor:pointer; align-items:center; justify-content:center; color:var(--navy); flex-shrink:0; }
@@ -96,7 +96,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
     display:inline-flex; align-items:center; justify-content:center;
     min-width:40px; height:40px; padding:0 10px;
     border:1px solid var(--border); border-radius:6px; background:var(--cream2);
-    color:var(--navy); font-family:'DM Sans',sans-serif; font-size:0.72rem; font-weight:600; letter-spacing:0.04em;
+    color:var(--navy); font-family:'Nunito',sans-serif; font-size:0.72rem; font-weight:600; letter-spacing:0.04em;
     cursor:pointer; flex-shrink:0;
   }
   .nav-toggle { display:flex; }
@@ -111,8 +111,8 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
   .nav-cta-row .btn-nav-ghost, .nav-cta-row .btn-nav-primary { flex:1; text-align:center; padding:12px 12px; font-size:0.82rem; }
   .nav-cta-row .btn-nav-ghost { color:var(--smoke); }
   .nav-cta-row .btn-nav-primary { color:var(--white); background:var(--navy); }
-  .nav-lang-menu:not([hidden]) { display:block; position:absolute; top:calc(100% + 8px); right:0; background:var(--white); border:1px solid var(--border); border-radius:10px; box-shadow:0 14px 40px rgba(26,31,46,0.16); overflow:hidden; min-width:168px; z-index:120; }
-  .nav-lang-menu button { display:block; width:100%; text-align:left; padding:12px 16px; border:none; background:transparent; font-family:'DM Sans',sans-serif; font-size:0.86rem; color:var(--navy); cursor:pointer; }
+  .nav-lang-menu:not([hidden]) { display:block; position:absolute; top:calc(100% + 8px); right:0; background:var(--white); border:1px solid var(--border); border-radius:10px; box-shadow:0 14px 40px rgba(15,37,87,0.16); overflow:hidden; min-width:168px; z-index:120; }
+  .nav-lang-menu button { display:block; width:100%; text-align:left; padding:12px 16px; border:none; background:transparent; font-family:'Nunito',sans-serif; font-size:0.86rem; color:var(--navy); cursor:pointer; }
   .nav-lang-menu button:hover { background:var(--cream2); }
   .nav-lang-menu button.active { color:var(--gold); font-weight:600; }
   .btn-nav-ghost, .btn-nav-primary { padding:9px 14px; font-size:0.76rem; }
@@ -122,7 +122,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
   .btn-nav-ghost, .btn-nav-primary { padding:8px 10px; font-size:0.72rem; }
   .nav-lang-toggle, .nav-toggle { min-width:36px; width:36px; height:36px; }
 }
-.lang-btn { padding:5px 9px; border:none; background:transparent; border-radius:4px; font-family:'DM Sans',sans-serif; font-size:0.68rem; font-weight:500; letter-spacing:0.03em; color:var(--smoke); cursor:pointer; transition:all 0.2s; }
+.lang-btn { padding:5px 9px; border:none; background:transparent; border-radius:4px; font-family:'Nunito',sans-serif; font-size:0.68rem; font-weight:500; letter-spacing:0.03em; color:var(--smoke); cursor:pointer; transition:all 0.2s; }
 .lang-btn:hover { color:var(--navy); }
 .lang-btn.active { background:var(--navy); color:var(--white); }
 
@@ -137,26 +137,26 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 .trip-hero-fallback[hidden] { display:none; }
 .trip-hero-overlay { position:relative; z-index:1; width:100%; padding:56px 34px 30px; background:linear-gradient(to top, rgba(20,24,34,0.82) 0%, rgba(20,24,34,0.25) 60%, transparent 100%); }
 .trip-eyebrow { font-size:0.68rem; letter-spacing:0.32em; text-transform:uppercase; color:var(--gold2); margin-bottom:12px; }
-.trip-title { font-family:'Cormorant Garamond',serif; font-size:2.9rem; font-weight:300; line-height:1.12; color:var(--white); }
+.trip-title { font-family:'Nunito',sans-serif; font-size:2.9rem; font-weight:300; line-height:1.12; color:var(--white); }
 
 .trip-facts { display:flex; flex-wrap:wrap; gap:10px 26px; margin:28px 0 6px; padding-bottom:26px; border-bottom:1px solid var(--border); }
 .trip-fact { display:flex; flex-direction:column; gap:3px; }
 .trip-fact-lbl { font-size:0.66rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--smoke); }
-.trip-fact-val { font-family:'Cormorant Garamond',serif; font-size:1.35rem; color:var(--navy); }
-.trip-fact-val small { font-family:'DM Sans',sans-serif; font-size:0.72rem; color:var(--smoke); }
+.trip-fact-val { font-family:'Nunito',sans-serif; font-size:1.35rem; color:var(--navy); }
+.trip-fact-val small { font-family:'Nunito',sans-serif; font-size:0.72rem; color:var(--smoke); }
 
 .trip-section { margin-top:34px; }
-.trip-section h2 { font-family:'Cormorant Garamond',serif; font-size:1.7rem; font-weight:400; color:var(--navy); margin-bottom:14px; }
+.trip-section h2 { font-family:'Nunito',sans-serif; font-size:1.7rem; font-weight:400; color:var(--navy); margin-bottom:14px; }
 .trip-section p { font-size:0.92rem; line-height:1.85; color:var(--smoke); }
 .trip-prose { font-size:0.92rem; line-height:1.85; color:var(--smoke); white-space:pre-wrap; }
 .trip-departures { display:flex; flex-wrap:wrap; gap:8px; }
 .trip-dep-chip { padding:8px 14px; border:1px solid var(--border); border-radius:999px; background:var(--white); font-size:0.8rem; color:var(--navy); }
 
 .trip-cta-bar { margin-top:44px; padding-top:28px; border-top:1px solid var(--border); display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
-.btn-book { padding:14px 34px; border-radius:8px; border:none; background:var(--navy); color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.8rem; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; text-decoration:none; transition:all 0.2s; }
-.btn-book:hover { background:var(--navy2); box-shadow:0 4px 14px rgba(26,31,46,0.2); }
+.btn-book { padding:14px 34px; border-radius:8px; border:none; background:var(--navy); color:var(--white); font-family:'Nunito',sans-serif; font-size:0.8rem; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; text-decoration:none; transition:all 0.2s; }
+.btn-book:hover { background:var(--navy2); box-shadow:0 4px 14px rgba(15,37,87,0.2); }
 .btn-book.is-tba { background:var(--cream3); color:var(--smoke); cursor:default; pointer-events:none; }
-.btn-wa { display:inline-flex; align-items:center; gap:9px; padding:14px 22px; border-radius:8px; background:var(--wa); color:var(--white); font-family:'DM Sans',sans-serif; font-size:0.8rem; font-weight:500; letter-spacing:0.06em; text-decoration:none; transition:filter 0.2s, box-shadow 0.2s; }
+.btn-wa { display:inline-flex; align-items:center; gap:9px; padding:14px 22px; border-radius:8px; background:var(--wa); color:var(--white); font-family:'Nunito',sans-serif; font-size:0.8rem; font-weight:500; letter-spacing:0.06em; text-decoration:none; transition:filter 0.2s, box-shadow 0.2s; }
 .btn-wa:hover { filter:brightness(0.94); box-shadow:0 4px 14px rgba(37,211,102,0.3); }
 .btn-wa svg { width:18px; height:18px; fill:currentColor; }
 
@@ -166,7 +166,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--cream); color:var(--te
 /* ── FOOTER ── */
 footer { background:var(--navy); padding:56px 6% 32px; }
 .footer-grid { display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:48px; margin-bottom:48px; }
-.footer-brand { display:flex; align-items:center; gap:10px; font-family:'DM Sans',sans-serif; font-size:0.88rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold2); margin-bottom:14px; }
+.footer-brand { display:flex; align-items:center; gap:10px; font-family:'Nunito',sans-serif; font-size:0.88rem; font-weight:700; letter-spacing:0.14em; text-transform:uppercase; color:var(--gold2); margin-bottom:14px; }
 .footer-brand-img { height:32px; width:auto; object-fit:contain; flex-shrink:0; }
 .footer-desc { font-size:0.8rem; color:rgba(255,255,255,0.35); line-height:1.7; max-width:260px; }
 .footer-col-title { font-size:0.65rem; font-weight:500; letter-spacing:0.18em; text-transform:uppercase; color:rgba(255,255,255,0.35); margin-bottom:16px; }
@@ -193,15 +193,16 @@ footer { background:var(--navy); padding:56px 6% 32px; }
   .btn-book, .btn-wa { text-align:center; justify-content:center; }
 }
 </style>
+<link rel="stylesheet" href="theme.css">
 </head>
 <body>
 
 <!-- ── NAVBAR ── -->
 <nav class="navbar" id="navbar">
-  <a href="index.html" class="nav-logo" id="nav-logo"><img src="the-travel-chapter-icon.png" alt="The Travel Chapter" class="nav-logo-img"><span class="nav-logo-text" id="nav-logo-text">The Travel Chapter</span></a>
+  <a href="index.html" class="nav-logo" id="nav-logo"><img src="img/logo-emblem.png" alt="The Travel Chapter" class="nav-logo-img"><span class="nav-logo-text" id="nav-logo-text">The Travel Chapter</span></a>
   <ul class="nav-links">
     <li><a href="index.html" data-i18n="nav.home">Home</a></li>
-    <li><a href="trips.html" class="active" data-i18n="nav.trips">Trips</a></li>
+    <li><a href="trips.html" class="active" data-i18n="nav.tour_packages">Tour Packages</a></li>
     <li><a href="hotels.html" data-i18n="nav.hotels">Hotels</a></li>
     <li><a href="free-gifts.html" data-i18n="nav.free_gifts">Free Gifts</a></li>
     <li><a href="about.html" data-i18n="nav.about">About</a></li>
@@ -288,7 +289,7 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 <footer>
   <div class="footer-grid">
     <div>
-      <div class="footer-brand"><img src="the-travel-chapter-icon.png" alt="The Travel Chapter" class="footer-brand-img">The Travel Chapter</div>
+      <div class="footer-brand"><img src="img/logo-emblem.png" alt="The Travel Chapter" class="footer-brand-img">The Travel Chapter</div>
       <p class="footer-desc" id="footer-tagline">Curating extraordinary journeys for discerning travellers since 2012. Based in Kuala Lumpur, travelling the world.</p>
     </div>
     <div>

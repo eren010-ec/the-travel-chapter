@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tc-customer-v14';
+const CACHE_NAME = 'tc-customer-v15';
 const APP_SHELL = [
   'index.html',
   'trips.html',
@@ -12,7 +12,9 @@ const APP_SHELL = [
   'manifest-customer.json',
   'icons/icon-customer-192.png',
   'icons/icon-customer-512.png',
-  'the-travel-chapter-icon.png'
+  'img/logo-emblem.png',
+  'theme.css',
+  'collections.js'
 ];
 
 self.addEventListener('install', (event) => {

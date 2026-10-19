@@ -1,0 +1,140 @@
+/* ─────────────────────────────────────────────────────────────
+   The Travel Chapter — shared theme (bright blue / white / sun-gold)
+   Loaded after each customer page's own <style>, so these rules
+   restyle the shared chrome (navbar, buttons, headings, footer).
+   ───────────────────────────────────────────────────────────── */
+:root {
+  --blue:      #1f6fd6;
+  --blue-dark: #1557b0;
+  --blue-soft: #e8f1fd;
+  --sun:       #f5b82e;
+  --ink:       #0f2557;
+  --font:      'Nunito', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --radius:    18px;
+  --shadow-sm: 0 4px 14px rgba(15,37,87,0.08);
+  --shadow:    0 12px 36px rgba(15,37,87,0.12);
+}
+body { font-family: var(--font); -webkit-font-smoothing: antialiased; }
+button, input, select, textarea { font-family: inherit; }
+
+/* Headings: bold rounded sans in deep navy; no italic accents */
+h1, h2, h3 { font-weight: 800 !important; letter-spacing: -0.01em; }
+h1 em, h2 em, h3 em { font-style: normal !important; color: var(--blue) !important; }
+.section-title, .page-head h1, .hotel-hero h1, .trip-title, .page-header h1 { line-height: 1.15; }
+.section-eyebrow, .hero-eyebrow, .page-eyebrow { color: var(--blue); font-weight: 700; letter-spacing: 0.18em; }
+.section-eyebrow::before, .hero-eyebrow::before { background: var(--blue); }
+.trip-name, .gift-name, .trip-price, .stat-value, .trip-fact-val, .checkin-streak, .about-badge-val, .total-box .val { font-weight: 800; }
+
+/* ── NAVBAR ── */
+.navbar {
+  height: 72px; padding: 0 4%;
+  background: rgba(255,255,255,0.96); border-bottom: none;
+  box-shadow: 0 2px 18px rgba(15,37,87,0.07);
+}
+.navbar.scrolled { box-shadow: 0 6px 24px rgba(15,37,87,0.12); }
+.nav-logo-img { height: 48px; }
+.nav-logo-text { font-family: var(--font); font-weight: 800; letter-spacing: 0.06em; color: var(--ink); font-size: 0.95rem; }
+.nav-links { gap: 30px; }
+.nav-links a { position: relative; font-size: 0.95rem; font-weight: 600; letter-spacing: 0; color: #33415c; padding: 6px 0; }
+.nav-links a:hover { color: var(--blue); }
+.nav-links a.active { color: var(--blue); }
+.nav-links a.active::after { content: ''; position: absolute; left: 0; right: 0; bottom: -4px; height: 3px; border-radius: 3px; background: var(--blue); }
+.btn-nav-ghost, .btn-nav-primary { border-radius: 999px; font-family: var(--font); font-weight: 700; font-size: 0.84rem; letter-spacing: 0; padding: 9px 20px; }
+.btn-nav-ghost { border: 1.5px solid #cfdcf0; color: var(--ink); }
+.btn-nav-ghost:hover { border-color: var(--blue); color: var(--blue); }
+.btn-nav-primary { background: var(--blue); color: #fff; }
+.btn-nav-primary:hover { background: var(--blue-dark); box-shadow: 0 6px 18px rgba(31,111,214,0.3); }
+.lang-switch { border-radius: 999px; background: var(--blue-soft); border-color: transparent; padding: 3px; }
+.lang-btn { border-radius: 999px; font-family: var(--font); font-weight: 700; font-size: 0.72rem; }
+.lang-btn.active { background: var(--blue); }
+.nav-social-link { border-radius: 50%; }
+.nav-social-link:hover { background: var(--blue-soft); color: var(--blue); }
+@media (max-width: 1180px) { .nav-social { display: none !important; } .nav-links { gap: 22px; } }
+
+/* Mobile: [☰]  logo (centered)  [language] — like the app mockup */
+@media (max-width: 860px) {
+  .navbar { padding: 0 14px; height: 64px; }
+  .navbar > .nav-cta { display: contents; }
+  .navbar .nav-toggle { order: 0; }
+  .navbar .nav-logo { order: 1; flex: 1; justify-content: center; }
+  .navbar .nav-lang { order: 2; }
+  .nav-logo-text { display: none; }
+  .nav-logo-img { height: 44px; }
+  .nav-toggle, .nav-lang-toggle { border: none; border-radius: 50%; background: var(--blue-soft); color: var(--ink); width: 40px; min-width: 40px; height: 40px; padding: 0; }
+  .nav-links { top: 100%; background: #fff; box-shadow: 0 18px 30px rgba(15,37,87,0.12); border-radius: 0 0 20px 20px; }
+  .nav-links a { padding: 15px 22px; font-weight: 700; border-bottom-color: #edf1f7; }
+  .nav-links a.active::after { display: none; }
+  .nav-links a.active { background: var(--blue-soft); }
+  .nav-cta-row { padding: 14px 22px; }
+  .nav-cta-row .btn-nav-primary { background: var(--blue); }
+  .nav-lang-menu:not([hidden]) { border-radius: 14px; }
+  .nav-lang-menu button.active { color: var(--blue); }
+}
+
+/* ── Shared buttons ── */
+.btn-hero-primary, .btn-trip, .btn-primary, .btn-submit {
+  border-radius: 999px !important; background: var(--blue) !important; color: #fff !important;
+  font-family: var(--font); font-weight: 700; letter-spacing: 0.02em; text-transform: none;
+  box-shadow: 0 8px 20px rgba(31,111,214,0.25);
+}
+.btn-hero-primary:hover, .btn-trip:hover, .btn-primary:hover, .btn-submit:hover { background: var(--blue-dark) !important; }
+.btn-hero-ghost { border-radius: 999px !important; text-transform: none; font-weight: 700; letter-spacing: 0.02em; }
+.btn-wa { border-radius: 999px; }
+
+/* Cards: softer, rounder */
+.trip-card, .gift-card, .hotel-card, .testimonial-card { border-radius: var(--radius); border-color: #e6ecf5; box-shadow: var(--shadow-sm); }
+.trip-card:hover, .gift-card:hover, .hotel-card:hover { box-shadow: var(--shadow); }
+.trip-meta-row span:first-child { color: var(--blue); }
+
+/* Page banners on inner pages: the brand photo with a blue wash */
+.page-head {
+  background: linear-gradient(180deg, rgba(10,32,84,0.55) 0%, rgba(15,37,87,0.82) 100%), url('img/hero-panorama.webp') center 40% / cover no-repeat !important;
+}
+
+/* ── FOOTER ── */
+footer { background: linear-gradient(180deg, #0f2557 0%, #0a1b44 100%); }
+.footer-brand { font-family: var(--font); font-weight: 800; letter-spacing: 0.06em; color: #fff; }
+.footer-brand-img { height: 44px; background: #fff; border-radius: 50%; padding: 4px; }
+.footer-desc { color: rgba(255,255,255,0.6); }
+.footer-col-title { color: var(--sun); font-weight: 800; }
+.footer-links a { color: rgba(255,255,255,0.72); }
+.footer-links a:hover { color: #fff; }
+.footer-bottom { color: rgba(255,255,255,0.45); border-top-color: rgba(255,255,255,0.1); }
+
+/* Focus rings */
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible { outline: 3px solid rgba(31,111,214,0.45); outline-offset: 2px; }
+
+/* Accent words on dark photo banners: sun-gold reads better than blue */
+.page-head h1 em, .hotel-hero h1 em, .trip-hero h1 em, .hero h1 em { color: var(--sun) !important; }
+.page-head .page-eyebrow, .hotel-hero .hero-eyebrow, .page-head .section-eyebrow { color: #fff; }
+.page-head .page-eyebrow::before, .page-head .page-eyebrow::after { background: var(--sun) !important; }
+
+/* Mid-size screens (small laptops / tablets landscape): tighten the top nav */
+.nav-links a, .lang-btn, .btn-nav-ghost, .btn-nav-primary { white-space: nowrap; }
+@media (min-width: 861px) and (max-width: 1180px) {
+  .nav-logo-text { display: none; }
+  .nav-links { gap: 18px; }
+  .nav-links a { font-size: 0.9rem; }
+  .nav-card { gap: 20px !important; }
+  .nav-cta { gap: 8px; }
+  .btn-nav-ghost, .btn-nav-primary { padding: 8px 14px; }
+}
+@media (min-width: 861px) and (max-width: 1060px) {
+  .nav-links li:has(> a[href="#destinations"]) { display: none !important; }
+}
+@media (min-width: 861px) and (max-width: 960px) {
+  .nav-cta > .btn-nav-ghost[href*="login"] { display: none; }
+  .navbar:not(.scrolled) .nav-card { padding: 0 20px !important; }
+}
+
+/* Phones: footer in two columns (brand across the top, link groups side by side) */
+@media (max-width: 768px) {
+  .footer-grid { grid-template-columns: 0.8fr 1.2fr !important; gap: 26px 14px !important; }
+  .footer-grid > div:nth-child(1) { grid-column: 1 / -1; }
+  .footer-grid > div:nth-child(2) { grid-column: 1; grid-row: 2 / span 2; }   /* Explore: left */
+  .footer-grid > div:nth-child(3) { grid-column: 2; grid-row: 2; }            /* Members: right, top */
+  .footer-grid > div:nth-child(4) { grid-column: 2; grid-row: 3; }            /* Contact: right, below */
+  .footer-links a { overflow-wrap: anywhere; }
+  .footer-grid > div:nth-child(4) .footer-links a { font-size: 0.8rem; }
+  .footer-bottom { flex-direction: column; align-items: flex-start; gap: 6px; }
+}

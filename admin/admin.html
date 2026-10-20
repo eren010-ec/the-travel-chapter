@@ -2138,7 +2138,14 @@ async function saveTrip() {
 async function deleteTrip(id) {
   if (!confirm('Delete this trip? This cannot be undone.')) return;
   const { error }=await sb.from('trips').delete().eq('id',id);
-  if (error) showToast('Error: '+error.message, true);
+  if (error?.code==='23503') {
+    // Bookings reference this trip — deleting would orphan them, so offer to hide it instead
+    if (!confirm('This trip has bookings, so it can\'t be deleted without losing booking history.\n\nHide it from members instead?')) return;
+    const { error: hideErr }=await sb.from('trips').update({ is_active:false }).eq('id',id);
+    if (hideErr) showToast('Error: '+hideErr.message, true);
+    else { await loadTrips(); renderTripsTable(); showToast('Trip hidden — bookings kept.'); }
+  }
+  else if (error) showToast('Error: '+error.message, true);
   else { await loadTrips(); renderTripsTable(); showToast('Trip deleted.'); }
 }
 

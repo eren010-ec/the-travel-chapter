@@ -856,6 +856,35 @@ User request: "for tour package section, can add multiple time and date and also
 ### Testing notes
 - Inline scripts syntax-checked with Node only; **not yet exercised in a browser or against live data** — the user was given an end-to-end checklist (create options/departures in admin → trip page → dashboard booking → admin Bookings).
 
+### Same-day follow-up — delete a booked trip (commit `08969cc`, admin deployed)
+- Deleting a trip with bookings failed with `bookings_trip_id_fkey` (FK, by design — keeps booking/revenue history). `deleteTrip()` now catches `23503` and offers to set the trip Hidden (`is_active=false`) instead. Trips without bookings still delete normally.
+
+---
+
+## Workstream AB — Trip detail page redesign from the "Japan Sakura Escape" mockups (added 2026-10-20)
+
+Mockups: `C:\Users\MGPC15\Pictures\Japan Sakura Escape Travel Page.png` (desktop) + `Japan Sakura Escape Mobile Travel App.png`. Commit `c5067b8`; admin deployed via CLI; customer site needs the push. Migration `20261020140000_trip_page_content` applied by the user and verified via REST.
+
+### Data (all optional — each section on `trip.html` hides itself when empty)
+- `trips.gallery` jsonb `[url]`, `tags` jsonb `[text]` (hero badges), `features` jsonb `[key]` with keys `flight/hotel/transport/guide/meals/insurance` (icons + `tp.f_<key>` i18n), `highlights` jsonb `[{title,image}]`, `itinerary_days` jsonb `[{title,desc}]`, `accommodations` jsonb `[{city,hotel,stars,image}]`, `inclusions` / `exclusions` text (one per line), `route_image` text.
+- Itinerary fallback: with no `itinerary_days`, free text whose first line is `Day 1: …` / `Hari 1` / `第1天` is parsed into day cards (`DAY_RE` in `trip.html`); anything else shows as plain prose.
+
+### `trip.html` (rewritten body; navbar/footer/CMS loaders unchanged)
+- Hero = cover photo (falls back to `img/hero-panorama.webp`) with breadcrumb, title, summary, region / day range / category / max pax, badges.
+- Booking card: desktop sticky in the right column overlapping the hero; phones directly under the hero. Package select (only when >1 option), departure select (weekday + time), travellers (1..min(max_pax,20)), estimated total, **Book Now** (gold), **Enquire Now** (WhatsApp with the chosen date in the message; falls back to `contact.html`), three trust lines. The trust lines are deliberately accurate (team confirms booking, no online payment) — the mockup's "Instant Confirmation / Secure Payment" weren't true for this flow.
+- **Book Now hand-off:** signed in → `dashboard.html?book=<trip id>&pkg=<index>&dep=<date|time>&pax=<n>`; signed out → saves the same object to sessionStorage `tc_pending_booking` (30-min expiry) and goes to `login.html` (which lands on the dashboard). `dashboard.html` → `openPendingBooking()` switches to Browse Trips and opens the booking modal pre-filled, then clears the URL/storage.
+- Gallery strip (cover + gallery, 6 tiles desktop / 4 phone, "+N Photos") → lightbox (arrows/Esc/click-outside). Description + features card, highlights circles, day cards (tap to expand; phones show 3 + "View Full Itinerary (N Days)"), accommodation cards, map (opens full image), inclusions/exclusions cards, "You May Also Like" (up to 8 active trips, same region first, then category).
+- **No ratings/reviews** — there's no per-trip review data and fabricated numbers were ruled out. If wanted later, needs a real reviews table.
+- New i18n keys `tp.*` + `trip_page.enquiry_date_text` (en/zh/ms).
+
+### Admin trip editor (`admin/admin.html`)
+- Modal widened to 760px; new "Trip Page Content" group: badges (comma list), feature checkboxes, gallery multi-upload with removable thumbs, day rows, highlight rows (photo + title), hotel rows (photo / city / hotel / stars), inclusions, exclusions, map image. The old Itinerary textarea stays as "Itinerary Notes" (used only when there are no day rows).
+- Images upload **immediately on pick** to the `trip-images` bucket (`uploadTripImage`), so cancelling the modal can leave orphan files — harmless.
+
+### Testing notes
+- Layout verified with puppeteer-core against a local `http-server` (port 8765) with the Supabase REST calls intercepted and answered with a mock trip (incl. the CORS preflight — without answering OPTIONS the mock silently fails). Desktop 1366px and phone 390px checked; nothing written to the DB.
+- **Not yet exercised:** the admin editor in a real browser (only Node syntax check), the Book Now → dashboard hand-off with a real login, and real trip content.
+
 ## Task checklist
 
 - [x] Open all 6 pages in a real browser, confirm logo renders correctly (sizing/placement) — done 2026-07-26 at desktop size.
@@ -907,3 +936,7 @@ User request: "for tour package section, can add multiple time and date and also
 - [x] **Workstream AA (2026-10-20) — SHIPPED.** Multiple duration/price options + departures with times per trip; bookings record option + time. Commit `b93911c`, migration `20261020120000` applied, both sites live.
 - [ ] Follow-up (verification): run the Workstream AA end-to-end check on the live sites (admin trip with 2+ options and timed departures → trip page → member booking → admin Bookings).
 - [ ] Follow-up (optional): past departures are still listed/bookable (true before AA too); `dashboard.__preview.html` was not updated.
+- [x] **Workstream AB (2026-10-20) — committed `c5067b8`, admin deployed, migration `20261020140000` applied.** Trip detail page redesign + admin Trip Page Content editor.
+- [ ] **Push `main`** (`! git push`) — `08969cc`, the handoff commits and `c5067b8` were still local when this was written; the customer trip page isn't live until then.
+- [ ] Follow-up (verification): fill one trip's new content in the admin (gallery, days, highlights, hotels, map) and check it on the live trip page, desktop + phone; test Book Now → login → dashboard pre-filled booking.
+- [ ] Follow-up (optional): per-trip reviews/rating if the user wants them (needs a real reviews table + admin moderation — not faked).

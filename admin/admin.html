@@ -142,6 +142,22 @@ tr:hover td { background:var(--cream); }
 .tm-row.pkg { grid-template-columns:1.4fr 0.8fr 1fr auto; }
 .tm-row.dep { grid-template-columns:1.4fr 1fr auto; }
 .tm-row .btn { padding:6px 10px; }
+.tm-row.day { grid-template-columns:1fr auto; align-items:start; padding:10px; border:1px solid var(--border); border-radius:10px; }
+.tm-row.day > div { display:flex; flex-direction:column; gap:6px; }
+.tm-row.media { grid-template-columns:56px 1fr auto; }
+.tm-row.hotel { grid-template-columns:56px 1fr 1.4fr 70px auto; }
+.tm-img-pick { width:56px; height:42px; border-radius:6px; border:1px dashed var(--border); background:var(--cream2) center/cover no-repeat; cursor:pointer; font-size:0.9rem; color:var(--smoke); display:flex; align-items:center; justify-content:center; }
+.tm-img-pick.busy { opacity:0.5; }
+.tm-thumbs { display:flex; flex-wrap:wrap; gap:8px; }
+.tm-thumb { position:relative; width:84px; height:62px; border-radius:8px; background:var(--cream2) center/cover no-repeat; border:1px solid var(--border); }
+.tm-thumb button { position:absolute; top:-6px; right:-6px; width:20px; height:20px; border-radius:50%; border:none; background:#c0392b; color:#fff; font-size:0.65rem; cursor:pointer; }
+.tm-checks { display:flex; flex-wrap:wrap; gap:6px 16px; }
+.tm-checks label { display:flex; align-items:center; gap:6px; text-transform:none; letter-spacing:0; font-size:0.8rem; color:var(--text); cursor:pointer; }
+.tm-checks input { width:auto; padding:0; accent-color:var(--navy); }
+.tm-group-head { margin-top:10px; padding-top:14px; border-top:1px solid var(--border); font-size:0.92rem; font-weight:600; color:var(--navy); display:block; }
+.tm-group-head span { font-size:0.72rem; font-weight:400; color:var(--smoke); }
+#trip-modal .modal { max-width:760px; }
+@media(max-width:640px) { .tm-row.hotel { grid-template-columns:56px 1fr auto; } .tm-row.hotel .hl-hotel, .tm-row.hotel .hl-stars { grid-column:2; } }
 label { font-size:0.67rem; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--smoke); }
 input[type=text],input[type=number],input[type=date],input[type=email],input[type=tel],select,textarea {
   padding:10px 12px; background:var(--cream); border:1px solid var(--border);
@@ -849,7 +865,6 @@ textarea { resize:vertical; min-height:70px; }
       <div class="field full"><label>Slug (URL key)</label><input type="text" id="tm-slug" placeholder="kyoto-autumn"></div>
       <div class="field full"><label>Summary</label><textarea id="tm-summary" placeholder="One-line description…"></textarea></div>
       <div class="field full"><label>Description</label><textarea id="tm-description" rows="4" placeholder="Full overview shown on the trip detail page. Falls back to the summary if left blank."></textarea></div>
-      <div class="field full"><label>Itinerary</label><textarea id="tm-itinerary" rows="6" placeholder="Day-by-day plan. One line per point — line breaks are preserved on the detail page."></textarea></div>
       <div class="field full">
         <label>Cover Image</label>
         <div id="tm-image-preview-wrap" style="display:none;margin-bottom:8px;">
@@ -882,6 +897,52 @@ textarea { resize:vertical; min-height:70px; }
         <button type="button" class="btn btn-ghost btn-sm" style="align-self:flex-start;" onclick="addDepartureRow()">+ Add Departure</button>
         <span style="font-size:0.7rem;color:var(--smoke);">Time is optional. Add the same date twice for two departure times.</span>
       </div>
+
+      <div class="field full tm-group-head">Trip Page Content <span>— every part is optional; empty parts are hidden on the trip page</span></div>
+      <div class="field full"><label>Badges (comma separated)</label><input type="text" id="tm-tags" placeholder="Best Seller, Spring Season, Family Friendly"></div>
+      <div class="field full">
+        <label>What's Included (icons)</label>
+        <div class="tm-checks" id="tm-features">
+          <label><input type="checkbox" value="flight"> Flight</label>
+          <label><input type="checkbox" value="hotel"> Quality Hotels</label>
+          <label><input type="checkbox" value="transport"> Coach Transfers</label>
+          <label><input type="checkbox" value="guide"> Tour Guide</label>
+          <label><input type="checkbox" value="meals"> Selected Meals</label>
+          <label><input type="checkbox" value="insurance"> Travel Insurance</label>
+        </div>
+      </div>
+      <div class="field full">
+        <label>Photo Gallery</label>
+        <div class="tm-thumbs" id="tm-gallery"></div>
+        <input type="file" id="tm-gallery-file" accept="image/*" multiple style="display:none;" onchange="handleGallerySelect(event)">
+        <button type="button" class="btn btn-ghost btn-sm" style="align-self:flex-start;" onclick="document.getElementById('tm-gallery-file').click()">📷 Add Photos</button>
+        <span style="font-size:0.7rem;color:var(--smoke);">Shown as a strip under the cover photo. Photos upload right away.</span>
+      </div>
+      <div class="field full">
+        <label>Day-by-Day Itinerary</label>
+        <div id="tm-days" class="tm-rows"></div>
+        <button type="button" class="btn btn-ghost btn-sm" style="align-self:flex-start;" onclick="addDayRow()">+ Add Day</button>
+      </div>
+      <div class="field full"><label>Itinerary Notes (plain text — only shown when there are no day rows)</label><textarea id="tm-itinerary" rows="4" placeholder="Older trips: “Day 1: …” lines here are still shown as day cards."></textarea></div>
+      <div class="field full">
+        <label>Trip Highlights</label>
+        <div id="tm-highlights" class="tm-rows"></div>
+        <button type="button" class="btn btn-ghost btn-sm" style="align-self:flex-start;" onclick="addHighlightRow()">+ Add Highlight</button>
+      </div>
+      <div class="field full">
+        <label>Accommodation</label>
+        <div id="tm-hotels" class="tm-rows"></div>
+        <button type="button" class="btn btn-ghost btn-sm" style="align-self:flex-start;" onclick="addHotelRow()">+ Add Hotel</button>
+      </div>
+      <div class="field"><label>Inclusions (one per line)</label><textarea id="tm-inclusions" rows="5" placeholder="Return flight (economy)&#10;5 nights hotel (twin sharing)"></textarea></div>
+      <div class="field"><label>Exclusions (one per line)</label><textarea id="tm-exclusions" rows="5" placeholder="Personal expenses&#10;Travel visa (if required)"></textarea></div>
+      <div class="field full">
+        <label>Map &amp; Route Image</label>
+        <div class="tm-thumbs" id="tm-route"></div>
+        <input type="file" id="tm-route-file" accept="image/*" style="display:none;" onchange="handleRouteSelect(event)">
+        <button type="button" class="btn btn-ghost btn-sm" style="align-self:flex-start;" onclick="document.getElementById('tm-route-file').click()">🗺 Choose Map Image</button>
+      </div>
+
       <div class="field full" style="flex-direction:row;align-items:center;gap:10px;">
         <input type="checkbox" id="tm-active" checked style="width:auto;padding:0;accent-color:var(--navy);">
         <label for="tm-active" style="text-transform:none;letter-spacing:0;font-size:0.82rem;color:var(--text);">Active (visible to members)</label>
@@ -1927,6 +1988,133 @@ function addDepartureRow(d = {}) {
   row.querySelector('.dp-time').value = d.time || '';
   document.getElementById('tm-departures').appendChild(row);
 }
+// ── Trip page content editors (gallery, days, highlights, hotels, map) ──
+// Images upload as soon as they're picked; rows keep the public URL in data-url.
+async function uploadTripImage(file) {
+  if (!file.type.startsWith('image/')) { showToast('Please choose an image file.', true); return null; }
+  if (file.size > 5 * 1024 * 1024) { showToast('Image must be under 5MB.', true); return null; }
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+  const path = `trips/${(crypto.randomUUID ? crypto.randomUUID() : Date.now())}.${ext}`;
+  const { error } = await sb.storage.from('trip-images').upload(path, file);
+  if (error) { showToast('Image upload failed: ' + error.message, true); return null; }
+  return sb.storage.from('trip-images').getPublicUrl(path).data.publicUrl;
+}
+function imgPick(url) {
+  const el = document.createElement('div');
+  el.className = 'tm-img-pick';
+  el.title = 'Choose photo';
+  const paint = u => { el.dataset.url = u || ''; el.style.backgroundImage = u ? `url("${u}")` : ''; el.textContent = u ? '' : '📷'; };
+  paint(url);
+  el.onclick = () => {
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'image/*';
+    inp.onchange = async () => {
+      if (!inp.files[0]) return;
+      el.classList.add('busy');
+      const u = await uploadTripImage(inp.files[0]);
+      el.classList.remove('busy');
+      if (u) paint(u);
+    };
+    inp.click();
+  };
+  return el;
+}
+function removeBtn() {
+  const b = document.createElement('button');
+  b.type = 'button'; b.className = 'btn btn-ghost btn-sm'; b.title = 'Remove'; b.textContent = '✕';
+  b.onclick = () => b.closest('.tm-row').remove();
+  return b;
+}
+function addDayRow(d = {}) {
+  const row = document.createElement('div');
+  row.className = 'tm-row day';
+  row.innerHTML = `<div><input type="text" class="dy-title" placeholder="Title, e.g. Kuala Lumpur → Tokyo">
+    <textarea class="dy-desc" rows="2" placeholder="What happens this day"></textarea></div>`;
+  row.querySelector('.dy-title').value = d.title || '';
+  row.querySelector('.dy-desc').value = d.desc || '';
+  row.appendChild(removeBtn());
+  document.getElementById('tm-days').appendChild(row);
+}
+function addHighlightRow(h = {}) {
+  const row = document.createElement('div');
+  row.className = 'tm-row media';
+  row.appendChild(imgPick(h.image));
+  const inp = document.createElement('input');
+  inp.type = 'text'; inp.className = 'hl-title'; inp.placeholder = 'e.g. Iconic Cherry Blossom Spots'; inp.value = h.title || '';
+  row.appendChild(inp);
+  row.appendChild(removeBtn());
+  document.getElementById('tm-highlights').appendChild(row);
+}
+function addHotelRow(h = {}) {
+  const row = document.createElement('div');
+  row.className = 'tm-row hotel';
+  row.appendChild(imgPick(h.image));
+  row.insertAdjacentHTML('beforeend', `<input type="text" class="hl-city" placeholder="City">
+    <input type="text" class="hl-hotel" placeholder="Hotel name">
+    <select class="hl-stars"><option value="0">—</option><option value="3">3★</option><option value="4">4★</option><option value="5">5★</option></select>`);
+  row.querySelector('.hl-city').value = h.city || '';
+  row.querySelector('.hl-hotel').value = h.hotel || '';
+  row.querySelector('.hl-stars').value = String(h.stars || 0);
+  row.appendChild(removeBtn());
+  document.getElementById('tm-hotels').appendChild(row);
+}
+let tripGallery = [], tripRouteImage = '';
+function renderGalleryThumbs() {
+  document.getElementById('tm-gallery').innerHTML = tripGallery.map((u, i) =>
+    `<div class="tm-thumb" style="background-image:url('${u}')"><button type="button" title="Remove" onclick="tripGallery.splice(${i},1);renderGalleryThumbs()">✕</button></div>`).join('');
+}
+function renderRouteThumb() {
+  document.getElementById('tm-route').innerHTML = tripRouteImage
+    ? `<div class="tm-thumb" style="background-image:url('${tripRouteImage}')"><button type="button" title="Remove" onclick="tripRouteImage='';renderRouteThumb()">✕</button></div>` : '';
+}
+async function handleGallerySelect(event) {
+  const files = [...event.target.files];
+  event.target.value = '';
+  for (const f of files) {
+    const u = await uploadTripImage(f);
+    if (u) { tripGallery.push(u); renderGalleryThumbs(); }
+  }
+}
+async function handleRouteSelect(event) {
+  const f = event.target.files[0];
+  event.target.value = '';
+  if (!f) return;
+  const u = await uploadTripImage(f);
+  if (u) { tripRouteImage = u; renderRouteThumb(); }
+}
+function fillTripContent(t = {}) {
+  const arr = v => Array.isArray(v) ? v : [];
+  document.getElementById('tm-tags').value = arr(t.tags).join(', ');
+  document.querySelectorAll('#tm-features input').forEach(c => { c.checked = arr(t.features).includes(c.value); });
+  tripGallery = [...arr(t.gallery)]; renderGalleryThumbs();
+  tripRouteImage = t.route_image || ''; renderRouteThumb();
+  ['tm-days', 'tm-highlights', 'tm-hotels'].forEach(id => document.getElementById(id).innerHTML = '');
+  arr(t.itinerary_days).forEach(d => addDayRow(d));
+  arr(t.highlights).forEach(h => addHighlightRow(h));
+  arr(t.accommodations).forEach(h => addHotelRow(h));
+  document.getElementById('tm-inclusions').value = t.inclusions || '';
+  document.getElementById('tm-exclusions').value = t.exclusions || '';
+}
+function readTripContent() {
+  const rows = (id, fn) => [...document.querySelectorAll(`#${id} .tm-row`)].map(fn);
+  return {
+    tags: document.getElementById('tm-tags').value.split(',').map(s => s.trim()).filter(Boolean),
+    features: [...document.querySelectorAll('#tm-features input:checked')].map(c => c.value),
+    gallery: tripGallery,
+    route_image: tripRouteImage || null,
+    itinerary_days: rows('tm-days', r => ({ title: r.querySelector('.dy-title').value.trim(), desc: r.querySelector('.dy-desc').value.trim() }))
+      .filter(d => d.title || d.desc),
+    highlights: rows('tm-highlights', r => ({ title: r.querySelector('.hl-title').value.trim(), image: r.querySelector('.tm-img-pick').dataset.url || '' }))
+      .filter(h => h.title || h.image),
+    accommodations: rows('tm-hotels', r => ({
+      city: r.querySelector('.hl-city').value.trim(), hotel: r.querySelector('.hl-hotel').value.trim(),
+      stars: parseInt(r.querySelector('.hl-stars').value) || 0, image: r.querySelector('.tm-img-pick').dataset.url || '',
+    })).filter(h => h.city || h.hotel),
+    inclusions: document.getElementById('tm-inclusions').value.trim() || null,
+    exclusions: document.getElementById('tm-exclusions').value.trim() || null,
+  };
+}
+
 function readPackageRows() {
   return [...document.querySelectorAll('#tm-packages .tm-row')].map(r => ({
     label: r.querySelector('.pk-label').value.trim(),
@@ -2021,6 +2209,7 @@ function openTripModal(id) {
     tripPackages(t).forEach(p => addPackageRow(p));
     tripDepartures(t).forEach(d => addDepartureRow(d));
     if (!tripPackages(t).length) addPackageRow();
+    fillTripContent(t);
     document.getElementById('tm-active').checked= t.is_active;
     document.getElementById('tm-cost').value    = allTripCosts[t.id] ?? '';
     existingImage = t.cover_image || '';
@@ -2030,6 +2219,7 @@ function openTripModal(id) {
     document.getElementById('tm-departures').innerHTML = '';
     addPackageRow({ days: 7 });
     addDepartureRow();
+    fillTripContent();
     document.getElementById('tm-pax').value=12;
     document.getElementById('tm-active').checked=true;
   }
@@ -2096,6 +2286,7 @@ async function saveTrip() {
     duration_days:cheapest?.days || 0,
     price_usd:cheapest?.price || 0,
     packages, departures,
+    ...readTripContent(),
     max_pax:parseInt(document.getElementById('tm-pax').value) || 0,
     category:document.getElementById('tm-category').value.trim() || null,
     region:document.getElementById('tm-region').value.trim() || null,

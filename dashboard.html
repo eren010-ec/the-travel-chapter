@@ -714,6 +714,28 @@ async function init() {
   await Promise.all([loadReferralData(), loadProducts(), loadProductRequests(), loadCheckins(), loadCheckinRewards(), loadVouchers(), loadDrawTickets(), loadDrawPlays()]);
   buildTripFilters();
   renderSidebar(); renderOverview(); renderCheckin(); renderTrips(); renderBookings(); renderVouchers(); renderPoints(); prefillProfile(); renderReferralsPage(); renderDrawPlays(); renderRewards();
+  openPendingBooking();
+}
+
+// trip.html "Book Now" hands over the member's choice — as URL params when already
+// signed in, or via sessionStorage across the login detour — so open the form pre-filled.
+function openPendingBooking() {
+  const qs = new URLSearchParams(location.search);
+  let sel = qs.get('book') ? Object.fromEntries(qs) : null;
+  try {
+    const p = JSON.parse(sessionStorage.getItem('tc_pending_booking') || 'null');
+    if (!sel && p && Date.now() - p.at < 30 * 60 * 1000) sel = p;
+    sessionStorage.removeItem('tc_pending_booking');
+  } catch (e) {}
+  if (qs.get('book')) history.replaceState(null, '', location.pathname);
+  if (!sel || !trips.some(t => t.id === sel.book)) return;
+  document.querySelector('.nav-item[data-page="trips"]')?.click();
+  openBookingModal(sel.book);
+  const setIf = (id, v) => { const el = document.getElementById(id); if (v != null && [...el.options].some(o => o.value === String(v))) el.value = String(v); };
+  setIf('modal-package', sel.pkg);
+  setIf('modal-date', sel.dep);
+  document.getElementById('modal-pax').value = Math.max(1, parseInt(sel.pax) || 1);
+  updateTotal();
 }
 
 async function loadProfile() {

@@ -126,49 +126,207 @@ body { font-family:'Nunito',sans-serif; background:var(--cream); color:var(--tex
 .lang-btn:hover { color:var(--navy); }
 .lang-btn.active { background:var(--navy); color:var(--white); }
 
-/* ── TRIP ── */
-.trip-wrap { max-width:920px; margin:0 auto; padding:104px 6% 100px; }
-.trip-back { display:inline-flex; align-items:center; gap:6px; font-size:0.8rem; letter-spacing:0.04em; color:var(--smoke); text-decoration:none; margin-bottom:24px; transition:color 0.2s; }
-.trip-back:hover { color:var(--navy); }
+/* ── TRIP PAGE ── */
+.tp-hero { position:relative; min-height:500px; padding:118px 6% 150px; color:#fff; background:#173a80 center 40% / cover no-repeat; overflow:hidden; }
+.tp-hero::before { content:''; position:absolute; inset:0; background:linear-gradient(90deg, rgba(10,27,68,0.86) 0%, rgba(10,27,68,0.55) 45%, rgba(10,27,68,0.08) 75%), linear-gradient(0deg, rgba(10,27,68,0.45) 0%, transparent 40%); }
+.tp-hero::after { content:''; position:absolute; left:-5%; right:-5%; bottom:-70px; height:140px; background:var(--cream); border-radius:50% 50% 0 0 / 100% 100% 0 0; }
+.tp-hero-inner { position:relative; z-index:1; max-width:1220px; margin:0 auto; }
+.tp-hero-copy { max-width:620px; }
+.tp-crumbs { display:flex; flex-wrap:wrap; align-items:center; gap:6px; font-size:0.82rem; font-weight:600; margin-bottom:16px; color:rgba(255,255,255,0.85); }
+.tp-crumbs a { color:#fff; text-decoration:none; }
+.tp-crumbs a:hover { text-decoration:underline; }
+.tp-crumbs span[aria-hidden] { opacity:0.6; }
+.tp-title { font-size:clamp(2rem, 4.2vw, 3.1rem); font-weight:900; line-height:1.1; text-shadow:0 2px 18px rgba(0,0,0,0.35); }
+.tp-summary { margin-top:14px; font-size:1.05rem; line-height:1.6; color:rgba(255,255,255,0.94); text-shadow:0 1px 10px rgba(0,0,0,0.35); }
+.tp-meta { display:flex; flex-wrap:wrap; gap:10px 22px; margin-top:18px; font-size:0.9rem; font-weight:700; }
+.tp-meta span { display:inline-flex; align-items:center; gap:7px; }
+.tp-meta svg { width:17px; height:17px; flex-shrink:0; }
+.tp-tags { display:flex; flex-wrap:wrap; gap:8px; margin-top:18px; }
+.tp-tag { padding:6px 14px; border-radius:999px; font-size:0.78rem; font-weight:800; background:#fff; color:var(--navy); box-shadow:0 4px 12px rgba(0,0,0,0.12); }
+.tp-tag:nth-child(4n+1) { background:#fff1cf; color:#8a5a00; }
+.tp-tag:nth-child(4n+2) { background:#ffe3ee; color:#b0245c; }
+.tp-tag:nth-child(4n+3) { background:#e3f0ff; color:#1557b0; }
 
-.trip-hero { position:relative; border-radius:18px; overflow:hidden; background:var(--cream2); aspect-ratio:16/10; display:flex; align-items:flex-end; }
-.trip-hero img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
-.trip-hero-fallback { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:5rem; background:linear-gradient(160deg,#2d3561,#1a2a3a); }
-.trip-hero-fallback[hidden] { display:none; }
-.trip-hero-overlay { position:relative; z-index:1; width:100%; padding:56px 34px 30px; background:linear-gradient(to top, rgba(20,24,34,0.82) 0%, rgba(20,24,34,0.25) 60%, transparent 100%); }
-.trip-eyebrow { font-size:0.68rem; letter-spacing:0.32em; text-transform:uppercase; color:var(--gold2); margin-bottom:12px; }
-.trip-title { font-family:'Nunito',sans-serif; font-size:2.9rem; font-weight:300; line-height:1.12; color:var(--white); }
+.tp-body { position:relative; z-index:2; max-width:1220px; margin:-120px auto 0; padding:0 6% 40px; display:grid; grid-template-columns:minmax(0,1fr) 360px; grid-template-areas:"gallery aside" "main aside"; gap:0 32px; }
+.tp-gallery-wrap { grid-area:gallery; }
+.tp-main { grid-area:main; min-width:0; }
+.tp-aside { grid-area:aside; align-self:start; position:sticky; top:88px; margin-top:-250px; }
+@media (max-width:1060px) { .tp-body { grid-template-columns:minmax(0,1fr) 320px; gap:0 24px; } }
 
-.trip-facts { display:flex; flex-wrap:wrap; gap:10px 26px; margin:28px 0 6px; padding-bottom:26px; border-bottom:1px solid var(--border); }
-.trip-fact { display:flex; flex-direction:column; gap:3px; }
-.trip-fact-lbl { font-size:0.66rem; letter-spacing:0.14em; text-transform:uppercase; color:var(--smoke); }
-.trip-fact-val { font-family:'Nunito',sans-serif; font-size:1.35rem; color:var(--navy); }
-.trip-fact-val small { font-family:'Nunito',sans-serif; font-size:0.72rem; color:var(--smoke); }
+/* Gallery strip */
+.tp-gallery { display:grid; grid-template-columns:repeat(6, 1fr); gap:8px; padding:8px; background:#fff; border-radius:var(--radius); box-shadow:var(--shadow); }
+.tp-gallery[hidden] { display:none; }
+.tp-gallery button { position:relative; border:none; padding:0; cursor:pointer; border-radius:12px; overflow:hidden; aspect-ratio:4/3; background:var(--cream2); }
+.tp-gallery img { width:100%; height:100%; object-fit:cover; display:block; transition:transform 0.3s; }
+.tp-gallery button:hover img { transform:scale(1.05); }
+.tp-gallery-more { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:4px; background:rgba(10,27,68,0.55); color:#fff; font-weight:800; font-size:0.85rem; }
+.tp-gallery-more svg { width:22px; height:22px; }
 
-.trip-section { margin-top:34px; }
-.trip-section h2 { font-family:'Nunito',sans-serif; font-size:1.7rem; font-weight:400; color:var(--navy); margin-bottom:14px; }
-.trip-section p { font-size:0.92rem; line-height:1.85; color:var(--smoke); }
-.trip-prose { font-size:0.92rem; line-height:1.85; color:var(--smoke); white-space:pre-wrap; }
-.trip-departures { display:flex; flex-wrap:wrap; gap:8px; }
-.trip-dep-chip { padding:8px 14px; border:1px solid var(--border); border-radius:999px; background:var(--white); font-size:0.8rem; color:var(--navy); }
-.trip-dep-chip small { color:var(--smoke); margin-left:4px; }
-.trip-packages { display:flex; flex-direction:column; gap:8px; }
-.trip-pkg { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:12px 16px; border:1px solid var(--border); border-radius:12px; background:var(--white); }
-.trip-pkg-name { font-size:0.88rem; color:var(--navy); font-weight:600; }
-.trip-pkg-name small { display:block; font-weight:400; color:var(--smoke); font-size:0.76rem; margin-top:2px; }
-.trip-pkg-price { font-size:0.95rem; font-weight:700; color:var(--navy); white-space:nowrap; }
-.trip-pkg-price small { font-weight:400; color:var(--smoke); font-size:0.72rem; }
+/* Sections */
+.tp-sec { margin-top:34px; }
+.tp-sec[hidden] { display:none; }
+.tp-sec-head { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:16px; }
+.tp-h2 { position:relative; font-size:1.4rem; font-weight:900; color:var(--navy); padding-bottom:8px; }
+.tp-h2::after { content:''; position:absolute; left:0; bottom:0; width:38px; height:4px; border-radius:4px; background:var(--gold2); }
+.tp-link { font-size:0.85rem; font-weight:800; color:var(--gold); text-decoration:none; white-space:nowrap; background:none; border:none; cursor:pointer; font-family:inherit; }
+.tp-link:hover { text-decoration:underline; }
+.tp-desc-row { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(0,1fr); gap:24px; align-items:start; }
+.tp-desc-row.no-features { grid-template-columns:1fr; }
+.tp-desc { font-size:0.95rem; line-height:1.8; color:#4b5563; white-space:pre-line; }
+.tp-features { display:grid; grid-template-columns:repeat(3, 1fr); gap:16px 10px; padding:18px; background:var(--blue-soft, #e8f1fd); border-radius:16px; }
+.tp-features[hidden] { display:none; }
+.tp-feature { display:flex; align-items:center; gap:9px; font-size:0.78rem; font-weight:700; color:var(--navy); line-height:1.25; }
+.tp-feature svg { width:26px; height:26px; flex-shrink:0; color:var(--gold); }
 
-.trip-cta-bar { margin-top:44px; padding-top:28px; border-top:1px solid var(--border); display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
-.btn-book { padding:14px 34px; border-radius:8px; border:none; background:var(--navy); color:var(--white); font-family:'Nunito',sans-serif; font-size:0.8rem; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; text-decoration:none; transition:all 0.2s; }
-.btn-book:hover { background:var(--navy2); box-shadow:0 4px 14px rgba(15,37,87,0.2); }
-.btn-book.is-tba { background:var(--cream3); color:var(--smoke); cursor:default; pointer-events:none; }
-.btn-wa { display:inline-flex; align-items:center; gap:9px; padding:14px 22px; border-radius:8px; background:var(--wa); color:var(--white); font-family:'Nunito',sans-serif; font-size:0.8rem; font-weight:500; letter-spacing:0.06em; text-decoration:none; transition:filter 0.2s, box-shadow 0.2s; }
-.btn-wa:hover { filter:brightness(0.94); box-shadow:0 4px 14px rgba(37,211,102,0.3); }
-.btn-wa svg { width:18px; height:18px; fill:currentColor; }
+/* Highlights */
+.tp-highlights { display:grid; grid-template-columns:repeat(auto-fill, minmax(96px, 1fr)); gap:18px 10px; }
+.tp-hl { text-align:center; font-size:0.8rem; font-weight:700; color:var(--navy); line-height:1.3; }
+.tp-hl-img { width:100%; max-width:110px; aspect-ratio:1; margin:0 auto 9px; border-radius:50%; overflow:hidden; border:4px solid #fff; box-shadow:var(--shadow-sm); background:var(--cream2); }
+.tp-hl-img img { width:100%; height:100%; object-fit:cover; display:block; }
 
-.trip-missing { max-width:520px; margin:60px auto; text-align:center; color:var(--smoke); font-size:0.95rem; line-height:1.8; }
+/* Itinerary */
+.tp-days { display:flex; flex-direction:column; gap:10px; }
+.tp-day { display:flex; gap:12px; align-items:stretch; }
+.tp-day[hidden] { display:none; }
+.tp-day-badge { position:relative; flex-shrink:0; width:52px; height:52px; border-radius:50%; background:linear-gradient(160deg, var(--gold), #1557b0); color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1; box-shadow:0 6px 14px rgba(31,111,214,0.3); }
+.tp-day-badge small { font-size:0.58rem; font-weight:700; opacity:0.85; }
+.tp-day-badge b { font-size:1.2rem; font-weight:900; }
+.tp-day:not(:last-child) .tp-day-badge::after { content:''; position:absolute; top:100%; left:50%; width:2px; height:12px; background:#c9daf3; }
+.tp-day-card { flex:1; min-width:0; display:flex; align-items:center; gap:10px; text-align:left; padding:12px 16px; background:#fff; border:1px solid var(--border); border-radius:14px; cursor:pointer; font-family:inherit; transition:border-color 0.2s, box-shadow 0.2s; }
+.tp-day-card:hover { border-color:#bcd3f3; box-shadow:var(--shadow-sm); }
+.tp-day-text { flex:1; min-width:0; }
+.tp-day-title { font-size:0.95rem; font-weight:800; color:var(--navy); }
+.tp-day-desc { margin-top:3px; font-size:0.83rem; line-height:1.55; color:#4b5563; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; white-space:pre-line; }
+.tp-day.open .tp-day-desc { -webkit-line-clamp:unset; display:block; }
+.tp-day-card > svg { width:18px; height:18px; flex-shrink:0; color:var(--gold); transition:transform 0.2s; }
+.tp-day.open .tp-day-card > svg { transform:rotate(90deg); }
+.tp-days-more { margin-top:10px; width:100%; padding:11px; border:none; border-radius:12px; background:var(--blue-soft, #e8f1fd); color:var(--gold); font-family:inherit; font-size:0.88rem; font-weight:800; cursor:pointer; }
+.tp-prose { font-size:0.93rem; line-height:1.8; color:#4b5563; white-space:pre-wrap; background:#fff; border:1px solid var(--border); border-radius:14px; padding:18px 20px; }
+
+/* Accommodation */
+.tp-hotels { display:grid; grid-template-columns:repeat(auto-fill, minmax(150px, 1fr)); gap:14px; }
+.tp-hotel-img { aspect-ratio:4/3; border-radius:12px; overflow:hidden; background:var(--cream2); margin-bottom:8px; }
+.tp-hotel-img img { width:100%; height:100%; object-fit:cover; display:block; }
+.tp-hotel-city { font-size:0.88rem; font-weight:800; color:var(--navy); }
+.tp-hotel-name { font-size:0.78rem; color:#4b5563; margin-top:2px; line-height:1.4; }
+.tp-hotel-sim { font-size:0.74rem; color:var(--smoke); margin-top:2px; }
+.tp-stars { color:var(--gold2); letter-spacing:1px; margin-left:4px; }
+
+/* Map */
+.tp-map { display:block; position:relative; border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow-sm); background:var(--cream2); }
+.tp-map img { width:100%; aspect-ratio:16/9; object-fit:cover; display:block; }
+.tp-map-expand { position:absolute; top:12px; right:12px; width:38px; height:38px; border-radius:50%; background:#fff; display:flex; align-items:center; justify-content:center; color:var(--navy); box-shadow:var(--shadow-sm); }
+.tp-map-expand svg { width:18px; height:18px; }
+
+/* Inclusions / exclusions */
+.tp-incl { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.tp-incl-card { background:#fff; border:1px solid var(--border); border-radius:16px; padding:18px 20px; }
+.tp-incl-card[hidden] { display:none; }
+.tp-incl-head { display:flex; align-items:center; gap:10px; font-size:1.05rem; font-weight:900; color:var(--navy); margin-bottom:12px; }
+.tp-incl-icon { width:28px; height:28px; border-radius:50%; display:flex; align-items:center; justify-content:center; color:#fff; flex-shrink:0; }
+.tp-incl-icon svg { width:16px; height:16px; }
+.tp-incl-card.yes .tp-incl-icon { background:#22a55a; }
+.tp-incl-card.no .tp-incl-icon { background:#e04848; }
+.tp-incl-card ul { list-style:none; display:flex; flex-direction:column; gap:7px; }
+.tp-incl-card li { position:relative; padding-left:22px; font-size:0.86rem; line-height:1.5; color:#374151; }
+.tp-incl-card li::before { position:absolute; left:0; top:0; font-weight:900; }
+.tp-incl-card.yes li::before { content:'✓'; color:#22a55a; }
+.tp-incl-card.no li::before { content:'✕'; color:#e04848; }
+
+/* Booking card */
+.tp-book { background:#fff; border-radius:22px; padding:22px; box-shadow:0 18px 50px rgba(15,37,87,0.18); border:1px solid #e6ecf5; }
+.tp-book-from { font-size:0.82rem; font-weight:700; color:var(--smoke); }
+.tp-book-price { display:flex; align-items:baseline; flex-wrap:wrap; gap:8px; margin:2px 0 16px; }
+.tp-book-price b { font-size:2.1rem; font-weight:900; color:var(--gold); line-height:1.1; }
+.tp-book-price span { font-size:0.85rem; font-weight:700; color:var(--gold); }
+.tp-book-price b.tba { font-size:1.5rem; color:var(--navy); }
+.tp-field { margin-bottom:12px; }
+.tp-field[hidden] { display:none; }
+.tp-field label { display:flex; align-items:center; gap:8px; font-size:0.84rem; font-weight:800; color:var(--navy); margin-bottom:6px; }
+.tp-field label svg { width:18px; height:18px; color:var(--gold); }
+.tp-field select { width:100%; padding:11px 14px; border:1.5px solid #dbe4f1; border-radius:12px; background:#fff; color:var(--navy); font-family:inherit; font-size:0.9rem; font-weight:600; cursor:pointer; }
+.tp-field select:focus { border-color:var(--gold); outline:none; }
+.tp-total { display:flex; justify-content:space-between; align-items:baseline; padding:10px 2px 14px; font-size:0.84rem; font-weight:700; color:var(--smoke); }
+.tp-total b { font-size:1.15rem; font-weight:900; color:var(--navy); }
+.tp-total[hidden] { display:none; }
+.tp-btn { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; padding:14px 18px; border-radius:14px; font-family:inherit; font-size:1rem; font-weight:800; text-decoration:none; cursor:pointer; transition:filter 0.2s, box-shadow 0.2s, background 0.2s; }
+.tp-btn svg { width:22px; height:22px; flex-shrink:0; }
+.tp-btn-book { border:none; background:linear-gradient(180deg, #f8c443, #f0a91c); color:#fff; box-shadow:0 8px 20px rgba(240,169,28,0.35); }
+.tp-btn-book:hover { filter:brightness(1.04); box-shadow:0 10px 24px rgba(240,169,28,0.45); }
+.tp-btn-book.is-tba { background:var(--cream3); color:var(--smoke); box-shadow:none; cursor:default; pointer-events:none; }
+.tp-btn-enq { margin-top:10px; border:2px solid var(--gold); background:#fff; color:var(--gold); }
+.tp-btn-enq:hover { background:var(--blue-soft, #e8f1fd); }
+.tp-trust { list-style:none; margin-top:16px; display:flex; flex-direction:column; gap:8px; }
+.tp-trust li { display:flex; align-items:center; gap:9px; font-size:0.8rem; font-weight:600; color:#4b5563; }
+.tp-trust svg { width:17px; height:17px; flex-shrink:0; color:var(--gold); }
+
+/* Related */
+.tp-related { max-width:1220px; margin:0 auto; padding:10px 6% 70px; }
+.tp-related[hidden] { display:none; }
+.tp-rel-track { display:grid; grid-auto-flow:column; grid-auto-columns:calc((100% - 42px) / 4); gap:14px; overflow-x:auto; scroll-snap-type:x mandatory; padding-bottom:6px; scrollbar-width:none; }
+.tp-rel-track::-webkit-scrollbar { display:none; }
+.tp-rel { position:relative; display:block; aspect-ratio:16/10; border-radius:16px; overflow:hidden; scroll-snap-align:start; background:linear-gradient(160deg,#2d5fb0,#0f2557); text-decoration:none; box-shadow:var(--shadow-sm); }
+.tp-rel img { position:absolute; inset:0; width:100%; height:100%; object-fit:cover; transition:transform 0.35s; }
+.tp-rel:hover img { transform:scale(1.05); }
+.tp-rel::after { content:''; position:absolute; inset:0; background:linear-gradient(0deg, rgba(10,27,68,0.8) 0%, transparent 60%); }
+.tp-rel-foot { position:absolute; left:12px; right:12px; bottom:10px; z-index:1; display:flex; align-items:flex-end; justify-content:space-between; gap:8px; }
+.tp-rel-name { color:#fff; font-size:0.88rem; font-weight:800; line-height:1.25; }
+.tp-rel-price { flex-shrink:0; padding:4px 9px; border-radius:8px; background:#fff; color:var(--navy); font-size:0.72rem; font-weight:700; white-space:nowrap; }
+.tp-rel-price b { color:var(--gold); font-weight:900; }
+
+/* Lightbox */
+.tp-lightbox { position:fixed; inset:0; z-index:300; background:rgba(5,12,30,0.92); display:flex; align-items:center; justify-content:center; padding:50px 60px; }
+.tp-lightbox[hidden] { display:none; }
+.tp-lightbox img { max-width:100%; max-height:100%; border-radius:12px; object-fit:contain; }
+.tp-lb-btn { position:absolute; width:46px; height:46px; border-radius:50%; border:none; background:rgba(255,255,255,0.14); color:#fff; font-size:1.4rem; cursor:pointer; display:flex; align-items:center; justify-content:center; }
+.tp-lb-btn:hover { background:rgba(255,255,255,0.26); }
+.tp-lb-close { top:14px; right:14px; }
+.tp-lb-prev { left:10px; top:50%; transform:translateY(-50%); }
+.tp-lb-next { right:10px; top:50%; transform:translateY(-50%); }
+.tp-lb-count { position:absolute; bottom:16px; left:0; right:0; text-align:center; color:rgba(255,255,255,0.75); font-size:0.85rem; font-weight:700; }
+
+.trip-missing { max-width:520px; margin:0 auto; padding:150px 6% 80px; text-align:center; color:var(--smoke); font-size:0.95rem; line-height:1.8; }
 .trip-missing a { color:var(--gold); }
+
+@media (max-width:900px) {
+  .tp-hero { min-height:0; padding:96px 5% 120px; }
+  .tp-hero::before { background:linear-gradient(180deg, rgba(10,27,68,0.35) 0%, rgba(10,27,68,0.75) 100%); }
+  .tp-hero::after { bottom:-90px; }
+  .tp-body { grid-template-columns:minmax(0,1fr); grid-template-areas:"aside" "gallery" "main"; margin-top:-90px; padding:0 4% 30px; }
+  .tp-aside { position:static; margin-top:0; }
+  .tp-book { padding:18px; }
+  .tp-book-fields { display:grid; grid-template-columns:1.7fr 1fr; gap:0 8px; }
+  .tp-field select { padding:10px 8px; font-size:0.82rem; }
+  .tp-field label { font-size:0.78rem; }
+  .tp-book-fields .tp-field.wide { grid-column:1/-1; }
+  .tp-book-btns { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .tp-btn-enq { margin-top:0; }
+  .tp-btn { padding:12px 10px; font-size:0.92rem; }
+  .tp-gallery-wrap { margin-top:18px; }
+  .tp-gallery { grid-template-columns:repeat(4, 1fr); }
+  .tp-gallery button:nth-child(n+5) { display:none; }
+  .tp-desc-row { grid-template-columns:1fr; }
+  .tp-features { grid-template-columns:repeat(4, 1fr); padding:14px 10px; gap:12px 6px; }
+  .tp-feature { flex-direction:column; text-align:center; gap:5px; font-size:0.7rem; }
+  .tp-highlights { display:flex; overflow-x:auto; gap:12px; scrollbar-width:none; margin:0 -4%; padding:0 4%; }
+  .tp-highlights::-webkit-scrollbar { display:none; }
+  .tp-hl { flex:0 0 88px; font-size:0.74rem; }
+  .tp-hotels { display:flex; overflow-x:auto; gap:12px; scrollbar-width:none; margin:0 -4%; padding:0 4%; }
+  .tp-hotels::-webkit-scrollbar { display:none; }
+  .tp-hotel { flex:0 0 140px; }
+  .tp-related { padding:0 4% 120px; }
+  .tp-rel-track { grid-auto-columns:72%; }
+  .tp-lightbox { padding:56px 8px; }
+  .tp-lb-prev, .tp-lb-next { top:auto; bottom:8px; transform:none; }
+}
+@media (max-width:560px) {
+  .tp-incl { grid-template-columns:1fr; }
+  .tp-features { grid-template-columns:repeat(3, 1fr); }
+  .tp-summary { font-size:0.95rem; }
+}
+@media (max-width:380px) {
+  .tp-book-fields { grid-template-columns:1fr; }
+}
 
 /* ── FOOTER ── */
 footer { background:var(--navy); padding:56px 6% 32px; }
@@ -186,9 +344,6 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 @media(max-width:1024px) { .footer-grid { grid-template-columns:1fr 1fr; } }
 @media(max-width:768px) {
   .nav-social { display:none; }
-  .trip-wrap { padding:96px 5% 80px; }
-  .trip-title { font-size:2.2rem; }
-  .trip-hero-overlay { padding:44px 22px 24px; }
   .footer-grid { grid-template-columns:1fr; gap:32px; }
 }
 @media(max-width:400px) {
@@ -196,8 +351,6 @@ footer { background:var(--navy); padding:56px 6% 32px; }
   .nav-logo-text { font-size:0.72rem; letter-spacing:0.08em; }
   .nav-logo-img { height:44px; }
   .btn-nav-primary, .btn-nav-ghost { padding:8px 12px; font-size:0.74rem; }
-  .trip-cta-bar { flex-direction:column; align-items:stretch; }
-  .btn-book, .btn-wa { text-align:center; justify-content:center; }
 }
 </style>
 <link rel="stylesheet" href="theme.css">
@@ -250,52 +403,114 @@ footer { background:var(--navy); padding:56px 6% 32px; }
 </nav>
 
 <!-- ── TRIP ── -->
-<main class="trip-wrap">
-  <a href="trips.html" class="trip-back" id="trip-back" data-i18n="trip_page.back">← All trips</a>
-
-  <div id="trip-content" hidden>
-    <div class="trip-hero">
-      <img id="trip-img" alt="" hidden>
-      <div class="trip-hero-fallback" id="trip-img-fallback">🧭</div>
-      <div class="trip-hero-overlay">
-        <div class="trip-eyebrow" id="trip-eyebrow" data-i18n="trips.eyebrow">Our Journeys</div>
-        <h1 class="trip-title" id="trip-title"></h1>
+<main id="trip-content" hidden>
+  <section class="tp-hero" id="tp-hero">
+    <div class="tp-hero-inner">
+      <div class="tp-hero-copy">
+        <nav class="tp-crumbs" id="tp-crumbs" aria-label="Breadcrumb"></nav>
+        <h1 class="tp-title" id="trip-title"></h1>
+        <p class="tp-summary" id="tp-summary" hidden></p>
+        <div class="tp-meta" id="tp-meta"></div>
+        <div class="tp-tags" id="tp-tags"></div>
       </div>
     </div>
+  </section>
 
-    <div class="trip-facts" id="trip-facts"></div>
+  <div class="tp-body">
+    <aside class="tp-aside">
+      <div class="tp-book">
+        <div class="tp-book-from" id="tp-from" data-i18n="trips.from">From</div>
+        <div class="tp-book-price" id="tp-price"></div>
+        <div class="tp-book-fields">
+          <div class="tp-field wide" id="tp-pkg-field" hidden>
+            <label for="tp-pkg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8Z"/><circle cx="7.5" cy="7.5" r="1.5"/></svg><span data-i18n="dash.package">Package</span></label>
+            <select id="tp-pkg"></select>
+          </div>
+          <div class="tp-field">
+            <label for="tp-date"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg><span data-i18n="tp.select_date">Select Departure Date</span></label>
+            <select id="tp-date"></select>
+          </div>
+          <div class="tp-field">
+            <label for="tp-pax"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg><span data-i18n="tp.travellers">Travellers</span></label>
+            <select id="tp-pax"></select>
+          </div>
+        </div>
+        <div class="tp-total" id="tp-total" hidden><span data-i18n="tp.est_total">Estimated total</span><b id="tp-total-val"></b></div>
+        <div class="tp-book-btns">
+          <a class="tp-btn tp-btn-book" id="trip-book" href="login.html"><span id="trip-book-label" data-i18n="trips.book_now">Book Now</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="rgba(255,255,255,0.25)" stroke="none"/><path d="M8 12h8M13 8l4 4-4 4"/></svg></a>
+          <a class="tp-btn tp-btn-enq" id="trip-wa" href="contact.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.5 2 2 5.9 2 10.7c0 2.7 1.4 5.1 3.7 6.7L5 22l4.6-2.6c.8.2 1.6.3 2.4.3 5.5 0 10-3.9 10-8.7S17.5 2 12 2Zm-4 10.2a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6Zm4 0a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6Zm4 0a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6Z"/></svg><span data-i18n="tp.enquire">Enquire Now</span></a>
+        </div>
+        <ul class="tp-trust">
+          <li><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.7 8 11 4.6-1.3 8-6 8-11V5l-8-3Zm-1.2 14.2-3.5-3.5 1.4-1.4 2.1 2.1 4.8-4.8 1.4 1.4-6.2 6.2Z"/></svg><span data-i18n="tp.trust_team">Our team confirms every booking with you</span></li>
+          <li><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.7 8 11 4.6-1.3 8-6 8-11V5l-8-3Zm-1.2 14.2-3.5-3.5 1.4-1.4 2.1 2.1 4.8-4.8 1.4 1.4-6.2 6.2Z"/></svg><span data-i18n="tp.trust_nopay">No online payment needed to reserve</span></li>
+          <li><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="7" r="4"/><path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8H4Z"/></svg><span data-i18n="tp.trust_expert">Expert travel consultant</span></li>
+        </ul>
+      </div>
+    </aside>
 
-    <div class="trip-section" id="trip-overview-sec">
-      <h2 data-i18n="trip_page.overview">Overview</h2>
-      <p id="trip-overview"></p>
-    </div>
+    <div class="tp-gallery-wrap"><div class="tp-gallery" id="tp-gallery" hidden></div></div>
 
-    <div class="trip-section" id="trip-itinerary-sec" hidden>
-      <h2 data-i18n="trip_page.itinerary">Itinerary</h2>
-      <div class="trip-prose" id="trip-itinerary"></div>
-    </div>
+    <div class="tp-main">
+      <section class="tp-sec" id="tp-desc-sec">
+        <div class="tp-desc-row" id="tp-desc-row">
+          <div>
+            <div class="tp-sec-head"><h2 class="tp-h2" data-i18n="tp.description">Description</h2></div>
+            <p class="tp-desc" id="trip-overview"></p>
+          </div>
+          <div class="tp-features" id="tp-features" hidden></div>
+        </div>
+      </section>
 
-    <div class="trip-section" id="trip-packages-sec" hidden>
-      <h2 data-i18n="trip_page.packages">Packages &amp; Prices</h2>
-      <div class="trip-packages" id="trip-packages"></div>
-    </div>
+      <section class="tp-sec" id="tp-hl-sec" hidden>
+        <div class="tp-sec-head"><h2 class="tp-h2" data-i18n="tp.highlights">Trip Highlights</h2></div>
+        <div class="tp-highlights" id="tp-highlights"></div>
+      </section>
 
-    <div class="trip-section" id="trip-departures-sec" hidden>
-      <h2 data-i18n="trips_page.departures">Departures</h2>
-      <div class="trip-departures" id="trip-departures"></div>
-    </div>
+      <section class="tp-sec" id="trip-itinerary-sec" hidden>
+        <div class="tp-sec-head"><h2 class="tp-h2" data-i18n="tp.itinerary">Day-by-Day Itinerary</h2></div>
+        <div id="trip-itinerary"></div>
+      </section>
 
-    <div class="trip-cta-bar">
-      <a class="btn-book" id="trip-book" href="login.html" data-i18n="trips.book_now">Book Now</a>
-      <a class="btn-wa" id="trip-wa" href="#" target="_blank" rel="noopener">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.945C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884a9.86 9.86 0 001.51 5.26l-.999 3.648 3.477-.907zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.767.967-.94 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/></svg>
-        <span data-i18n="trip_page.whatsapp">WhatsApp</span>
-      </a>
+      <section class="tp-sec" id="tp-hotels-sec" hidden>
+        <div class="tp-sec-head"><h2 class="tp-h2" data-i18n="tp.accommodation">Accommodation Preview</h2></div>
+        <div class="tp-hotels" id="tp-hotels"></div>
+      </section>
+
+      <section class="tp-sec" id="tp-map-sec" hidden>
+        <div class="tp-sec-head"><h2 class="tp-h2" data-i18n="tp.map">Map &amp; Route</h2><a class="tp-link" id="tp-map-link" href="#" target="_blank" rel="noopener"><span data-i18n="tp.view_map">View Full Map</span> →</a></div>
+        <a class="tp-map" id="tp-map" href="#" target="_blank" rel="noopener"><img id="tp-map-img" alt="" loading="lazy"><span class="tp-map-expand" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg></span></a>
+      </section>
+
+      <section class="tp-sec" id="tp-incl-sec" hidden>
+        <div class="tp-incl">
+          <div class="tp-incl-card yes" id="tp-incl-yes" hidden>
+            <div class="tp-incl-head"><span class="tp-incl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5L20 7"/></svg></span><span data-i18n="tp.inclusions">Inclusions</span></div>
+            <ul id="tp-incl-list"></ul>
+          </div>
+          <div class="tp-incl-card no" id="tp-incl-no" hidden>
+            <div class="tp-incl-head"><span class="tp-incl-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg></span><span data-i18n="tp.exclusions">Exclusions</span></div>
+            <ul id="tp-excl-list"></ul>
+          </div>
+        </div>
+      </section>
     </div>
   </div>
 
-  <p class="trip-missing" id="trip-missing" hidden></p>
+  <section class="tp-related" id="tp-related" hidden>
+    <div class="tp-sec-head"><h2 class="tp-h2" data-i18n="tp.related">You May Also Like</h2><a class="tp-link" href="trips.html"><span data-i18n="tp.view_more">View More Tours</span> →</a></div>
+    <div class="tp-rel-track" id="tp-rel-track"></div>
+  </section>
 </main>
+
+<p class="trip-missing" id="trip-missing" hidden></p>
+
+<div class="tp-lightbox" id="tp-lightbox" hidden role="dialog" aria-modal="true">
+  <img id="tp-lb-img" alt="">
+  <button class="tp-lb-btn tp-lb-close" id="tp-lb-close" type="button" aria-label="Close">✕</button>
+  <button class="tp-lb-btn tp-lb-prev" id="tp-lb-prev" type="button" aria-label="Previous">‹</button>
+  <button class="tp-lb-btn tp-lb-next" id="tp-lb-next" type="button" aria-label="Next">›</button>
+  <div class="tp-lb-count" id="tp-lb-count"></div>
+</div>
 
 <!-- ── FOOTER ── -->
 <footer>
@@ -396,6 +611,46 @@ sb.auth.getSession().then(({ data: { session } }) => {
 });
 
 // ── RENDER ──────────────────────────────────────────────────
+const ICONS = {
+  pin:   '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2a7 7 0 0 0-7 7c0 5.2 7 13 7 13s7-7.8 7-13a7 7 0 0 0-7-7Zm0 9.5A2.5 2.5 0 1 1 12 6.5a2.5 2.5 0 0 1 0 5Z"/></svg>',
+  cal:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+  group: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="9" cy="7" r="4"/><path d="M1 21c0-4.4 3.6-8 8-8s8 3.6 8 8H1Z"/><path d="M16.5 3.2a4 4 0 0 1 0 7.6M19 13.5c2.4 1.2 4 3.6 4 6.5h-3" fill="none" stroke="currentColor" stroke-width="2"/></svg>',
+  arrow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>',
+  cam:   '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h4l2-3h6l2 3h4v12H3z"/><circle cx="12" cy="13" r="4"/></svg>',
+};
+const FEATURES = {
+  flight:    '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5Z"/></svg>',
+  hotel:     '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 2h12v20h-4v-4H8v4H4V2Zm3 3v2h2V5H7Zm4 0v2h2V5h-2Zm-4 4v2h2V9H7Zm4 0v2h2V9h-2Zm-4 4v2h2v-2H7Zm4 0v2h2v-2h-2Zm7-4h3v13h-3V9Z"/></svg>',
+  transport: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M4 16c0 .9.4 1.7 1 2.2V20a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1h8v1a1 1 0 0 0 1 1h1a1 1 0 0 0 1-1v-1.8c.6-.5 1-1.3 1-2.2V6c0-3.5-3.6-4-8-4S4 2.5 4 6v10Zm3.5 1a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3Zm9 0a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3ZM18 11H6V6h12v5Z"/></svg>',
+  guide:     '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="6" r="4"/><path d="M4 22c0-4.4 3.6-8 8-8s8 3.6 8 8H4Z"/><path d="M19 3v6h3l-3-3" /></svg>',
+  meals:     '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 5a2 2 0 0 1 2 2v.1A9 9 0 0 1 21 16H3a9 9 0 0 1 7-8.9V7a2 2 0 0 1 2-2ZM2 18h20v2H2v-2Z"/></svg>',
+  insurance: '<svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2 4 5v6c0 5 3.4 9.7 8 11 4.6-1.3 8-6 8-11V5l-8-3Zm-1.2 14.2-3.5-3.5 1.4-1.4 2.1 2.1 4.8-4.8 1.4 1.4-6.2 6.2Z"/></svg>',
+};
+const ITIN_PREVIEW = 3;   // days shown before "View Full Itinerary" on phones
+
+let galleryPhotos = [];
+let itinExpanded = false;
+
+function jsonList(v) { return Array.isArray(v) ? v : []; }
+function lines(text) { return String(text || '').split(/\r?\n/).map(l => l.replace(/^[-•*✓✔✕✗]\s*/, '').trim()).filter(Boolean); }
+
+// Older trips only have free-text itinerary: turn "Day 1: …" blocks into day cards,
+// otherwise show the text as-is.
+const DAY_RE = /^(?:day|hari|第)\s*(\d+)\s*(?:天|日)?\s*[:：.\-–—)]?\s*(.*)$/i;
+function itineraryDays(t) {
+  const days = jsonList(t.itinerary_days).filter(d => d && (d.title || d.desc));
+  if (days.length) return days;
+  const ls = String(t.itinerary || '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+  if (!ls.length || !DAY_RE.test(ls[0])) return null;
+  const out = [];
+  ls.forEach(l => {
+    const m = DAY_RE.exec(l);
+    if (m) out.push({ title: m[2] || '', desc: '' });
+    else { const d = out[out.length - 1]; d.desc += (d.desc ? '\n' : '') + l; }
+  });
+  return out.map(d => d.title ? d : { title: d.desc.split('\n')[0], desc: d.desc.split('\n').slice(1).join('\n') });
+}
+
 function renderTrip(t) {
   currentTrip = t;
   document.title = `${t.title || 'Trip'} — The Travel Chapter`;
@@ -406,99 +661,279 @@ function renderTrip(t) {
   setMeta('og:description', desc);
   if (t.cover_image) setMeta('og:image', t.cover_image);
 
-  setText('trip-title', t.title || '');
-  if (t.region || t.category) setText('trip-eyebrow', [t.region, t.category].filter(Boolean).join(' · '));
-
-  const img = document.getElementById('trip-img');
-  const fb  = document.getElementById('trip-img-fallback');
-  if (t.cover_image) {
-    img.src = t.cover_image; img.alt = t.title || ''; img.hidden = false; fb.hidden = true;
-  } else {
-    img.hidden = true; fb.hidden = false;
-  }
-
-  // ── Facts row
   const L = {
     from: TC_I18N.t('trips.from'), per: TC_I18N.t('trips.per_person'),
-    priceTba: TC_I18N.t('trips.price_tba'), days: TC_I18N.t('trips.days'),
-    max: TC_I18N.t('trips.max'), durLbl: TC_I18N.t('trip_page.duration'),
-    priceLbl: TC_I18N.t('trip_page.price'), paxLbl: TC_I18N.t('trips_page.pax'),
+    priceTba: TC_I18N.t('trips.price_tba'), days: TC_I18N.t('trips.days'), max: TC_I18N.t('trips.max'),
   };
-  const hasPrice = Number(t.price_usd) > 0;
-  const facts = [];
-  facts.push(`<div class="trip-fact"><span class="trip-fact-lbl">${esc(L.priceLbl)}</span><span class="trip-fact-val">${
-    hasPrice ? `${esc(L.from)} RM ${Number(t.price_usd).toLocaleString()} <small>${esc(L.per)}</small>` : esc(L.priceTba)
-  }</span></div>`);
   const pkgs = tripPackages(t);
-  const dur = durationRange(pkgs, t.duration_days);
-  if (dur) facts.push(`<div class="trip-fact"><span class="trip-fact-lbl">${esc(L.durLbl)}</span><span class="trip-fact-val">${dur} ${esc(L.days)}</span></div>`);
-  if (t.max_pax) facts.push(`<div class="trip-fact"><span class="trip-fact-lbl">${esc(L.paxLbl)}</span><span class="trip-fact-val">${esc(L.max)} ${t.max_pax}</span></div>`);
-  document.getElementById('trip-facts').innerHTML = facts.join('');
-
-  // ── Overview (description falls back to summary)
-  const overview = (t.description && t.description.trim()) || t.summary || '';
-  if (overview) {
-    document.getElementById('trip-overview').textContent = overview;
-  } else {
-    document.getElementById('trip-overview-sec').hidden = true;
-  }
-
-  // ── Itinerary (optional)
-  if (t.itinerary && t.itinerary.trim()) {
-    document.getElementById('trip-itinerary').textContent = t.itinerary.trim();
-    document.getElementById('trip-itinerary-sec').hidden = false;
-  }
-
-  // ── Departures (optional)
   const deps = tripDepartures(t);
-  if (deps.length) {
-    document.getElementById('trip-departures').innerHTML =
-      deps.map(d => `<span class="trip-dep-chip">${esc(fmtDate(d.date))}${d.time ? `<small>${esc(fmtTime(d.time))}</small>` : ''}</span>`).join('');
-    document.getElementById('trip-departures-sec').hidden = false;
+
+  // ── Hero
+  const hero = document.getElementById('tp-hero');
+  hero.style.backgroundImage = `url("${String(t.cover_image || 'img/hero-panorama.webp').replace(/"/g, '%22')}")`;
+  const crumbs = [`<a href="index.html">${esc(TC_I18N.t('tp.home'))}</a>`, `<a href="trips.html">${esc(TC_I18N.t('nav.tour_packages'))}</a>`];
+  if (t.region) crumbs.push(`<a href="trips.html?q=${encodeURIComponent(t.region)}">${esc(t.region)}</a>`);
+  crumbs.push(`<span>${esc(t.title || '')}</span>`);
+  document.getElementById('tp-crumbs').innerHTML = crumbs.join('<span aria-hidden="true">›</span>');
+  setText('trip-title', t.title || '');
+  const sum = document.getElementById('tp-summary');
+  sum.textContent = t.summary || '';
+  sum.hidden = !t.summary;
+  const dur = durationRange(pkgs, t.duration_days);
+  const meta = [];
+  if (t.region) meta.push(`<span>${ICONS.pin}${esc(t.region)}</span>`);
+  if (dur) meta.push(`<span>${ICONS.cal}${dur} ${esc(L.days)}</span>`);
+  if (t.category) meta.push(`<span>${ICONS.group}${esc(t.category)}</span>`);
+  if (t.max_pax) meta.push(`<span>${esc(L.max)} ${Number(t.max_pax)}</span>`);
+  document.getElementById('tp-meta').innerHTML = meta.join('');
+  document.getElementById('tp-tags').innerHTML = jsonList(t.tags).filter(Boolean)
+    .map(tag => `<span class="tp-tag">${esc(tag)}</span>`).join('');
+
+  // ── Booking card
+  const hasPrice = Number(t.price_usd) > 0;
+  document.getElementById('tp-from').hidden = !hasPrice;
+  document.getElementById('tp-price').innerHTML = hasPrice
+    ? `<b>RM ${Number(t.price_usd).toLocaleString()}</b><span>${esc(L.per)}</span>`
+    : `<b class="tba">${esc(L.priceTba)}</b>`;
+  const pkgSel = document.getElementById('tp-pkg');
+  const prevPkg = pkgSel.value;
+  pkgSel.innerHTML = pkgs.map((p, i) => {
+    const days = Number(p.days) > 0 ? `${p.days} ${L.days}` : '';
+    return `<option value="${i}">${esc([p.label, days].filter(Boolean).join(' · ') || '—')} — RM ${Number(p.price || 0).toLocaleString()}</option>`;
+  }).join('');
+  if (prevPkg && pkgSel.options[prevPkg]) pkgSel.value = prevPkg;
+  document.getElementById('tp-pkg-field').hidden = pkgs.length < 2;
+  const dateSel = document.getElementById('tp-date');
+  const prevDate = dateSel.value;
+  dateSel.innerHTML = deps.length
+    ? deps.map(d => `<option value="${esc(d.date)}|${esc(d.time || '')}">${esc(fmtDateDay(d.date))}${d.time ? ' · ' + esc(fmtTime(d.time)) : ''}</option>`).join('')
+    : `<option value="">${esc(TC_I18N.t('tp.no_dates'))}</option>`;
+  if (prevDate && [...dateSel.options].some(o => o.value === prevDate)) dateSel.value = prevDate;
+  dateSel.disabled = !deps.length;
+  const paxSel = document.getElementById('tp-pax');
+  const prevPax = paxSel.value || '1';
+  const maxPax = Math.min(Number(t.max_pax) || 10, 20);
+  paxSel.innerHTML = Array.from({ length: maxPax }, (_, i) => i + 1)
+    .map(n => `<option value="${n}">${esc(TC_I18N.t(n === 1 ? 'tp.traveller_one' : 'tp.traveller_many').replace('{n}', n))}</option>`).join('');
+  paxSel.value = Number(prevPax) <= maxPax ? prevPax : '1';
+  updateBookTotal();
+
+  // ── Gallery
+  galleryPhotos = [t.cover_image, ...jsonList(t.gallery)].filter(Boolean);
+  const gal = document.getElementById('tp-gallery');
+  if (galleryPhotos.length > 1) {
+    const shown = galleryPhotos.slice(0, 6);
+    gal.innerHTML = shown.map((src, i) => {
+      const extra = i === shown.length - 1 ? galleryPhotos.length - shown.length : 0;
+      return `<button type="button" data-photo="${i}" aria-label="Photo ${i + 1}"><img src="${esc(src)}" alt="" loading="lazy">${
+        extra > 0 ? `<span class="tp-gallery-more">${ICONS.cam}${esc(TC_I18N.t('tp.photos').replace('{n}', extra))}</span>` : ''}</button>`;
+    }).join('');
+    gal.hidden = false;
+  } else {
+    gal.hidden = true;
   }
 
-  // ── Packages (only worth a section when there is a choice)
-  if (pkgs.length > 1) {
-    document.getElementById('trip-packages').innerHTML = pkgs.map(p => {
-      const days = Number(p.days) > 0 ? `${p.days} ${esc(L.days)}` : '';
-      const name = p.label ? `${esc(p.label)}${days ? `<small>${days}</small>` : ''}` : (days || '—');
-      return `<div class="trip-pkg"><div class="trip-pkg-name">${name}</div>
-        <div class="trip-pkg-price">RM ${Number(p.price || 0).toLocaleString()} <small>${esc(L.per)}</small></div></div>`;
-    }).join('');
-    document.getElementById('trip-packages-sec').hidden = false;
+  // ── Description + features (description falls back to summary)
+  const overview = (t.description && t.description.trim()) || t.summary || '';
+  document.getElementById('trip-overview').textContent = overview;
+  const feats = jsonList(t.features).filter(k => FEATURES[k]);
+  const featEl = document.getElementById('tp-features');
+  featEl.innerHTML = feats.map(k => `<div class="tp-feature">${FEATURES[k]}<span>${esc(TC_I18N.t('tp.f_' + k))}</span></div>`).join('');
+  featEl.hidden = !feats.length;
+  document.getElementById('tp-desc-row').classList.toggle('no-features', !feats.length);
+  document.getElementById('tp-desc-sec').hidden = !overview && !feats.length;
+
+  // ── Highlights
+  const hls = jsonList(t.highlights).filter(h => h && (h.title || h.image));
+  document.getElementById('tp-highlights').innerHTML = hls.map(h => `<div class="tp-hl">
+      <div class="tp-hl-img">${h.image ? `<img src="${esc(h.image)}" alt="" loading="lazy">` : ''}</div>${esc(h.title || '')}</div>`).join('');
+  document.getElementById('tp-hl-sec').hidden = !hls.length;
+
+  // ── Itinerary
+  renderItinerary(t);
+
+  // ── Accommodation
+  const hotels = jsonList(t.accommodations).filter(h => h && (h.city || h.hotel));
+  document.getElementById('tp-hotels').innerHTML = hotels.map(h => {
+    const stars = Math.max(0, Math.min(5, Number(h.stars) || 0));
+    return `<div class="tp-hotel">
+      <div class="tp-hotel-img">${h.image ? `<img src="${esc(h.image)}" alt="" loading="lazy">` : ''}</div>
+      <div class="tp-hotel-city">${esc(h.city || '')}</div>
+      ${h.hotel ? `<div class="tp-hotel-name">${esc(h.hotel)}</div>` : ''}
+      <div class="tp-hotel-sim">${esc(TC_I18N.t('tp.or_similar'))}${stars ? `<span class="tp-stars" aria-label="${stars} stars">${'★'.repeat(stars)}</span>` : ''}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('tp-hotels-sec').hidden = !hotels.length;
+
+  // ── Map
+  if (t.route_image) {
+    document.getElementById('tp-map-img').src = t.route_image;
+    document.getElementById('tp-map').href = t.route_image;
+    document.getElementById('tp-map-link').href = t.route_image;
   }
+  document.getElementById('tp-map-sec').hidden = !t.route_image;
+
+  // ── Inclusions / exclusions
+  const incl = lines(t.inclusions), excl = lines(t.exclusions);
+  document.getElementById('tp-incl-list').innerHTML = incl.map(l => `<li>${esc(l)}</li>`).join('');
+  document.getElementById('tp-excl-list').innerHTML = excl.map(l => `<li>${esc(l)}</li>`).join('');
+  document.getElementById('tp-incl-yes').hidden = !incl.length;
+  document.getElementById('tp-incl-no').hidden = !excl.length;
+  document.querySelector('#tp-incl-sec .tp-incl').style.gridTemplateColumns = incl.length && excl.length ? '' : '1fr';
+  document.getElementById('tp-incl-sec').hidden = !incl.length && !excl.length;
 
   applyBookCta(t);
   applyWhatsApp(t);
+  renderRelated();
 
   document.getElementById('trip-content').hidden = false;
   document.getElementById('trip-missing').hidden = true;
 }
 
+function renderItinerary(t) {
+  const wrap = document.getElementById('trip-itinerary');
+  const days = itineraryDays(t);
+  const sec = document.getElementById('trip-itinerary-sec');
+  if (!days) {
+    const text = String(t.itinerary || '').trim();
+    wrap.innerHTML = text ? `<div class="tp-prose">${esc(text)}</div>` : '';
+    sec.hidden = !text;
+    return;
+  }
+  const phone = matchMedia('(max-width: 900px)').matches;
+  const collapse = phone && !itinExpanded && days.length > ITIN_PREVIEW + 1;
+  wrap.innerHTML = `<div class="tp-days">${days.map((d, i) => `
+    <div class="tp-day"${collapse && i >= ITIN_PREVIEW ? ' hidden' : ''}>
+      <div class="tp-day-badge"><small>${esc(TC_I18N.t('tp.day'))}</small><b>${i + 1}</b></div>
+      <button type="button" class="tp-day-card" aria-expanded="false">
+        <span class="tp-day-text"><span class="tp-day-title">${esc(d.title || '')}</span>${d.desc ? `<span class="tp-day-desc">${esc(d.desc)}</span>` : ''}</span>
+        ${d.desc ? ICONS.arrow : ''}
+      </button>
+    </div>`).join('')}</div>${
+    collapse ? `<button type="button" class="tp-days-more" id="tp-days-more">${esc(TC_I18N.t('tp.view_full').replace('{n}', days.length))} ⌄</button>` : ''}`;
+  sec.hidden = false;
+}
+
+document.getElementById('trip-itinerary').addEventListener('click', (e) => {
+  if (e.target.closest('#tp-days-more')) { itinExpanded = true; renderItinerary(currentTrip); return; }
+  const card = e.target.closest('.tp-day-card');
+  if (!card || !card.querySelector('.tp-day-desc')) return;
+  const day = card.parentElement;
+  card.setAttribute('aria-expanded', String(day.classList.toggle('open')));
+});
+
+function fmtDateDay(d) {
+  const dt = new Date(d);
+  const loc = LOCALE[TC_I18N.lang] || 'en-GB';
+  return isNaN(dt) ? d : dt.toLocaleDateString(loc, { day: 'numeric', month: 'short', year: 'numeric', weekday: 'short' });
+}
+
+function selectedPackage() {
+  const pkgs = currentTrip ? tripPackages(currentTrip) : [];
+  return pkgs[parseInt(document.getElementById('tp-pkg').value) || 0];
+}
+function updateBookTotal() {
+  const pkg = selectedPackage();
+  const pax = parseInt(document.getElementById('tp-pax').value) || 1;
+  const price = Number(pkg?.price) || 0;
+  document.getElementById('tp-total-val').textContent = 'RM ' + (price * pax).toLocaleString();
+  document.getElementById('tp-total').hidden = !price;
+  if (currentTrip) { applyBookCta(currentTrip); applyWhatsApp(currentTrip); }
+}
+['tp-pkg', 'tp-date', 'tp-pax'].forEach(id => document.getElementById(id).addEventListener('change', updateBookTotal));
+
+// The choice made here is handed to the dashboard's booking form
+// (URL params when signed in; sessionStorage survives the login detour).
+function bookingSelection(t) {
+  return {
+    book: t.id,
+    pkg: document.getElementById('tp-pkg').value || '0',
+    dep: document.getElementById('tp-date').value,
+    pax: document.getElementById('tp-pax').value || '1',
+  };
+}
 function applyBookCta(t) {
   const cta = document.getElementById('trip-book');
-  const hasDepartures = Array.isArray(t.departure_dates) && t.departure_dates.filter(Boolean).length > 0;
-  cta.removeAttribute('data-i18n');
-  if (hasDepartures) {
+  const label = document.getElementById('trip-book-label');
+  label.removeAttribute('data-i18n');
+  if (tripDepartures(t).length) {
     cta.classList.remove('is-tba');
     cta.removeAttribute('aria-disabled');
-    cta.textContent = TC_I18N.t('trips.book_now');
-    cta.href = memberLoggedIn ? 'dashboard.html' : 'login.html';
+    label.textContent = TC_I18N.t('trips.book_now');
+    cta.href = memberLoggedIn ? 'dashboard.html?' + new URLSearchParams(bookingSelection(t)) : 'login.html';
   } else {
     cta.classList.add('is-tba');
     cta.setAttribute('aria-disabled', 'true');
-    cta.textContent = TC_I18N.t('trips.tba');
+    label.textContent = TC_I18N.t('trips.tba');
     cta.removeAttribute('href');
   }
 }
+document.getElementById('trip-book').addEventListener('click', () => {
+  if (!currentTrip || memberLoggedIn) return;
+  try { sessionStorage.setItem('tc_pending_booking', JSON.stringify({ ...bookingSelection(currentTrip), at: Date.now() })); } catch (e) {}
+});
 
 function applyWhatsApp(t) {
   const el = document.getElementById('trip-wa');
   if (!el) return;
-  if (!waNumber) { el.style.display = 'none'; return; }
-  el.style.display = '';
-  const msg = TC_I18N.t('trip_page.enquiry_text').replace('{trip}', t.title || '');
+  if (!waNumber) { el.href = 'contact.html'; el.removeAttribute('target'); return; }
+  const dep = document.getElementById('tp-date').value.split('|')[0];
+  const msg = dep
+    ? TC_I18N.t('trip_page.enquiry_date_text').replace('{trip}', t.title || '').replace('{date}', fmtDate(dep))
+    : TC_I18N.t('trip_page.enquiry_text').replace('{trip}', t.title || '');
   el.href = `https://wa.me/${waNumber}?text=${encodeURIComponent(msg)}`;
+  el.target = '_blank';
+}
+
+// ── Gallery lightbox
+let lbIndex = 0;
+function openLightbox(i) {
+  if (!galleryPhotos.length) return;
+  lbIndex = (i + galleryPhotos.length) % galleryPhotos.length;
+  document.getElementById('tp-lb-img').src = galleryPhotos[lbIndex];
+  document.getElementById('tp-lb-count').textContent = `${lbIndex + 1} / ${galleryPhotos.length}`;
+  document.getElementById('tp-lightbox').hidden = false;
+  document.body.style.overflow = 'hidden';
+}
+function closeLightbox() { document.getElementById('tp-lightbox').hidden = true; document.body.style.overflow = ''; }
+document.getElementById('tp-gallery').addEventListener('click', (e) => {
+  const b = e.target.closest('[data-photo]');
+  if (b) openLightbox(Number(b.getAttribute('data-photo')));
+});
+document.getElementById('tp-lb-close').addEventListener('click', closeLightbox);
+document.getElementById('tp-lb-prev').addEventListener('click', () => openLightbox(lbIndex - 1));
+document.getElementById('tp-lb-next').addEventListener('click', () => openLightbox(lbIndex + 1));
+document.getElementById('tp-lightbox').addEventListener('click', (e) => { if (e.target.id === 'tp-lightbox') closeLightbox(); });
+document.addEventListener('keydown', (e) => {
+  if (document.getElementById('tp-lightbox').hidden) return;
+  if (e.key === 'Escape') closeLightbox();
+  if (e.key === 'ArrowLeft') openLightbox(lbIndex - 1);
+  if (e.key === 'ArrowRight') openLightbox(lbIndex + 1);
+});
+
+// ── You may also like: same destination first, then same category
+let relatedTrips = [];
+function renderRelated() {
+  if (!currentTrip || !relatedTrips.length) return;
+  const t = currentTrip;
+  const score = r => (t.region && r.region === t.region ? 2 : 0) + (t.category && r.category === t.category ? 1 : 0);
+  const list = relatedTrips.filter(r => r.id !== t.id)
+    .map(r => ({ r, s: score(r) })).sort((a, b) => b.s - a.s).slice(0, 8).map(x => x.r);
+  if (!list.length) return;
+  const from = TC_I18N.t('trips.from');
+  document.getElementById('tp-rel-track').innerHTML = list.map(r => `
+    <a class="tp-rel" href="trip.html?slug=${encodeURIComponent(r.slug || r.id)}">
+      ${r.cover_image ? `<img src="${esc(r.cover_image)}" alt="" loading="lazy">` : ''}
+      <span class="tp-rel-foot"><span class="tp-rel-name">${esc(r.title || '')}</span>${
+        Number(r.price_usd) > 0 ? `<span class="tp-rel-price">${esc(from)} <b>RM ${Number(r.price_usd).toLocaleString()}</b></span>` : ''}</span>
+    </a>`).join('');
+  document.getElementById('tp-related').hidden = false;
+}
+async function loadRelated() {
+  const { data } = await sb.from('trips').select('id,title,slug,cover_image,price_usd,region,category')
+    .eq('is_active', true).order('created_at', { ascending: false }).limit(80);
+  relatedTrips = data || [];
+  renderRelated();
 }
 
 function showMissing() {
@@ -577,6 +1012,7 @@ loadNav();
 loadFooter();
 loadContact();
 loadTrip();
+loadRelated();
 
 // ── PWA: service worker registration
 // ── Mobile nav: hamburger dropdown + language picker

@@ -186,6 +186,8 @@ body { font-family:'Nunito',sans-serif; background:var(--cream); color:var(--tex
 
 /* Itinerary */
 .tp-days { display:flex; flex-direction:column; gap:10px; }
+.tp-itin-for { margin:-6px 0 14px; font-size:0.84rem; font-weight:700; color:var(--gold); }
+.tp-itin-for[hidden], .tp-link[hidden] { display:none; }
 .tp-day { display:flex; gap:12px; align-items:stretch; }
 .tp-day[hidden] { display:none; }
 .tp-day-badge { position:relative; flex-shrink:0; width:52px; height:52px; border-radius:50%; background:linear-gradient(160deg, var(--gold), #1557b0); color:#fff; display:flex; flex-direction:column; align-items:center; justify-content:center; line-height:1; box-shadow:0 6px 14px rgba(31,111,214,0.3); }
@@ -467,7 +469,8 @@ footer { background:var(--navy); padding:56px 6% 32px; }
       </section>
 
       <section class="tp-sec" id="trip-itinerary-sec" hidden>
-        <div class="tp-sec-head"><h2 class="tp-h2" data-i18n="tp.itinerary">Day-by-Day Itinerary</h2></div>
+        <div class="tp-sec-head"><h2 class="tp-h2" data-i18n="tp.itinerary">Day-by-Day Itinerary</h2><a class="tp-link" id="tp-itin-pdf" href="#" target="_blank" rel="noopener" hidden><span data-i18n="tp.download_itin">Download itinerary (PDF)</span> ↓</a></div>
+        <p class="tp-itin-for" id="tp-itin-for" hidden></p>
         <div id="trip-itinerary"></div>
       </section>
 
@@ -644,6 +647,9 @@ function lines(text) { return String(text || '').split(/\r?\n/).map(l => l.repla
 // otherwise show the text as-is.
 const DAY_RE = /^(?:day|hari|第)\s*(\d+)\s*(?:天|日)?\s*[:：.\-–—)]?\s*(.*)$/i;
 function itineraryDays(t) {
+  // Options can carry their own itinerary; the chosen option's wins over the trip's.
+  const own = jsonList(selectedPackage()?.itinerary_days).filter(d => d && (d.title || d.desc));
+  if (own.length) return own;
   const days = jsonList(t.itinerary_days).filter(d => d && (d.title || d.desc));
   if (days.length) return days;
   const ls = String(t.itinerary || '').split(/\r?\n/).map(l => l.trim()).filter(Boolean);
@@ -794,10 +800,19 @@ function renderItinerary(t) {
   const wrap = document.getElementById('trip-itinerary');
   const days = itineraryDays(t);
   const sec = document.getElementById('trip-itinerary-sec');
+  const pkg = selectedPackage();
+  const pdf = document.getElementById('tp-itin-pdf');
+  if (pkg?.itinerary_pdf) pdf.href = pkg.itinerary_pdf;
+  pdf.hidden = !pkg?.itinerary_pdf;
+  // With several options, say which one this itinerary belongs to
+  const forEl = document.getElementById('tp-itin-for');
+  const ownItin = !!(pkg && (jsonList(pkg.itinerary_days).length || pkg.itinerary_pdf));
+  forEl.textContent = pkg?.label || '';
+  forEl.hidden = !(ownItin && tripPackages(t).length > 1 && pkg.label);
   if (!days) {
     const text = String(t.itinerary || '').trim();
     wrap.innerHTML = text ? `<div class="tp-prose">${esc(text)}</div>` : '';
-    sec.hidden = !text;
+    sec.hidden = !text && !pkg?.itinerary_pdf;
     return;
   }
   const phone = matchMedia('(max-width: 900px)').matches;
@@ -856,7 +871,10 @@ function updateBookTotal() {
   document.getElementById('tp-total').hidden = !price;
   if (currentTrip) { applyBookCta(currentTrip); applyWhatsApp(currentTrip); }
 }
-document.getElementById('tp-pkg').addEventListener('change', () => { fillDates(); updateBookTotal(); });
+document.getElementById('tp-pkg').addEventListener('change', () => {
+  fillDates(); updateBookTotal();
+  itinExpanded = false; renderItinerary(currentTrip);
+});
 ['tp-date', 'tp-pax'].forEach(id => document.getElementById(id).addEventListener('change', updateBookTotal));
 
 // The choice made here is handed to the dashboard's booking form

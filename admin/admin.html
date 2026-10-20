@@ -1990,6 +1990,14 @@ function addPackageRow(p = {}) {
   row.querySelector('.pk-days').value  = p.days ?? '';
   row.querySelector('.pk-price').value = p.price ?? '';
   row.dataset.id = p.id || ('p' + Math.random().toString(36).slice(2, 8));
+  // Fields edited elsewhere (per-option itinerary days / brochure) ride along untouched
+  const { id, label, days, price, ...extra } = p;
+  row.dataset.extra = JSON.stringify(extra);
+  const n = Array.isArray(extra.itinerary_days) ? extra.itinerary_days.length : 0;
+  if (n || extra.itinerary_pdf) {
+    row.title = [n ? `${n}-day itinerary` : '', extra.itinerary_pdf ? 'brochure PDF' : ''].filter(Boolean).join(' + ') + ' attached';
+    row.querySelector('.pk-label').style.borderLeft = '3px solid var(--gold)';
+  }
   document.getElementById('tm-packages').appendChild(row);
 }
 function addDepartureRow(d = {}) {
@@ -2150,6 +2158,7 @@ function readTripContent() {
 
 function readPackageRows() {
   return [...document.querySelectorAll('#tm-packages .tm-row')].map(r => ({
+    ...JSON.parse(r.dataset.extra || '{}'),
     id:    r.dataset.id,
     label: r.querySelector('.pk-label').value.trim(),
     days:  parseInt(r.querySelector('.pk-days').value) || 0,

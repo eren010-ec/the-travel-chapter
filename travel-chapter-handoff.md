@@ -885,6 +885,33 @@ Mockups: `C:\Users\MGPC15\Pictures\Japan Sakura Escape Travel Page.png` (desktop
 - Layout verified with puppeteer-core against a local `http-server` (port 8765) with the Supabase REST calls intercepted and answered with a mock trip (incl. the CORS preflight — without answering OPTIONS the mock silently fails). Desktop 1366px and phone 390px checked; nothing written to the DB.
 - **Not yet exercised:** the admin editor in a real browser (only Node syntax check), the Book Now → dashboard hand-off with a real login, and real trip content.
 
+---
+
+## Workstream AC — Per-option dates/prices/itineraries + bulk sync from EUUS B2B (added 2026-10-20)
+
+Commits `c572906` (departure ↔ option link + per-date price) and `11a023e` (itinerary follows the chosen option). Both pushed by the user (`0522ac8..11a023e`); admin deployed via CLI. No migrations — everything lives in the existing `packages` / `departures` jsonb.
+
+### Data model additions
+- `packages[]` items now carry `id` (stable; admin generates `'p'+random` when missing; EUUS-synced ones are `'eu'+hash(caption)`), plus optional `itinerary_days` `[{title,desc}]` and `itinerary_pdf` (public URL in `trip-images/trips/itin-*.pdf`).
+- `departures[]` items now carry optional `pkg` (option id) and `price`. Unlinked dates show under every option; a date without a price uses the option's price.
+- Legacy mirroring on admin save unchanged (cheapest option → `price_usd`/`duration_days`, unique dates → `departure_dates`).
+
+### Code
+- `trip.html`: `departuresFor(t,pkg)`, `fillDates()`, `selectedDeparture()`; total uses the date's price; changing option re-fills dates and re-renders the itinerary (`itineraryDays(t)` prefers the option's `itinerary_days`). "Download itinerary (PDF)" link `#tp-itin-pdf` (i18n `tp.download_itin`); `#tp-itin-for` labels which option the days belong to when >1 option.
+- `dashboard.html`: `bookingDepartures()` / `fillBookingDates()` / `bookingDeparture()`; `bookingPrice()` uses the date's price; `openPendingBooking` fills dates before selecting.
+- `admin/admin.html`: option rows keep `dataset.id` + `dataset.extra` (JSON of `itinerary_days`/`itinerary_pdf`, preserved by `readPackageRows`; gold left border = itinerary attached). Departure rows have `.dp-pkg` (option select, `fillDepPkgOptions`) and `.dp-price`. Add Booking uses `fillAddDates` / `addBookingPrice`. **The admin has no editor for an option's `itinerary_days`/`itinerary_pdf`** — they're preserved, not editable.
+
+### EUUS B2B sync (one-off, done in the user's logged-in Chrome)
+- Scope: departures from Nov 2026 onward; price = Promo if present else Normal; sold-out (FULL) dates skipped; user confirmed every uncertain match (ALPINE AUTUMN renamed "TATEYAMA KUROBE ALPINE + FUJI SHIBAZAKURA", slug kept; AURORA ← all 5 aurora products; 贵州 ← all 进/出昆明 products; Central Europe Essentials only; colour-route, Taiwan Private Tour and SEOUL skipped).
+- Result: 60 trips, 895 departures (Nov 2026 – Dec 2027); 137 brochure PDFs uploaded, attached to 129 options on 59 trips; all 129 have hand-written English day-by-day (hotel + meals where the brochure was clear). Verified via REST: 129/129 have days, day count = option days for all.
+- Pre-sync backup of `trips` was only in the session scratchpad (not in the repo).
+- EUUS site notes for any re-sync: Angular app, list at `/tour?month=YYYY-MM&page=N` (needs in-page navigation, direct fetch returns a stub); brochure file via `POST /api/tour/file {id, field:'itinerary'}` → base64; admin storage uploads must be under `trips/` (RLS).
+
+### Open items
+- **Supplier branding in published PDFs:** Beijing promo + Egypt brochures name EUUS/Bestour in text; Charming Shandong and the Chiang Mai free-and-easy flyers show an EUUS TOURS logo. User to decide whether to detach those PDFs.
+- ~12 EUUS Japan products had no matching trip — not added.
+- Stray unattached file `trips/itin-6DHAN-SAPA-S2.pdf` in storage (harmless; delete manually if wanted).
+
 ## Task checklist
 
 - [x] Open all 6 pages in a real browser, confirm logo renders correctly (sizing/placement) — done 2026-07-26 at desktop size.
@@ -937,6 +964,9 @@ Mockups: `C:\Users\MGPC15\Pictures\Japan Sakura Escape Travel Page.png` (desktop
 - [ ] Follow-up (verification): run the Workstream AA end-to-end check on the live sites (admin trip with 2+ options and timed departures → trip page → member booking → admin Bookings).
 - [ ] Follow-up (optional): past departures are still listed/bookable (true before AA too); `dashboard.__preview.html` was not updated.
 - [x] **Workstream AB (2026-10-20) — committed `c5067b8`, admin deployed, migration `20261020140000` applied.** Trip detail page redesign + admin Trip Page Content editor.
-- [ ] **Push `main`** (`! git push`) — `08969cc`, the handoff commits and `c5067b8` were still local when this was written; the customer trip page isn't live until then.
+- [x] **Push `main`** — done; everything through `11a023e` is pushed (2026-10-20).
+- [x] **Workstream AC (2026-10-20) — SHIPPED.** Departures linked to options with per-date prices; per-option itinerary + brochure PDF; 60 trips synced from EUUS B2B.
+- [ ] Follow-up (decision): detach EUUS-branded brochure PDFs if supplier branding shouldn't reach customers (see Workstream AC open items).
+- [ ] Follow-up (optional): admin editor for an option's day-by-day / PDF (currently only preserved on save, not editable).
 - [ ] Follow-up (verification): fill one trip's new content in the admin (gallery, days, highlights, hotels, map) and check it on the live trip page, desktop + phone; test Book Now → login → dashboard pre-filled booking.
 - [ ] Follow-up (optional): per-trip reviews/rating if the user wants them (needs a real reviews table + admin moderation — not faked).

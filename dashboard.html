@@ -567,6 +567,7 @@ textarea { resize:vertical; min-height:80px; }
   <div class="modal">
     <h2 id="modal-trip-name" data-i18n="dash.modal_book_trip">Book Trip</h2>
     <div class="modal-fields">
+      <div class="field" id="modal-package-field"><label data-i18n="dash.package">Package</label><select id="modal-package"></select></div>
       <div class="field"><label data-i18n="dash.departure_date">Departure Date</label><select id="modal-date"></select></div>
       <div class="field"><label data-i18n="dash.num_travellers">Number of Travellers</label><input type="number" id="modal-pax" value="1" min="1" max="10"></div>
       <div class="field"><label data-i18n="dash.special_requests">Special Requests (optional)</label><textarea id="modal-requests" placeholder="Dietary requirements, accessibility needs…" data-i18n-placeholder="dash.special_requests_ph"></textarea></div>
@@ -679,6 +680,7 @@ document.getElementById('btn-save-profile').addEventListener('click', saveProfil
 document.getElementById('btn-confirm-book').addEventListener('click', confirmBooking);
 document.getElementById('btn-close-modal').addEventListener('click', closeBookingModal);
 document.getElementById('modal-pax').addEventListener('input', updateTotal);
+document.getElementById('modal-package').addEventListener('change', updateTotal);
 document.getElementById('booking-modal').addEventListener('click', function(e) { if (e.target === this) closeBookingModal(); });
 document.getElementById('btn-copy-code').addEventListener('click', () => {
   const code = profile?.referral_code;
@@ -1163,7 +1165,10 @@ function renderTrips() {
   grid.innerHTML = list.map((t,i) => {
     const emoji  = tripEmojis[t.slug]||'✈️';
     const grad   = tripGrads[i%tripGrads.length];
-    const dates  = (t.departure_dates||[]).slice(0,2).map(d=>fmtDate(d)).join(' · ');
+    const dates  = tripDepartures(t).slice(0,2).map(departureText).join(' · ');
+    const pkgs   = tripPackages(t);
+    const days   = pkgs.map(p=>Number(p.days)).filter(n=>n>0);
+    const dur    = days.length && Math.min(...days)!==Math.max(...days) ? `${Math.min(...days)}–${Math.max(...days)}` : (t.duration_days||'?');
     const hasImage = !!t.cover_image;
     const thumbStyle = hasImage ? `background:url('${t.cover_image}') center/cover no-repeat;` : `background:${grad};`;
     return `<div class="trip-card">
@@ -1172,12 +1177,12 @@ function renderTrips() {
         <div class="trip-name">${t.title}</div>
         <div class="trip-desc">${t.summary||''}</div>
         <div class="trip-tags">
-          <span class="trip-tag">📅 ${t.duration_days} ${TC_I18N.t('dash.days_label')}</span>
+          <span class="trip-tag">📅 ${dur} ${TC_I18N.t('dash.days_label')}</span>
           <span class="trip-tag">👥 ${TC_I18N.t('dash.max_label')} ${t.max_pax}</span>
         </div>
         ${dates?`<div style="font-size:0.7rem;color:var(--smoke);margin-top:8px;">🗓 ${dates}</div>`:''}
         <div class="trip-footer">
-          <div class="trip-price">RM ${Number(t.price_usd).toLocaleString()} <span>${TC_I18N.t('dash.per_person')}</span></div>
+          <div class="trip-price">${pkgs.length>1?`<span>${TC_I18N.t('trips.from')}</span> `:''}RM ${Number(t.price_usd).toLocaleString()} <span>${TC_I18N.t('dash.per_person')}</span></div>
           <button class="btn-book" data-tripid="${t.id}">${TC_I18N.t('dash.book_now')}</button>
         </div>
       </div></div>`;
@@ -1190,7 +1195,7 @@ function renderBookings() {
   if (!bookings.length) { list.innerHTML = `<div class="empty-state"><div class="icon">📋</div><p>${TC_I18N.t('dash.no_bookings')}</p></div>`; return; }
   list.innerHTML = bookings.map(b => `<div class="booking-row">
     <div><div class="booking-trip">${b.trips?.title||'—'}</div>
-    <div class="booking-meta">${fmtDate(b.departure_date)} · ${b.num_travellers} ${TC_I18N.t(b.num_travellers>1?'dash.traveller_plural':'dash.traveller_singular')} · ${b.trips?.duration_days||'?'} ${TC_I18N.t('dash.days_label')}</div></div>
+    <div class="booking-meta">${fmtDate(b.departure_date)}${b.departure_time?' '+fmtTime(b.departure_time):''} · ${b.num_travellers} ${TC_I18N.t(b.num_travellers>1?'dash.traveller_plural':'dash.traveller_singular')} · ${b.package_label?escHtml(b.package_label)+' · ':''}${b.package_days||b.trips?.duration_days||'?'} ${TC_I18N.t('dash.days_label')}</div></div>
     <div class="booking-price">RM ${Number(b.total_usd).toLocaleString()}</div>
     <span class="status-pill status-${b.status}">${TC_I18N.t('status.'+b.status)}</span>
   </div>`).join('');
@@ -1474,10 +1479,14 @@ function openBookingModal(tripId) {
   bookingTrip = trips.find(t => t.id===tripId);
   if (!bookingTrip) return;
   document.getElementById('modal-trip-name').textContent = bookingTrip.title;
-  const dates = bookingTrip.departure_dates||[];
-  document.getElementById('modal-date').innerHTML = dates.length
-    ? dates.map(d=>`<option value="${d}">${fmtDate(d)}</option>`).join('')
+  const deps = tripDepartures(bookingTrip);
+  document.getElementById('modal-date').innerHTML = deps.length
+    ? deps.map(d=>`<option value="${d.date}|${d.time||''}">${departureText(d)}</option>`).join('')
     : `<option value="">${TC_I18N.t('dash.no_dates')}</option>`;
+  const pkgs = tripPackages(bookingTrip);
+  document.getElementById('modal-package').innerHTML = pkgs.map((p,i)=>`<option value="${i}">${escHtml(packageText(p))}</option>`).join('');
+  // Single-price trips skip the choice
+  document.getElementById('modal-package-field').style.display = pkgs.length>1 ? '' : 'none';
   document.getElementById('modal-pax').value=1;
   document.getElementById('modal-requests').value='';
   updateTotal();
@@ -1487,17 +1496,20 @@ function closeBookingModal() { document.getElementById('booking-modal').classLis
 function updateTotal() {
   if (!bookingTrip) return;
   const pax=parseInt(document.getElementById('modal-pax').value)||1;
-  document.getElementById('modal-total').textContent='RM '+(pax*Number(bookingTrip.price_usd)).toLocaleString();
+  document.getElementById('modal-total').textContent='RM '+(pax*bookingPrice()).toLocaleString();
 }
+function bookingPackage() { return tripPackages(bookingTrip)[parseInt(document.getElementById('modal-package').value)||0]; }
+function bookingPrice() { return Number(bookingPackage()?.price ?? bookingTrip.price_usd) || 0; }
 async function confirmBooking() {
   if (!bookingTrip) return;
   const btn=document.getElementById('btn-confirm-book');
   btn.disabled=true; btn.textContent=TC_I18N.t('dash.confirming');
   const pax=parseInt(document.getElementById('modal-pax').value)||1;
-  const date=document.getElementById('modal-date').value;
+  const [date, time]=document.getElementById('modal-date').value.split('|');
   const reqs=document.getElementById('modal-requests').value.trim();
   if (!date) { showToast(TC_I18N.t('dash.select_departure_err'), true); btn.disabled=false; btn.textContent=TC_I18N.t('dash.confirm_booking'); return; }
-  const { error } = await sb.from('bookings').insert({ member_id:currentUser.id, trip_id:bookingTrip.id, departure_date:date, num_travellers:pax, total_usd:pax*Number(bookingTrip.price_usd), special_requests:reqs||null, status:'pending' });
+  const pkg=bookingPackage();
+  const { error } = await sb.from('bookings').insert({ member_id:currentUser.id, trip_id:bookingTrip.id, departure_date:date, departure_time:time||null, package_label:pkg?.label||null, package_days:pkg?.days||null, num_travellers:pax, total_usd:pax*bookingPrice(), special_requests:reqs||null, status:'pending' });
   if (error) showToast(TC_I18N.t('dash.booking_failed')+error.message, true);
   else { closeBookingModal(); await loadBookings(); renderBookings(); renderOverview(); showToast(TC_I18N.t('dash.booking_sent')); }
   btn.disabled=false; btn.textContent=TC_I18N.t('dash.confirm_booking');
@@ -1506,6 +1518,28 @@ async function confirmBooking() {
 // ── HELPERS ──────────────────────────────────────────────────
 const DATE_LOCALES = { en: 'en-GB', zh: 'zh-CN', ms: 'ms-MY' };
 function fmtDate(d) { if (!d) return '—'; return new Date(d).toLocaleDateString(DATE_LOCALES[TC_I18N.lang]||'en-GB',{day:'numeric',month:'short',year:'numeric'}); }
+function fmtTime(t) {
+  const [h, m] = String(t||'').split(':').map(Number);
+  if (isNaN(h)) return '';
+  return new Date(2000,0,1,h,m||0).toLocaleTimeString(DATE_LOCALES[TC_I18N.lang]||'en-GB',{hour:'numeric',minute:'2-digit'});
+}
+function escHtml(s) { return String(s==null?'':s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+// packages / departures fall back to the single price + plain date list on older trips
+function tripPackages(t) {
+  const list = Array.isArray(t?.packages) ? t.packages.filter(p => Number(p.price) > 0 || Number(p.days) > 0) : [];
+  if (list.length) return list;
+  return Number(t?.price_usd) > 0 ? [{ label:'', days:Number(t.duration_days)||0, price:Number(t.price_usd) }] : [];
+}
+function tripDepartures(t) {
+  const list = Array.isArray(t?.departures) ? t.departures.filter(d => d && d.date) : [];
+  if (list.length) return list;
+  return (t?.departure_dates||[]).filter(Boolean).map(d => ({ date:String(d).slice(0,10), time:'' }));
+}
+function departureText(d) { return fmtDate(d.date) + (d.time ? ', ' + fmtTime(d.time) : ''); }
+function packageText(p) {
+  const days = Number(p.days) > 0 ? `${p.days} ${TC_I18N.t('dash.days_label')}` : '';
+  return [p.label, days].filter(Boolean).join(' · ') + ` — RM ${Number(p.price||0).toLocaleString()}`;
+}
 let toastTimer;
 function showToast(msg, err) {
   const t=document.getElementById('toast');

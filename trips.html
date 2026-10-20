@@ -434,6 +434,9 @@ function renderTrips(trips) {
       : `<div class="trip-img-fallback">${thumb.emoji}</div>`;
     const price = Number(t.price_usd || 0).toLocaleString();
     const hasPrice = Number(t.price_usd) > 0;
+    const pkgDays = (Array.isArray(t.packages) ? t.packages : []).map(p => Number(p.days)).filter(n => n > 0);
+    const dur = pkgDays.length > 1 && Math.min(...pkgDays) !== Math.max(...pkgDays)
+      ? `${Math.min(...pkgDays)}–${Math.max(...pkgDays)}` : (t.duration_days || '');
     const tripHref = `trip.html?slug=${encodeURIComponent(t.slug || t.id || '')}`;
     const waHref = waNumber
       ? `https://wa.me/${waNumber}?text=${encodeURIComponent(waMsgTpl.replace('{trip}', t.title || ''))}`
@@ -444,9 +447,9 @@ function renderTrips(trips) {
         <div class="trip-body">
           ${t.title ? `<h2 class="trip-name">${esc(t.title)}</h2>` : ''}
           ${t.summary ? `<p class="trip-desc">${esc(t.summary)}</p>` : ''}
-          ${(t.region || t.duration_days) ? `<div class="trip-meta">
+          ${(t.region || dur) ? `<div class="trip-meta">
             ${t.region ? `<div class="trip-meta-row"><span>◍</span><span>${esc(t.region)}</span></div>` : ''}
-            ${t.duration_days ? `<div class="trip-meta-row"><span>◷</span><span>${t.duration_days} ${esc(L.days)}</span></div>` : ''}
+            ${dur ? `<div class="trip-meta-row"><span>◷</span><span>${dur} ${esc(L.days)}</span></div>` : ''}
           </div>` : ''}
           <div class="trip-foot">
             <span class="trip-price">${hasPrice

@@ -137,6 +137,11 @@ tr:hover td { background:var(--cream); }
 .form-grid { display:grid; grid-template-columns:1fr 1fr; gap:13px; }
 .field { display:flex; flex-direction:column; gap:5px; }
 .field.full { grid-column:1/-1; }
+.tm-rows { display:flex; flex-direction:column; gap:6px; }
+.tm-row { display:grid; gap:6px; align-items:center; }
+.tm-row.pkg { grid-template-columns:1.4fr 0.8fr 1fr auto; }
+.tm-row.dep { grid-template-columns:1.4fr 1fr auto; }
+.tm-row .btn { padding:6px 10px; }
 label { font-size:0.67rem; font-weight:500; letter-spacing:0.12em; text-transform:uppercase; color:var(--smoke); }
 input[type=text],input[type=number],input[type=date],input[type=email],input[type=tel],select,textarea {
   padding:10px 12px; background:var(--cream); border:1px solid var(--border);
@@ -769,8 +774,12 @@ textarea { resize:vertical; min-height:70px; }
         <label>Trip</label>
         <select id="abm-trip"></select>
       </div>
+      <div class="field full">
+        <label>Duration / Price Option</label>
+        <select id="abm-package" onchange="updateAddTotal()"></select>
+      </div>
       <div class="field">
-        <label>Departure Date</label>
+        <label>Departure</label>
         <select id="abm-date"></select>
       </div>
       <div class="field">
@@ -817,6 +826,7 @@ textarea { resize:vertical; min-height:70px; }
         </select>
       </div>
       <div class="field"><label>Departure Date</label><input type="date" id="ebm-date"></div>
+      <div class="field"><label>Departure Time</label><input type="time" id="ebm-time"></div>
       <div class="field"><label>Travellers</label><input type="number" id="ebm-pax" min="1" max="20"></div>
       <div class="field full"><label>Special Requests</label><textarea id="ebm-requests"></textarea></div>
     </div>
@@ -852,17 +862,26 @@ textarea { resize:vertical; min-height:70px; }
           <span id="tm-image-status" style="font-size:0.72rem;color:var(--smoke);"></span>
         </div>
       </div>
-      <div class="field"><label>Duration (days)</label><input type="number" id="tm-duration" min="0" value="7" placeholder="0 = TBA"></div>
-      <div class="field"><label>Price (RM)</label><input type="number" id="tm-price" min="0" step="0.01" value="0" placeholder="0 = TBA"></div>
+      <div class="field full">
+        <label>Duration &amp; Price Options</label>
+        <div id="tm-packages" class="tm-rows"></div>
+        <button type="button" class="btn btn-ghost btn-sm" style="align-self:flex-start;" onclick="addPackageRow()">+ Add Option</button>
+        <span style="font-size:0.7rem;color:var(--smoke);">e.g. “3D2N” · 3 days · RM 1,200. Members pick one when booking; listings show the cheapest as “From”.</span>
+      </div>
       <div class="field"><label>Max Pax</label><input type="number" id="tm-pax" min="0" value="12" placeholder="0 = TBA"></div>
-      <div class="field full"><span style="font-size:0.72rem;color:var(--smoke);">Leave Duration / Price / Max Pax at <strong>0</strong> (or blank) and Departure Dates empty to show the trip as <strong>“TBA”</strong> — it stays listed but not bookable.</span></div>
+      <div class="field full"><span style="font-size:0.72rem;color:var(--smoke);">Leave the options and departures empty (or price <strong>0</strong>) to show the trip as <strong>“TBA”</strong> — it stays listed but not bookable.</span></div>
       <div class="field"><label>Category</label><input type="text" id="tm-category" placeholder="e.g. Cultural, Adventure"></div>
       <div class="field"><label>Destination / Region</label><input type="text" id="tm-region" placeholder="e.g. Japan, Morocco"></div>
       <div class="field" id="tm-cost-field" style="display:none;">
         <label>Cost Price (RM, per person)</label>
         <input type="number" id="tm-cost" min="0" step="0.01" placeholder="Supplier cost — admin only">
       </div>
-      <div class="field full"><label>Departure Dates (YYYY-MM-DD, comma separated)</label><input type="text" id="tm-dates" placeholder="2026-10-15, 2026-11-01"></div>
+      <div class="field full">
+        <label>Departures (date &amp; time)</label>
+        <div id="tm-departures" class="tm-rows"></div>
+        <button type="button" class="btn btn-ghost btn-sm" style="align-self:flex-start;" onclick="addDepartureRow()">+ Add Departure</button>
+        <span style="font-size:0.7rem;color:var(--smoke);">Time is optional. Add the same date twice for two departure times.</span>
+      </div>
       <div class="field full" style="flex-direction:row;align-items:center;gap:10px;">
         <input type="checkbox" id="tm-active" checked style="width:auto;padding:0;accent-color:var(--navy);">
         <label for="tm-active" style="text-transform:none;letter-spacing:0;font-size:0.82rem;color:var(--text);">Active (visible to members)</label>
@@ -1352,8 +1371,16 @@ async function init() {
 
 // ── LOADERS ────────────────────────────────────────────────
 async function loadBookings() {
-  const { data } = await sb.rpc('get_admin_bookings').order('booked_at', { ascending: false });
-  allBookings = data || [];
+  const [{ data }, { data: extra }] = await Promise.all([
+    sb.rpc('get_admin_bookings').order('booked_at', { ascending: false }),
+    // get_admin_bookings predates the package/time columns — merge them in
+    sb.from('bookings').select('id, package_label, package_days, departure_time'),
+  ]);
+  const byId = Object.fromEntries((extra || []).map(x => [x.id, x]));
+  allBookings = (data || []).map(b => ({ ...byId[b.id], ...b }));
+}
+function bookingPackageText(b) {
+  return [b.package_label, Number(b.package_days) > 0 ? `${b.package_days}d` : ''].filter(Boolean).join(' · ');
 }
 async function loadTripCosts() {
   const { data } = await sb.from('trip_costs').select('*');
@@ -1612,7 +1639,7 @@ async function loadMemberBookings(memberId, firstName) {
     <div class="booking-item">
       <div class="booking-item-info">
         <div class="booking-item-title">${b.trips?.title||'—'}</div>
-        <div class="booking-item-meta">${fmtDate(b.departure_date)} · ${b.num_travellers} pax · RM ${Number(b.total_usd).toLocaleString()}</div>
+        <div class="booking-item-meta">${[fmtDate(b.departure_date) + (b.departure_time ? ' ' + fmtTime(b.departure_time) : ''), bookingPackageText(b)].filter(Boolean).map(escapeHtml).join(' · ')} · ${b.num_travellers} pax · RM ${Number(b.total_usd).toLocaleString()}</div>
       </div>
       <span class="pill pill-${b.status}">${b.status}</span>
       <button class="btn btn-ghost btn-sm" onclick="openEditBookingModal('${b.id}')">Edit</button>
@@ -1699,7 +1726,7 @@ function openAddBookingModal() {
 
   // Populate trip dropdown
   const tripSel = document.getElementById('abm-trip');
-  tripSel.innerHTML = allTrips.map(t=>`<option value="${t.id}" data-price="${t.price_usd}" data-dates='${JSON.stringify(t.departure_dates||[])}'>${t.title}</option>`).join('');
+  tripSel.innerHTML = allTrips.map(t=>`<option value="${t.id}">${escapeHtml(t.title)}</option>`).join('');
   tripSel.onchange = updateAddDates;
   updateAddDates();
   document.getElementById('abm-pax').value=1;
@@ -1709,20 +1736,24 @@ function openAddBookingModal() {
   setTimeout(() => document.getElementById('abm-member-search').focus(), 50);
 }
 
+function addBookingTrip() { return allTrips.find(t => t.id === document.getElementById('abm-trip').value); }
+function addBookingPackage() { return tripPackages(addBookingTrip())[parseInt(document.getElementById('abm-package').value)]; }
+
 function updateAddDates() {
-  const sel = document.getElementById('abm-trip');
-  const opt = sel.options[sel.selectedIndex];
-  const dates = JSON.parse(opt?.getAttribute('data-dates')||'[]');
-  document.getElementById('abm-date').innerHTML = dates.length
-    ? dates.map(d=>`<option value="${d}">${fmtDate(d)}</option>`).join('')
+  const t = addBookingTrip();
+  const pkgs = tripPackages(t);
+  document.getElementById('abm-package').innerHTML = pkgs.length
+    ? pkgs.map((p,i)=>`<option value="${i}">${escapeHtml(packageText(p))}</option>`).join('')
+    : '<option value="">No price set</option>';
+  const deps = tripDepartures(t);
+  document.getElementById('abm-date').innerHTML = deps.length
+    ? deps.map(d=>`<option value="${d.date}|${d.time||''}">${departureText(d)}</option>`).join('')
     : '<option value="">No dates — enter manually</option>';
   updateAddTotal();
 }
 
 function updateAddTotal() {
-  const sel = document.getElementById('abm-trip');
-  const opt = sel.options[sel.selectedIndex];
-  const price = parseFloat(opt?.getAttribute('data-price')||0);
+  const price = Number(addBookingPackage()?.price) || 0;
   const pax   = parseInt(document.getElementById('abm-pax').value)||1;
   document.getElementById('abm-total').textContent = 'RM ' + (price*pax).toLocaleString();
 }
@@ -1731,10 +1762,10 @@ async function confirmAddBooking() {
   const btn=document.getElementById('btn-confirm-add-booking');
   btn.disabled=true; btn.textContent='Adding…';
   const sel   = document.getElementById('abm-trip');
-  const opt   = sel.options[sel.selectedIndex];
-  const price = parseFloat(opt?.getAttribute('data-price')||0);
+  const pkg   = addBookingPackage();
+  const price = Number(pkg?.price) || 0;
   const pax   = parseInt(document.getElementById('abm-pax').value)||1;
-  const date  = document.getElementById('abm-date').value;
+  const [date, time] = document.getElementById('abm-date').value.split('|');
   const reqs  = document.getElementById('abm-requests').value.trim();
   const status= document.getElementById('abm-status').value;
   const memberId = document.getElementById('abm-member').value;
@@ -1742,7 +1773,8 @@ async function confirmAddBooking() {
   if (!sel.value) { showToast('Please select a trip.', true); btn.disabled=false; btn.textContent='Add Booking'; return; }
   const { error } = await sb.from('bookings').insert({
     member_id: memberId, trip_id: sel.value,
-    departure_date: date, num_travellers: pax,
+    departure_date: date || null, departure_time: time || null, num_travellers: pax,
+    package_label: pkg?.label || null, package_days: pkg?.days || null,
     total_usd: price*pax, special_requests: reqs||null, status
   });
   if (error) showToast('Error: '+error.message, true);
@@ -1760,9 +1792,10 @@ async function openEditBookingModal(bookingId) {
   editingBookingId = bookingId;
   const { data: b } = await sb.from('bookings').select('*, trips(title)').eq('id', bookingId).single();
   if (!b) return;
-  document.getElementById('ebm-info').textContent = b.trips?.title || '—';
+  document.getElementById('ebm-info').textContent = [b.trips?.title || '—', bookingPackageText(b)].filter(Boolean).join(' · ');
   document.getElementById('ebm-status').value   = b.status;
   document.getElementById('ebm-date').value     = b.departure_date || '';
+  document.getElementById('ebm-time').value     = b.departure_time || '';
   document.getElementById('ebm-pax').value      = b.num_travellers;
   document.getElementById('ebm-requests').value = b.special_requests || '';
   openModal('edit-booking-modal');
@@ -1774,6 +1807,7 @@ async function saveBooking() {
   const updates = {
     status:          document.getElementById('ebm-status').value,
     departure_date:  document.getElementById('ebm-date').value,
+    departure_time:  document.getElementById('ebm-time').value || null,
     num_travellers:  parseInt(document.getElementById('ebm-pax').value)||1,
     special_requests:document.getElementById('ebm-requests').value.trim()||null,
   };
@@ -1813,8 +1847,8 @@ function renderBookingsRows(list) {
   document.getElementById('bookings-body').innerHTML = list.length
     ? list.map(b=>`<tr>
         <td>${b.first_name||''} ${b.last_name||''}<br><span style="font-size:0.7rem;color:var(--smoke);">${b.member_email||''}</span></td>
-        <td>${b.trip_title}</td>
-        <td>${fmtDate(b.departure_date)}</td>
+        <td>${b.trip_title}${bookingPackageText(b)?`<br><span style="font-size:0.7rem;color:var(--smoke);">${escapeHtml(bookingPackageText(b))}</span>`:''}</td>
+        <td>${fmtDate(b.departure_date)}${b.departure_time?`<br><span style="font-size:0.7rem;color:var(--smoke);">${fmtTime(b.departure_time)}</span>`:''}</td>
         <td>${b.num_travellers}</td>
         <td style="color:var(--gold);font-weight:500;">RM ${Number(b.total_usd).toLocaleString()}</td>
         <td><span class="pill pill-${b.status}">${b.status}</span></td>
@@ -1838,6 +1872,74 @@ async function updateBookingStatus() {
   if (error) showToast('Error: '+error.message, true);
   else { closeModal('booking-status-modal'); await loadBookings(); renderBookingsTable(); renderDashboard(); showToast('Booking status updated ✓'); }
   btn.disabled=false; btn.textContent='Update Status';
+}
+
+// ── TRIP OPTIONS / DEPARTURES ──────────────────────────────
+// packages / departures are jsonb; trips saved before they existed fall back
+// to the single duration_days + price_usd and the plain departure_dates list.
+function tripPackages(t) {
+  const list = Array.isArray(t?.packages) ? t.packages.filter(p => Number(p.price) > 0 || Number(p.days) > 0) : [];
+  if (list.length) return list;
+  return (Number(t?.price_usd) > 0 || Number(t?.duration_days) > 0)
+    ? [{ label: '', days: Number(t.duration_days) || 0, price: Number(t.price_usd) || 0 }] : [];
+}
+function tripDepartures(t) {
+  const list = Array.isArray(t?.departures) ? t.departures.filter(d => d && d.date) : [];
+  if (list.length) return list;
+  return (t?.departure_dates || []).filter(Boolean).map(d => ({ date: String(d).slice(0, 10), time: '' }));
+}
+function packageText(p) {
+  const days = Number(p.days) > 0 ? `${p.days}d` : '';
+  return [p.label, days].filter(Boolean).join(' · ') + ` — RM ${Number(p.price || 0).toLocaleString()}`;
+}
+function fmtTime(t) {
+  if (!t) return '';
+  const [h, m] = t.split(':').map(Number);
+  return `${(h % 12) || 12}:${String(m).padStart(2, '0')} ${h < 12 ? 'AM' : 'PM'}`;
+}
+function departureText(d) { return fmtDate(d.date) + (d.time ? `, ${fmtTime(d.time)}` : ''); }
+function durationRange(pkgs) {
+  const days = pkgs.map(p => Number(p.days)).filter(n => n > 0);
+  if (!days.length) return '—';
+  const lo = Math.min(...days), hi = Math.max(...days);
+  return lo === hi ? `${lo}d` : `${lo}–${hi}d`;
+}
+
+function addPackageRow(p = {}) {
+  const row = document.createElement('div');
+  row.className = 'tm-row pkg';
+  row.innerHTML = `<input type="text" class="pk-label" placeholder="Label, e.g. 3D2N" maxlength="80">
+    <input type="number" class="pk-days" min="0" placeholder="Days">
+    <input type="number" class="pk-price" min="0" step="0.01" placeholder="Price RM">
+    <button type="button" class="btn btn-ghost btn-sm" title="Remove" onclick="this.parentElement.remove()">✕</button>`;
+  row.querySelector('.pk-label').value = p.label || '';
+  row.querySelector('.pk-days').value  = p.days ?? '';
+  row.querySelector('.pk-price').value = p.price ?? '';
+  document.getElementById('tm-packages').appendChild(row);
+}
+function addDepartureRow(d = {}) {
+  const row = document.createElement('div');
+  row.className = 'tm-row dep';
+  row.innerHTML = `<input type="date" class="dp-date">
+    <input type="time" class="dp-time">
+    <button type="button" class="btn btn-ghost btn-sm" title="Remove" onclick="this.parentElement.remove()">✕</button>`;
+  row.querySelector('.dp-date').value = d.date || '';
+  row.querySelector('.dp-time').value = d.time || '';
+  document.getElementById('tm-departures').appendChild(row);
+}
+function readPackageRows() {
+  return [...document.querySelectorAll('#tm-packages .tm-row')].map(r => ({
+    label: r.querySelector('.pk-label').value.trim(),
+    days:  parseInt(r.querySelector('.pk-days').value) || 0,
+    price: parseFloat(r.querySelector('.pk-price').value) || 0,
+  })).filter(p => p.label || p.days || p.price);
+}
+function readDepartureRows() {
+  return [...document.querySelectorAll('#tm-departures .tm-row')].map(r => ({
+    date: r.querySelector('.dp-date').value,
+    time: r.querySelector('.dp-time').value,
+  })).filter(d => d.date)
+    .sort((a, b) => (a.date + (a.time || '')).localeCompare(b.date + (b.time || '')));
 }
 
 // ── TRIPS TABLE ────────────────────────────────────────────
@@ -1883,10 +1985,10 @@ function renderTripsRows(list) {
   document.getElementById('trips-body').innerHTML = list.length
     ? list.map(t=>`<tr>
         <td><strong>${t.title}</strong><br><span style="font-size:0.7rem;color:var(--smoke);">${[t.region, t.category].filter(Boolean).join(' · ') || t.slug}</span></td>
-        <td>${t.duration_days}d</td>
-        <td style="color:var(--gold);font-weight:500;">RM ${Number(t.price_usd).toLocaleString()}</td>
+        <td>${durationRange(tripPackages(t))}</td>
+        <td style="color:var(--gold);font-weight:500;">RM ${Number(t.price_usd).toLocaleString()}${tripPackages(t).length>1?`<br><span style="font-size:0.68rem;color:var(--smoke);font-weight:400;">${tripPackages(t).length} options</span>`:''}</td>
         <td>${t.max_pax}</td>
-        <td style="font-size:0.75rem;color:var(--smoke);">${(t.departure_dates||[]).slice(0,2).map(d=>fmtDate(d)).join(', ')||'—'}</td>
+        <td style="font-size:0.75rem;color:var(--smoke);">${tripDepartures(t).slice(0,2).map(departureText).join('<br>')||'—'}${tripDepartures(t).length>2?`<br>+${tripDepartures(t).length-2} more`:''}</td>
         <td><span class="pill pill-${t.is_active?'active':'inactive'}">${t.is_active?'Active':'Hidden'}</span></td>
         <td><div class="btn-group">
           <button class="btn btn-ghost btn-sm" onclick="openTripModal('${t.id}')">Edit</button>
@@ -1911,19 +2013,23 @@ function openTripModal(id) {
     document.getElementById('tm-summary').value = t.summary||'';
     document.getElementById('tm-description').value = t.description||'';
     document.getElementById('tm-itinerary').value   = t.itinerary||'';
-    document.getElementById('tm-duration').value= t.duration_days;
-    document.getElementById('tm-price').value   = t.price_usd;
     document.getElementById('tm-pax').value     = t.max_pax;
     document.getElementById('tm-category').value= t.category || '';
     document.getElementById('tm-region').value  = t.region || '';
-    document.getElementById('tm-dates').value   = (t.departure_dates||[]).join(', ');
+    document.getElementById('tm-packages').innerHTML = '';
+    document.getElementById('tm-departures').innerHTML = '';
+    tripPackages(t).forEach(p => addPackageRow(p));
+    tripDepartures(t).forEach(d => addDepartureRow(d));
+    if (!tripPackages(t).length) addPackageRow();
     document.getElementById('tm-active').checked= t.is_active;
     document.getElementById('tm-cost').value    = allTripCosts[t.id] ?? '';
     existingImage = t.cover_image || '';
   } else {
-    ['tm-title','tm-slug','tm-summary','tm-description','tm-itinerary','tm-dates','tm-cost','tm-category','tm-region'].forEach(i=>document.getElementById(i).value='');
-    document.getElementById('tm-duration').value=7;
-    document.getElementById('tm-price').value=0;
+    ['tm-title','tm-slug','tm-summary','tm-description','tm-itinerary','tm-cost','tm-category','tm-region'].forEach(i=>document.getElementById(i).value='');
+    document.getElementById('tm-packages').innerHTML = '';
+    document.getElementById('tm-departures').innerHTML = '';
+    addPackageRow({ days: 7 });
+    addDepartureRow();
     document.getElementById('tm-pax').value=12;
     document.getElementById('tm-active').checked=true;
   }
@@ -1963,7 +2069,12 @@ function removeTripImage() {
 async function saveTrip() {
   const btn=document.getElementById('btn-save-trip');
   btn.disabled=true; btn.textContent='Saving…';
-  const dates=document.getElementById('tm-dates').value.split(',').map(d=>d.trim()).filter(Boolean);
+  const packages=readPackageRows();
+  const departures=readDepartureRows();
+  const dates=[...new Set(departures.map(d=>d.date))];
+  // Legacy single-value columns mirror the cheapest option — listings show it as "From"
+  const priced=packages.filter(p=>p.price>0);
+  const cheapest=(priced.length?priced:packages).reduce((a,p)=>!a||p.price<a.price?p:a, null);
   // Slug must be unique (trips_slug_key) — default it from the title and normalise to URL form
   const title=document.getElementById('tm-title').value.trim();
   const slug=(document.getElementById('tm-slug').value.trim() || title)
@@ -1982,8 +2093,9 @@ async function saveTrip() {
     summary:document.getElementById('tm-summary').value.trim(),
     description:document.getElementById('tm-description').value.trim() || null,
     itinerary:document.getElementById('tm-itinerary').value.trim() || null,
-    duration_days:parseInt(document.getElementById('tm-duration').value) || 0,
-    price_usd:parseFloat(document.getElementById('tm-price').value) || 0,
+    duration_days:cheapest?.days || 0,
+    price_usd:cheapest?.price || 0,
+    packages, departures,
     max_pax:parseInt(document.getElementById('tm-pax').value) || 0,
     category:document.getElementById('tm-category').value.trim() || null,
     region:document.getElementById('tm-region').value.trim() || null,

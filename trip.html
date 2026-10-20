@@ -151,6 +151,13 @@ body { font-family:'Nunito',sans-serif; background:var(--cream); color:var(--tex
 .trip-prose { font-size:0.92rem; line-height:1.85; color:var(--smoke); white-space:pre-wrap; }
 .trip-departures { display:flex; flex-wrap:wrap; gap:8px; }
 .trip-dep-chip { padding:8px 14px; border:1px solid var(--border); border-radius:999px; background:var(--white); font-size:0.8rem; color:var(--navy); }
+.trip-dep-chip small { color:var(--smoke); margin-left:4px; }
+.trip-packages { display:flex; flex-direction:column; gap:8px; }
+.trip-pkg { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:12px 16px; border:1px solid var(--border); border-radius:12px; background:var(--white); }
+.trip-pkg-name { font-size:0.88rem; color:var(--navy); font-weight:600; }
+.trip-pkg-name small { display:block; font-weight:400; color:var(--smoke); font-size:0.76rem; margin-top:2px; }
+.trip-pkg-price { font-size:0.95rem; font-weight:700; color:var(--navy); white-space:nowrap; }
+.trip-pkg-price small { font-weight:400; color:var(--smoke); font-size:0.72rem; }
 
 .trip-cta-bar { margin-top:44px; padding-top:28px; border-top:1px solid var(--border); display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
 .btn-book { padding:14px 34px; border-radius:8px; border:none; background:var(--navy); color:var(--white); font-family:'Nunito',sans-serif; font-size:0.8rem; font-weight:500; letter-spacing:0.08em; text-transform:uppercase; text-decoration:none; transition:all 0.2s; }
@@ -268,6 +275,11 @@ footer { background:var(--navy); padding:56px 6% 32px; }
       <div class="trip-prose" id="trip-itinerary"></div>
     </div>
 
+    <div class="trip-section" id="trip-packages-sec" hidden>
+      <h2 data-i18n="trip_page.packages">Packages &amp; Prices</h2>
+      <div class="trip-packages" id="trip-packages"></div>
+    </div>
+
     <div class="trip-section" id="trip-departures-sec" hidden>
       <h2 data-i18n="trips_page.departures">Departures</h2>
       <div class="trip-departures" id="trip-departures"></div>
@@ -348,6 +360,28 @@ function fmtDate(d) {
   const loc = LOCALE[TC_I18N.lang] || 'en-GB';
   return isNaN(dt) ? d : dt.toLocaleDateString(loc, { day: 'numeric', month: 'short', year: 'numeric' });
 }
+function fmtTime(t) {
+  const [h, m] = String(t || '').split(':').map(Number);
+  if (isNaN(h)) return '';
+  return new Date(2000, 0, 1, h, m || 0).toLocaleTimeString(LOCALE[TC_I18N.lang] || 'en-GB', { hour: 'numeric', minute: '2-digit' });
+}
+// packages / departures fall back to the single price + plain date list on older trips
+function tripPackages(t) {
+  const list = Array.isArray(t.packages) ? t.packages.filter(p => Number(p.price) > 0 || Number(p.days) > 0) : [];
+  if (list.length) return list;
+  return Number(t.price_usd) > 0 ? [{ label: '', days: Number(t.duration_days) || 0, price: Number(t.price_usd) }] : [];
+}
+function tripDepartures(t) {
+  const list = Array.isArray(t.departures) ? t.departures.filter(d => d && d.date) : [];
+  if (list.length) return list;
+  return (t.departure_dates || []).filter(Boolean).map(d => ({ date: d, time: '' }));
+}
+function durationRange(pkgs, fallback) {
+  const days = pkgs.map(p => Number(p.days)).filter(n => n > 0);
+  if (!days.length) return fallback ? String(fallback) : '';
+  const lo = Math.min(...days), hi = Math.max(...days);
+  return lo === hi ? String(lo) : `${lo}–${hi}`;
+}
 
 const params  = new URLSearchParams(location.search);
 const tripKey = (params.get('slug') || params.get('id') || '').trim();
@@ -395,7 +429,9 @@ function renderTrip(t) {
   facts.push(`<div class="trip-fact"><span class="trip-fact-lbl">${esc(L.priceLbl)}</span><span class="trip-fact-val">${
     hasPrice ? `${esc(L.from)} RM ${Number(t.price_usd).toLocaleString()} <small>${esc(L.per)}</small>` : esc(L.priceTba)
   }</span></div>`);
-  if (t.duration_days) facts.push(`<div class="trip-fact"><span class="trip-fact-lbl">${esc(L.durLbl)}</span><span class="trip-fact-val">${t.duration_days} ${esc(L.days)}</span></div>`);
+  const pkgs = tripPackages(t);
+  const dur = durationRange(pkgs, t.duration_days);
+  if (dur) facts.push(`<div class="trip-fact"><span class="trip-fact-lbl">${esc(L.durLbl)}</span><span class="trip-fact-val">${dur} ${esc(L.days)}</span></div>`);
   if (t.max_pax) facts.push(`<div class="trip-fact"><span class="trip-fact-lbl">${esc(L.paxLbl)}</span><span class="trip-fact-val">${esc(L.max)} ${t.max_pax}</span></div>`);
   document.getElementById('trip-facts').innerHTML = facts.join('');
 
@@ -414,11 +450,22 @@ function renderTrip(t) {
   }
 
   // ── Departures (optional)
-  const deps = Array.isArray(t.departure_dates) ? t.departure_dates.filter(Boolean) : [];
+  const deps = tripDepartures(t);
   if (deps.length) {
     document.getElementById('trip-departures').innerHTML =
-      deps.map(d => `<span class="trip-dep-chip">${esc(fmtDate(d))}</span>`).join('');
+      deps.map(d => `<span class="trip-dep-chip">${esc(fmtDate(d.date))}${d.time ? `<small>${esc(fmtTime(d.time))}</small>` : ''}</span>`).join('');
     document.getElementById('trip-departures-sec').hidden = false;
+  }
+
+  // ── Packages (only worth a section when there is a choice)
+  if (pkgs.length > 1) {
+    document.getElementById('trip-packages').innerHTML = pkgs.map(p => {
+      const days = Number(p.days) > 0 ? `${p.days} ${esc(L.days)}` : '';
+      const name = p.label ? `${esc(p.label)}${days ? `<small>${days}</small>` : ''}` : (days || '—');
+      return `<div class="trip-pkg"><div class="trip-pkg-name">${name}</div>
+        <div class="trip-pkg-price">RM ${Number(p.price || 0).toLocaleString()} <small>${esc(L.per)}</small></div></div>`;
+    }).join('');
+    document.getElementById('trip-packages-sec').hidden = false;
   }
 
   applyBookCta(t);

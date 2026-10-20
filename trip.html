@@ -591,6 +591,12 @@ function tripDepartures(t) {
   if (list.length) return list;
   return (t.departure_dates || []).filter(Boolean).map(d => ({ date: d, time: '' }));
 }
+// A departure linked to an option (d.pkg = that option's id) only shows for it;
+// unlinked departures show for every option.
+function departuresFor(t, pkg) {
+  const deps = t ? tripDepartures(t) : [];
+  return pkg && pkg.id ? deps.filter(d => !d.pkg || d.pkg === pkg.id) : deps;
+}
 function durationRange(pkgs, fallback) {
   const days = pkgs.map(p => Number(p.days)).filter(n => n > 0);
   if (!days.length) return fallback ? String(fallback) : '';
@@ -703,13 +709,7 @@ function renderTrip(t) {
   }).join('');
   if (prevPkg && pkgSel.options[prevPkg]) pkgSel.value = prevPkg;
   document.getElementById('tp-pkg-field').hidden = pkgs.length < 2;
-  const dateSel = document.getElementById('tp-date');
-  const prevDate = dateSel.value;
-  dateSel.innerHTML = deps.length
-    ? deps.map(d => `<option value="${esc(d.date)}|${esc(d.time || '')}">${esc(fmtDateDay(d.date))}${d.time ? ' · ' + esc(fmtTime(d.time)) : ''}</option>`).join('')
-    : `<option value="">${esc(TC_I18N.t('tp.no_dates'))}</option>`;
-  if (prevDate && [...dateSel.options].some(o => o.value === prevDate)) dateSel.value = prevDate;
-  dateSel.disabled = !deps.length;
+  fillDates();
   const paxSel = document.getElementById('tp-pax');
   const prevPax = paxSel.value || '1';
   const maxPax = Math.min(Number(t.max_pax) || 10, 20);
@@ -832,15 +832,32 @@ function selectedPackage() {
   const pkgs = currentTrip ? tripPackages(currentTrip) : [];
   return pkgs[parseInt(document.getElementById('tp-pkg').value) || 0];
 }
+// The date list follows the chosen option; each date may carry its own price.
+function fillDates() {
+  const dateSel = document.getElementById('tp-date');
+  const prevDate = dateSel.value;
+  const deps = departuresFor(currentTrip, selectedPackage());
+  dateSel.innerHTML = deps.length
+    ? deps.map(d => `<option value="${esc(d.date)}|${esc(d.time || '')}">${esc(fmtDateDay(d.date))}${d.time ? ' · ' + esc(fmtTime(d.time)) : ''}${
+        Number(d.price) > 0 ? ' — RM ' + Number(d.price).toLocaleString() : ''}</option>`).join('')
+    : `<option value="">${esc(TC_I18N.t('tp.no_dates'))}</option>`;
+  if (prevDate && [...dateSel.options].some(o => o.value === prevDate)) dateSel.value = prevDate;
+  dateSel.disabled = !deps.length;
+}
+function selectedDeparture() {
+  const v = document.getElementById('tp-date').value;
+  return departuresFor(currentTrip, selectedPackage()).find(d => `${d.date}|${d.time || ''}` === v);
+}
 function updateBookTotal() {
   const pkg = selectedPackage();
   const pax = parseInt(document.getElementById('tp-pax').value) || 1;
-  const price = Number(pkg?.price) || 0;
+  const price = Number(selectedDeparture()?.price) || Number(pkg?.price) || 0;
   document.getElementById('tp-total-val').textContent = 'RM ' + (price * pax).toLocaleString();
   document.getElementById('tp-total').hidden = !price;
   if (currentTrip) { applyBookCta(currentTrip); applyWhatsApp(currentTrip); }
 }
-['tp-pkg', 'tp-date', 'tp-pax'].forEach(id => document.getElementById(id).addEventListener('change', updateBookTotal));
+document.getElementById('tp-pkg').addEventListener('change', () => { fillDates(); updateBookTotal(); });
+['tp-date', 'tp-pax'].forEach(id => document.getElementById(id).addEventListener('change', updateBookTotal));
 
 // The choice made here is handed to the dashboard's booking form
 // (URL params when signed in; sessionStorage survives the login detour).

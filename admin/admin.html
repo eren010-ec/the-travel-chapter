@@ -140,7 +140,7 @@ tr:hover td { background:var(--cream); }
 .tm-rows { display:flex; flex-direction:column; gap:6px; }
 .tm-row { display:grid; gap:6px; align-items:center; }
 .tm-row.pkg { grid-template-columns:1.4fr 0.8fr 1fr auto; }
-.tm-row.dep { grid-template-columns:1.4fr 1fr auto; }
+.tm-row.dep { grid-template-columns:1.2fr 0.9fr 1.3fr 0.9fr auto; }
 .tm-row .btn { padding:6px 10px; }
 .tm-row.day { grid-template-columns:1fr auto; align-items:start; padding:10px; border:1px solid var(--border); border-radius:10px; }
 .tm-row.day > div { display:flex; flex-direction:column; gap:6px; }
@@ -792,11 +792,11 @@ textarea { resize:vertical; min-height:70px; }
       </div>
       <div class="field full">
         <label>Duration / Price Option</label>
-        <select id="abm-package" onchange="updateAddTotal()"></select>
+        <select id="abm-package" onchange="fillAddDates();updateAddTotal()"></select>
       </div>
       <div class="field">
         <label>Departure</label>
-        <select id="abm-date"></select>
+        <select id="abm-date" onchange="updateAddTotal()"></select>
       </div>
       <div class="field">
         <label>Travellers</label>
@@ -1806,15 +1806,28 @@ function updateAddDates() {
   document.getElementById('abm-package').innerHTML = pkgs.length
     ? pkgs.map((p,i)=>`<option value="${i}">${escapeHtml(packageText(p))}</option>`).join('')
     : '<option value="">No price set</option>';
-  const deps = tripDepartures(t);
-  document.getElementById('abm-date').innerHTML = deps.length
-    ? deps.map(d=>`<option value="${d.date}|${d.time||''}">${departureText(d)}</option>`).join('')
-    : '<option value="">No dates — enter manually</option>';
+  fillAddDates();
   updateAddTotal();
+}
+function addBookingDepartures() {
+  const pkg = addBookingPackage();
+  const deps = tripDepartures(addBookingTrip());
+  return pkg && pkg.id ? deps.filter(d => !d.pkg || d.pkg === pkg.id) : deps;
+}
+function fillAddDates() {
+  const deps = addBookingDepartures();
+  document.getElementById('abm-date').innerHTML = deps.length
+    ? deps.map(d=>`<option value="${d.date}|${d.time||''}">${departureText(d)}${Number(d.price)>0 ? ' — RM '+Number(d.price).toLocaleString() : ''}</option>`).join('')
+    : '<option value="">No dates — enter manually</option>';
+}
+function addBookingPrice() {
+  const v = document.getElementById('abm-date').value;
+  const dep = addBookingDepartures().find(d => `${d.date}|${d.time||''}` === v);
+  return Number(dep?.price) || Number(addBookingPackage()?.price) || 0;
 }
 
 function updateAddTotal() {
-  const price = Number(addBookingPackage()?.price) || 0;
+  const price = addBookingPrice();
   const pax   = parseInt(document.getElementById('abm-pax').value)||1;
   document.getElementById('abm-total').textContent = 'RM ' + (price*pax).toLocaleString();
 }
@@ -1824,7 +1837,7 @@ async function confirmAddBooking() {
   btn.disabled=true; btn.textContent='Adding…';
   const sel   = document.getElementById('abm-trip');
   const pkg   = addBookingPackage();
-  const price = Number(pkg?.price) || 0;
+  const price = addBookingPrice();
   const pax   = parseInt(document.getElementById('abm-pax').value)||1;
   const [date, time] = document.getElementById('abm-date').value.split('|');
   const reqs  = document.getElementById('abm-requests').value.trim();
@@ -1976,6 +1989,7 @@ function addPackageRow(p = {}) {
   row.querySelector('.pk-label').value = p.label || '';
   row.querySelector('.pk-days').value  = p.days ?? '';
   row.querySelector('.pk-price').value = p.price ?? '';
+  row.dataset.id = p.id || ('p' + Math.random().toString(36).slice(2, 8));
   document.getElementById('tm-packages').appendChild(row);
 }
 function addDepartureRow(d = {}) {
@@ -1983,10 +1997,29 @@ function addDepartureRow(d = {}) {
   row.className = 'tm-row dep';
   row.innerHTML = `<input type="date" class="dp-date">
     <input type="time" class="dp-time">
+    <select class="dp-pkg" title="Which option runs on this date" onmousedown="fillDepPkgOptions(this)" onfocus="fillDepPkgOptions(this)"></select>
+    <input type="number" class="dp-price" min="0" step="0.01" placeholder="Price RM" title="Leave blank to use the option's price">
     <button type="button" class="btn btn-ghost btn-sm" title="Remove" onclick="this.parentElement.remove()">✕</button>`;
   row.querySelector('.dp-date').value = d.date || '';
   row.querySelector('.dp-time').value = d.time || '';
+  row.querySelector('.dp-price').value = d.price ?? '';
+  row.querySelector('.dp-pkg').dataset.value = d.pkg || '';
+  fillDepPkgOptions(row.querySelector('.dp-pkg'));
   document.getElementById('tm-departures').appendChild(row);
+}
+// Options are read live from the package rows, so renamed/added options show up.
+function fillDepPkgOptions(sel) {
+  const cur = sel.value || sel.dataset.value || '';
+  const opts = [...document.querySelectorAll('#tm-packages .tm-row')].map((r, i) => {
+    const label = r.querySelector('.pk-label').value.trim();
+    const days = r.querySelector('.pk-days').value;
+    return { id: r.dataset.id, text: label || (days ? days + 'd' : 'Option ' + (i + 1)) };
+  });
+  sel.innerHTML = '<option value="">All options</option>' +
+    opts.map(o => `<option value="${o.id}">${escapeHtml(o.text)}</option>`).join('');
+  sel.value = opts.some(o => o.id === cur) ? cur : '';
+  sel.dataset.value = sel.value;
+  sel.onchange = () => { sel.dataset.value = sel.value; };
 }
 // ── Trip page content editors (gallery, days, highlights, hotels, map) ──
 // Images upload as soon as they're picked; rows keep the public URL in data-url.
@@ -2117,16 +2150,22 @@ function readTripContent() {
 
 function readPackageRows() {
   return [...document.querySelectorAll('#tm-packages .tm-row')].map(r => ({
+    id:    r.dataset.id,
     label: r.querySelector('.pk-label').value.trim(),
     days:  parseInt(r.querySelector('.pk-days').value) || 0,
     price: parseFloat(r.querySelector('.pk-price').value) || 0,
   })).filter(p => p.label || p.days || p.price);
 }
 function readDepartureRows() {
-  return [...document.querySelectorAll('#tm-departures .tm-row')].map(r => ({
-    date: r.querySelector('.dp-date').value,
-    time: r.querySelector('.dp-time').value,
-  })).filter(d => d.date)
+  const pkgIds = new Set([...document.querySelectorAll('#tm-packages .tm-row')].map(r => r.dataset.id));
+  return [...document.querySelectorAll('#tm-departures .tm-row')].map(r => {
+    const d = { date: r.querySelector('.dp-date').value, time: r.querySelector('.dp-time').value };
+    const pkg = r.querySelector('.dp-pkg').dataset.value;
+    const price = parseFloat(r.querySelector('.dp-price').value);
+    if (pkg && pkgIds.has(pkg)) d.pkg = pkg;
+    if (price > 0) d.price = price;
+    return d;
+  }).filter(d => d.date)
     .sort((a, b) => (a.date + (a.time || '')).localeCompare(b.date + (b.time || '')));
 }
 

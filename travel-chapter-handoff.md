@@ -831,6 +831,31 @@ The whole customer site was redesigned from the old cream/gold/Cormorant look to
 - Chrome extension was unavailable for most of the session; local preview used `npx http-server -a 0.0.0.0 -p 8765` + **puppeteer-core in the scratchpad** driving local Chrome (headless `--screenshot` can't go below ~500px wide, puppeteer emulates a real 390px phone). Admin editor was tested by stubbing supabase-js with live trips/CMS data — nothing was written to the real DB.
 - Two bugs worth remembering: percentage `padding` on an absolutely-positioned element resolves against the containing block (made the hero emblem tiny); and writing JS through Node template strings stripped `\d` in regexes twice — use the Edit tool or a file for regex-bearing code.
 
+---
+
+## Workstream AA — Trips: multiple duration/price options + departures with times (added 2026-10-20)
+
+User request: "for tour package section, can add multiple time and date and also different price for different duration." Commit `b93911c` — pushed (customer auto-deploy), admin deployed via `netlify deploy --dir=admin --prod`. Migration `20261020120000_trip_packages_departures` applied by the user in the SQL Editor and verified via REST.
+
+### Data model
+- `trips.packages` jsonb `[{label, days, price}]` and `trips.departures` jsonb `[{date: "YYYY-MM-DD", time: "HH:MM" | ""}]`, both default `[]`.
+- **Legacy columns are kept in sync by the admin save**, so nothing else had to change: `price_usd` / `duration_days` = the cheapest priced option, `departure_dates` = the unique departure dates. `tripIsTba`, the "From RM X" labels, `index.html` and the Month/Year filters still read the old columns.
+- Trips saved before this fall back automatically: `tripPackages(t)` → one option from `price_usd`/`duration_days`; `tripDepartures(t)` → `departure_dates` with no time. These helpers are **duplicated** in `admin/admin.html`, `dashboard.html` and `trip.html` (`trips.html` only computes a duration range inline) — keep them in step.
+- `bookings` gained `package_label`, `package_days`, `departure_time` (`HH:MM` check). `get_admin_bookings` (RPC, not in the repo's migrations) does **not** return them, so the admin's `loadBookings()` merges them from a separate `bookings` select.
+
+### Admin (`admin/admin.html`)
+- Trip modal: the Duration/Price inputs and the comma-separated Departure Dates field were replaced by repeatable rows — **Duration & Price Options** (label / days / price RM, "+ Add Option") and **Departures** (date + optional time, "+ Add Departure"; the same date twice = two times). Trips table shows day range, "N options", and dates with times.
+- Add Booking: option picker + departure picker (date|time); total uses the chosen option. Edit Booking gains a Departure Time field. Bookings table + member panel show option label/days and time.
+
+### Customer
+- `trip.html`: new "Packages & Prices" section (only when >1 option), departure chips show the time, Duration fact shows a range.
+- `trips.html` / `dashboard.html` cards: duration range; dashboard price gets "From" when there are several options.
+- `dashboard.html` booking modal: Package select (hidden for single-price trips); the booking stores the chosen label/days/time and `total_usd` = option price × pax.
+- New i18n keys `trip_page.packages`, `dash.package` (en/zh/ms).
+
+### Testing notes
+- Inline scripts syntax-checked with Node only; **not yet exercised in a browser or against live data** — the user was given an end-to-end checklist (create options/departures in admin → trip page → dashboard booking → admin Bookings).
+
 ## Task checklist
 
 - [x] Open all 6 pages in a real browser, confirm logo renders correctly (sizing/placement) — done 2026-07-26 at desktop size.
@@ -879,3 +904,6 @@ The whole customer site was redesigned from the old cream/gold/Cormorant look to
 - [ ] Follow-up (optional): add `departure_dates` to trips so the Month/Year search actually narrows results; the Travellers field is cosmetic until trips carry a group size.
 - [ ] Follow-up (optional): other pages still show the round emblem + `THE TRAVEL CHAPTER` text in the navbar (horizontal logo is home-only); `free-gifts.html` footer shows its hard-coded "since 2012 … Kuala Lumpur" tagline instead of the CMS footer text; About page's dark-green placeholder box is old content.
 - [ ] Follow-up (optional): admin site itself still uses the old cream/gold look — only the customer site was redesigned.
+- [x] **Workstream AA (2026-10-20) — SHIPPED.** Multiple duration/price options + departures with times per trip; bookings record option + time. Commit `b93911c`, migration `20261020120000` applied, both sites live.
+- [ ] Follow-up (verification): run the Workstream AA end-to-end check on the live sites (admin trip with 2+ options and timed departures → trip page → member booking → admin Bookings).
+- [ ] Follow-up (optional): past departures are still listed/bookable (true before AA too); `dashboard.__preview.html` was not updated.

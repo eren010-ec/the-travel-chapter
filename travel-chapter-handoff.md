@@ -939,6 +939,26 @@ TUNISIA, TURKEY, UZBEKISTAN, VIETNAM, WEST COAST USA + GRAND CANYON, and all Chi
 - Highlight titles per trip were written in the same pass (4 per trip, e.g. "Tanah Lot Temple"). The prompt/title lists lived in the session scratchpad and are not in the repo.
 - An unused test upload of Sigiriya (`trips/688449fd-….png`) sits in storage — harmless; delete from the Supabase dashboard if wanted.
 
+---
+
+## Workstream AE — Kuching charter trips, Shopee products, Free Gifts details popup (2026-10-21)
+
+### 5 Kuching direct-charter trips (from `SALES KIT.xlsx`, the "CHARTED FLIGHT" sheets)
+Inserted straight into `trips` (same fields `saveTrip` writes; legacy `price_usd`/`duration_days`/`departure_dates` mirror the cheapest option). All active, category CHINA, max_pax 20; per-date prices in `departures[].price`, flight departure time in `departures[].time`. Cover reused from the matching existing trip.
+- `kuching-charter-zhangjiajie` — DYG-01 (no shop / 3-shop), DYG-02 Yichang+Enshi, DYG-03 Guizhou; Fridays 6 Nov–25 Dec 2026, 17:30.
+- `kuching-charter-guiyang` — 寻迹贵州, 贵州遇见重庆 (8D6N); Sundays 1 Nov–20 Dec 2026, 06:30.
+- `kuching-charter-hainan` — 5D3N (Tue) and 6D4N (Thu/Sat); 27 Oct–31 Dec 2026, 06:20.
+- `kuching-charter-guangzhou-chenzhou` — 9D7N; 10 dates 16 Jan–26 Mar 2027, 22:20 (sheet mentions 7-day too but only prices 9-day).
+- `kuching-charter-kunming-yunnan` — A1/A2/A3 9D7N; Wednesdays 3 Mar–26 May 2027 (sheet says 2026 but dates only fit 2027), 22:25.
+- Child/infant/single-supplement prices, optional tours and peak surcharges are in `exclusions` text (no structured fields). No day-by-day itinerary or highlights yet.
+- The CNY2027 (EX-KUL) sheet was **not** entered (KL departures, not charters) — ask before adding.
+
+### Shopee products → `products`
+10 products from the Seller Centre mass-update exports (basic info + sales info + media info for shop 1920941114). `points_cost` null (user: leave points blank), `price_myr` = lowest variation price, description = Shopee spec text minus supplier-only lines + variation list + "Also available on our Shopee shop.", cover image copied into `trip-images/products/`. sort_order 2–11 (after the existing Vacuum Flask Bottle). Shopee's public shop page blocks unauthenticated visits (traffic verification) — use the Seller Centre exports.
+
+### Free Gifts page (`free-gifts.html`, commit `f58e529`)
+Cards show only image, name, points badge and price badge (price now shows even when points are set) and a **Details** button; the description opens in a popup (`#gift-modal`, Esc/✕/backdrop close, `white-space:pre-line`). i18n keys `gifts.details`, `gifts.close` (en/zh/ms).
+
 ## Task checklist
 
 - [x] Open all 6 pages in a real browser, confirm logo renders correctly (sizing/placement) — done 2026-07-26 at desktop size.
@@ -994,6 +1014,7 @@ TUNISIA, TURKEY, UZBEKISTAN, VIETNAM, WEST COAST USA + GRAND CANYON, and all Chi
 - [x] **Push `main`** — done; everything through `11a023e` is pushed (2026-10-20).
 - [x] **Workstream AC (2026-10-20) — SHIPPED.** Departures linked to options with per-date prices; per-option itinerary + brochure PDF; 60 trips synced from EUUS B2B.
 - [ ] **Workstream AD (2026-10-21) — PARTLY DONE.** Descriptions on all 87 trips; AI highlight images on 54. Remaining 33 trips need images (ChatGPT daily limit hit) — see Workstream AD options.
+- [x] **Workstream AE (2026-10-21) — SHIPPED.** 5 Kuching charter trips, 10 Shopee products, Free Gifts details popup. Follow-up: charter trips need day-by-day + highlights; decide on the CNY2027 KL sheet.
 - [ ] Follow-up (decision): detach EUUS-branded brochure PDFs if supplier branding shouldn't reach customers (see Workstream AC open items).
 - [ ] Follow-up (optional): admin editor for an option's day-by-day / PDF (currently only preserved on save, not editable).
 - [ ] Follow-up (verification): fill one trip's new content in the admin (gallery, days, highlights, hotels, map) and check it on the live trip page, desktop + phone; test Book Now → login → dashboard pre-filled booking.

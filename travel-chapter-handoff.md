@@ -907,10 +907,11 @@ Commits `c572906` (departure ↔ option link + per-date price) and `11a023e` (it
 - Pre-sync backup of `trips` was only in the session scratchpad (not in the repo).
 - EUUS site notes for any re-sync: Angular app, list at `/tour?month=YYYY-MM&page=N` (needs in-page navigation, direct fetch returns a stub); brochure file via `POST /api/tour/file {id, field:'itinerary'}` → base64; admin storage uploads must be under `trips/` (RLS).
 
+### Brochure PDFs removed (2026-10-21)
+- User deleted every `trips/itin-*.pdf` from the `trip-images` bucket via the Supabase dashboard (the admin login has upload but no delete permission on storage). Then `itinerary_pdf` was stripped from all 129 options on 59 trips. The day-by-day `itinerary_days` are kept (129/129 options still have them).
+
 ### Open items
-- **Supplier branding in published PDFs:** Beijing promo + Egypt brochures name EUUS/Bestour in text; Charming Shandong and the Chiang Mai free-and-easy flyers show an EUUS TOURS logo. User to decide whether to detach those PDFs.
 - ~12 EUUS Japan products had no matching trip — not added.
-- Stray unattached file `trips/itin-6DHAN-SAPA-S2.pdf` in storage (harmless; delete manually if wanted).
 
 ## Task checklist
 

@@ -149,6 +149,8 @@ body { font-family:'Nunito',sans-serif; background:var(--cream); color:var(--tex
 
 .tp-body { position:relative; z-index:2; max-width:1220px; margin:-120px auto 0; padding:0 6% 40px; display:grid; grid-template-columns:minmax(0,1fr) 360px; grid-template-areas:"gallery aside" "main aside"; gap:0 32px; }
 .tp-gallery-wrap { grid-area:gallery; }
+/* No gallery card to overlap the hero: push the first section below the hero's curve */
+.tp-gallery-wrap.no-gallery { height:150px; }
 .tp-main { grid-area:main; min-width:0; }
 .tp-aside { grid-area:aside; align-self:start; position:sticky; top:88px; margin-top:-250px; }
 @media (max-width:1060px) { .tp-body { grid-template-columns:minmax(0,1fr) 320px; gap:0 24px; } }
@@ -305,6 +307,7 @@ body { font-family:'Nunito',sans-serif; background:var(--cream); color:var(--tex
   .tp-btn-enq { margin-top:0; }
   .tp-btn { padding:12px 10px; font-size:0.92rem; }
   .tp-gallery-wrap { margin-top:18px; }
+  .tp-gallery-wrap.no-gallery { height:auto; }
   .tp-gallery { grid-template-columns:repeat(4, 1fr); }
   .tp-gallery button:nth-child(n+5) { display:none; }
   .tp-desc-row { grid-template-columns:1fr; }
@@ -738,6 +741,7 @@ function renderTrip(t) {
   } else {
     gal.hidden = true;
   }
+  gal.parentElement.classList.toggle('no-gallery', gal.hidden);
 
   // ── Description + features (description falls back to summary)
   const overview = (t.description && t.description.trim()) || t.summary || '';

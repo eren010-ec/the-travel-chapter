@@ -920,6 +920,7 @@ textarea { resize:vertical; min-height:70px; }
       </div>
       <div class="field full">
         <label>Day-by-Day Itinerary</label>
+        <select id="tm-days-for" style="align-self:flex-start;" title="Each package option can have its own days" onmousedown="fillDaysFor()" onfocus="fillDaysFor()" onchange="switchDaysFor(this.value)"></select>
         <div id="tm-days" class="tm-rows"></div>
         <button type="button" class="btn btn-ghost btn-sm" style="align-self:flex-start;" onclick="addDayRow()">+ Add Day</button>
       </div>
@@ -2076,6 +2077,48 @@ function addDayRow(d = {}) {
   row.appendChild(removeBtn());
   document.getElementById('tm-days').appendChild(row);
 }
+// The day rows edit one list at a time: the trip's own (shown when an option has
+// none) or a package option's, which lives in that row's dataset.extra.
+let tripDays = [], daysTarget = '';
+function pkgRowById(id) {
+  return [...document.querySelectorAll('#tm-packages .tm-row')].find(r => r.dataset.id === id);
+}
+function readDayRows() {
+  return [...document.querySelectorAll('#tm-days .tm-row')]
+    .map(r => ({ title: r.querySelector('.dy-title').value.trim(), desc: r.querySelector('.dy-desc').value.trim() }))
+    .filter(d => d.title || d.desc);
+}
+function flushDays() {
+  const days = readDayRows();
+  if (!daysTarget) { tripDays = days; return; }
+  const row = pkgRowById(daysTarget);
+  if (!row) return;  // option was removed
+  const extra = JSON.parse(row.dataset.extra || '{}');
+  if (days.length) extra.itinerary_days = days; else delete extra.itinerary_days;
+  row.dataset.extra = JSON.stringify(extra);
+  row.querySelector('.pk-label').style.borderLeft = days.length || extra.itinerary_pdf ? '3px solid var(--gold)' : '';
+}
+function fillDaysFor() {
+  const sel = document.getElementById('tm-days-for');
+  const opts = [...document.querySelectorAll('#tm-packages .tm-row')].map((r, i) => {
+    const label = r.querySelector('.pk-label').value.trim();
+    const days = r.querySelector('.pk-days').value;
+    return { id: r.dataset.id, text: label || (days ? days + 'd' : 'Option ' + (i + 1)) };
+  });
+  sel.innerHTML = '<option value="">Whole trip (options without their own days)</option>' +
+    opts.map(o => `<option value="${o.id}">Option: ${escapeHtml(o.text)}</option>`).join('');
+  sel.value = opts.some(o => o.id === daysTarget) ? daysTarget : '';
+}
+function switchDaysFor(target) {
+  flushDays();
+  daysTarget = target || '';
+  const row = daysTarget && pkgRowById(daysTarget);
+  if (daysTarget && !row) daysTarget = '';
+  const days = row ? (JSON.parse(row.dataset.extra || '{}').itinerary_days || []) : tripDays;
+  document.getElementById('tm-days').innerHTML = '';
+  days.forEach(d => addDayRow(d));
+  fillDaysFor();
+}
 function addHighlightRow(h = {}) {
   const row = document.createElement('div');
   row.className = 'tm-row media';
@@ -2130,7 +2173,12 @@ function fillTripContent(t = {}) {
   tripGallery = [...arr(t.gallery)]; renderGalleryThumbs();
   tripRouteImage = t.route_image || ''; renderRouteThumb();
   ['tm-days', 'tm-highlights', 'tm-hotels'].forEach(id => document.getElementById(id).innerHTML = '');
-  arr(t.itinerary_days).forEach(d => addDayRow(d));
+  // Open on the trip's own days, or else the first option that has some
+  tripDays = [...arr(t.itinerary_days)];
+  daysTarget = '';
+  const firstWithDays = tripDays.length ? null
+    : [...document.querySelectorAll('#tm-packages .tm-row')].find(r => (JSON.parse(r.dataset.extra || '{}').itinerary_days || []).length);
+  switchDaysFor(firstWithDays ? firstWithDays.dataset.id : '');
   arr(t.highlights).forEach(h => addHighlightRow(h));
   arr(t.accommodations).forEach(h => addHotelRow(h));
   document.getElementById('tm-inclusions').value = t.inclusions || '';
@@ -2143,8 +2191,7 @@ function readTripContent() {
     features: [...document.querySelectorAll('#tm-features input:checked')].map(c => c.value),
     gallery: tripGallery,
     route_image: tripRouteImage || null,
-    itinerary_days: rows('tm-days', r => ({ title: r.querySelector('.dy-title').value.trim(), desc: r.querySelector('.dy-desc').value.trim() }))
-      .filter(d => d.title || d.desc),
+    itinerary_days: tripDays,
     highlights: rows('tm-highlights', r => ({ title: r.querySelector('.hl-title').value.trim(), image: r.querySelector('.tm-img-pick').dataset.url || '' }))
       .filter(h => h.title || h.image),
     accommodations: rows('tm-hotels', r => ({
@@ -2307,6 +2354,7 @@ function removeTripImage() {
 async function saveTrip() {
   const btn=document.getElementById('btn-save-trip');
   btn.disabled=true; btn.textContent='Saving…';
+  flushDays();  // put the day rows on screen back into the trip / option they belong to
   const packages=readPackageRows();
   const departures=readDepartureRows();
   const dates=[...new Set(departures.map(d=>d.date))];

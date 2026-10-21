@@ -45,7 +45,7 @@
       'gifts.empty': 'Our gift collection is being refreshed — please check back soon.',
       'gifts.cta': 'Talk to Us',
       'gifts.filter_points': 'Reward points', 'gifts.filter_min': 'Min', 'gifts.filter_max': 'Max',
-      'gifts.filter_clear': 'Clear', 'gifts.points_suffix': 'pts',
+      'gifts.filter_clear': 'Clear', 'gifts.points_suffix': 'pts', 'gifts.details': 'Details', 'gifts.close': 'Close',
       'gifts.filter_none': 'No gifts in that points range.',
 
       // ── index.html: hero / journal intro ──
@@ -371,7 +371,7 @@
       'gifts.empty': '礼品系列正在更新中，敬请稍后再来。',
       'gifts.cta': '联系我们',
       'gifts.filter_points': '奖励积分', 'gifts.filter_min': '最少', 'gifts.filter_max': '最多',
-      'gifts.filter_clear': '清除', 'gifts.points_suffix': '分',
+      'gifts.filter_clear': '清除', 'gifts.points_suffix': '分', 'gifts.details': '详情', 'gifts.close': '关闭',
       'gifts.filter_none': '该积分范围内没有礼品。',
 
       'hero.eyebrow': '精心策划的旅程',
@@ -681,7 +681,7 @@
       'gifts.empty': 'Koleksi hadiah kami sedang dikemas kini — sila kembali semula tidak lama lagi.',
       'gifts.cta': 'Hubungi Kami',
       'gifts.filter_points': 'Mata ganjaran', 'gifts.filter_min': 'Min', 'gifts.filter_max': 'Maks',
-      'gifts.filter_clear': 'Kosongkan', 'gifts.points_suffix': 'mata',
+      'gifts.filter_clear': 'Kosongkan', 'gifts.points_suffix': 'mata', 'gifts.details': 'Butiran', 'gifts.close': 'Tutup',
       'gifts.filter_none': 'Tiada hadiah dalam julat mata itu.',
 
       'hero.eyebrow': 'Perjalanan Terancang',

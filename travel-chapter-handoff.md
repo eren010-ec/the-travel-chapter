@@ -913,6 +913,32 @@ Commits `c572906` (departure ↔ option link + per-date price) and `11a023e` (it
 ### Open items
 - ~12 EUUS Japan products had no matching trip — not added.
 
+---
+
+## Workstream AD — Trip descriptions + AI highlight images (2026-10-21) — PARTLY DONE
+
+Data only (no code change). Done in the user's Chrome: admin tab for DB writes/uploads, the user's ChatGPT Plus account ("Aero Travel", separate Chrome profile) for images.
+
+### Done
+- **All 87 active trips:** `summary` (one line) + `description` (two paragraphs) written by Claude from each trip's itinerary route; for the 28 trips without day rows, from the destination's well-known sights. No inclusion claims (meals/hotels). Only filled empty fields.
+- **54 trips have images:** 4 ChatGPT-generated photos each, saved as `highlights` `[{title, image}]` **and** as `gallery` (the same 4 URLs → the photo strip under the cover). Files are JPEG ~300 KB, 1400 px wide, in `trip-images/trips/<uuid>.jpg`, uploaded through the admin's gallery file input. Done: BALI plus, in title order, 4D/3D LEISURE DIVE … TOKYO (everything A–T in the list, incl. SRI LANKA).
+- Checked: within-trip duplicate scan (perceptual hash) on the first 31 trips found no repeated-subject sets.
+
+### Not done — 33 trips without highlights/gallery
+TUNISIA, TURKEY, UZBEKISTAN, VIETNAM, WEST COAST USA + GRAND CANYON, and all China trips (上海SHANGHAI … 重庆CHONGQING, incl. 不丹BHUTAN). Stopped because ChatGPT Plus hit its **daily image-generation limit** (~170 images) on 2026-10-21. Find them with `trips?select=title&highlights=eq.[]`.
+
+### Options for the remainder (user to decide)
+1. Resume ChatGPT after the daily reset (~2.5 h for 33 trips).
+2. Pexels (free commercial licence, needs a free API key) or Wikimedia Commons (needs a photo-credit line on the page).
+3. Supplier/own photos uploaded in the admin.
+- **Not Google Images** — user asked; declined because those photos are mostly copyrighted and this is a commercial site.
+
+### How the generation worked (for resuming)
+- One image **per ChatGPT message** — asking for 4 in one message often returns 4 variants of the first subject.
+- Per trip: new chat → 4 single-image prompts ("Generate one image: a realistic travel photograph in wide landscape 3:2 of <subject>, natural colours, no text, no logos.") → each downloaded as JPEG via canvas → uploaded via the admin gallery input → `highlights` + `gallery` written with `sb.from('trips').update`.
+- Highlight titles per trip were written in the same pass (4 per trip, e.g. "Tanah Lot Temple"). The prompt/title lists lived in the session scratchpad and are not in the repo.
+- An unused test upload of Sigiriya (`trips/688449fd-….png`) sits in storage — harmless; delete from the Supabase dashboard if wanted.
+
 ## Task checklist
 
 - [x] Open all 6 pages in a real browser, confirm logo renders correctly (sizing/placement) — done 2026-07-26 at desktop size.
@@ -967,6 +993,7 @@ Commits `c572906` (departure ↔ option link + per-date price) and `11a023e` (it
 - [x] **Workstream AB (2026-10-20) — committed `c5067b8`, admin deployed, migration `20261020140000` applied.** Trip detail page redesign + admin Trip Page Content editor.
 - [x] **Push `main`** — done; everything through `11a023e` is pushed (2026-10-20).
 - [x] **Workstream AC (2026-10-20) — SHIPPED.** Departures linked to options with per-date prices; per-option itinerary + brochure PDF; 60 trips synced from EUUS B2B.
+- [ ] **Workstream AD (2026-10-21) — PARTLY DONE.** Descriptions on all 87 trips; AI highlight images on 54. Remaining 33 trips need images (ChatGPT daily limit hit) — see Workstream AD options.
 - [ ] Follow-up (decision): detach EUUS-branded brochure PDFs if supplier branding shouldn't reach customers (see Workstream AC open items).
 - [ ] Follow-up (optional): admin editor for an option's day-by-day / PDF (currently only preserved on save, not editable).
 - [ ] Follow-up (verification): fill one trip's new content in the admin (gallery, days, highlights, hotels, map) and check it on the live trip page, desktop + phone; test Book Now → login → dashboard pre-filled booking.

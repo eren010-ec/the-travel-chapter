@@ -662,7 +662,7 @@ function coverOf(trips, word) {
   const t = trips.find(x => x.cover_image && String(x.title || '').toUpperCase().includes(word));
   return t ? t.cover_image : '';
 }
-function prettyCat(c) { c = String(c || ''); if (TC_I18N.category(c) !== c) return TC_I18N.category(c); return c.length <= 3 ? c : c.toLowerCase().replace(/(^|[\s&+\/-])\S/g, m => m.toUpperCase()); }
+function prettyCat(c) { c = TC_I18N.category(String(c || '')); return c.length <= 3 ? c : c.toLowerCase().replace(/(^|[\s&+\/-])\S/g, m => m.toUpperCase()); }
 // target → { label, href, image, trips }
 function resolveTarget(target, trips) {
   target = String(target || '');

@@ -1054,16 +1054,19 @@
   }
 
   // trips.category values (uppercase English) → display label in the current language.
-  const CATEGORY_ZH = {
+  const CATEGORY = { zh: {
     EUROPE: '欧洲', CHINA: '中国', TIOMAN: '刁曼岛', BANGKOK: '曼谷', KUCHING: '古晋', MALDIVES: '马尔代夫',
     JAPAN: '日本', BALI: '巴厘岛', KRABI: '甲米', CRUISE: '邮轮', INDONESIA: '印尼', VIETNAM: '越南', USA: '美国',
     UZBEKISTAN: '乌兹别克斯坦', NZ: '新西兰', SEMPORNA: '仙本那', BATAM: '巴淡岛', THAILAND: '泰国', KOREA: '韩国',
     'SRI LANKA': '斯里兰卡', TAIWAN: '台湾', MALAYSIA: '马来西亚', SINGAPORE: '新加坡', AUSTRALIA: '澳大利亚',
     TURKEY: '土耳其', EGYPT: '埃及', MOROCCO: '摩洛哥', DUBAI: '迪拜', 'HONG KONG': '香港', MACAU: '澳门',
-  };
+  }, ms: {
+    EUROPE: 'EROPAH', JAPAN: 'JEPUN', CRUISE: 'PELAYARAN', USA: 'AMERIKA SYARIKAT', NZ: 'NEW ZEALAND',
+    SINGAPORE: 'SINGAPURA', TURKEY: 'TURKI', EGYPT: 'MESIR', MOROCCO: 'MAGHRIBI',
+  } };
   function category(c) {
     c = String(c || '');
-    return (currentLang === 'zh' && CATEGORY_ZH[c.toUpperCase()]) || c;
+    return (CATEGORY[currentLang] && CATEGORY[currentLang][c.toUpperCase()]) || c;
   }
 
   global.TC_I18N = {

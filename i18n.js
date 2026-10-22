@@ -1023,8 +1023,46 @@
 
   document.addEventListener('DOMContentLoaded', function () { applyStatic(); });
 
+  // Trip content translations live in trips.i18n:
+  //   { zh: { title, summary, description, inclusions, exclusions,
+  //           highlights: { "<English title>": "<translated>" },
+  //           packages: { "<option id>": { label, itinerary_days: [{ title, desc }] } } } }
+  // trip(t) returns a copy of t with the current language's text swapped in; anything
+  // missing (or an itinerary whose day count no longer matches) stays English.
+  function trip(t) {
+    const tr = t && t.i18n && t.i18n[currentLang];
+    if (!tr) return t;
+    const out = Object.assign({}, t);
+    ['title', 'summary', 'description', 'inclusions', 'exclusions'].forEach(k => { if (tr[k] && t[k]) out[k] = tr[k]; });
+    const hl = tr.highlights || {};
+    if (Array.isArray(t.highlights)) out.highlights = t.highlights.map(h => (h && hl[h.title]) ? Object.assign({}, h, { title: hl[h.title] }) : h);
+    const pk = tr.packages || {};
+    if (Array.isArray(t.packages)) out.packages = t.packages.map(p => {
+      const z = p && p.id && pk[p.id];
+      if (!z) return p;
+      const q = Object.assign({}, p);
+      if (z.label) q.label = z.label;
+      if (Array.isArray(z.itinerary_days) && Array.isArray(p.itinerary_days) && z.itinerary_days.length === p.itinerary_days.length) q.itinerary_days = z.itinerary_days;
+      return q;
+    });
+    return out;
+  }
+
+  // trips.category values (uppercase English) → display label in the current language.
+  const CATEGORY_ZH = {
+    EUROPE: '欧洲', CHINA: '中国', TIOMAN: '刁曼岛', BANGKOK: '曼谷', KUCHING: '古晋', MALDIVES: '马尔代夫',
+    JAPAN: '日本', BALI: '巴厘岛', KRABI: '甲米', CRUISE: '邮轮', INDONESIA: '印尼', VIETNAM: '越南', USA: '美国',
+    UZBEKISTAN: '乌兹别克斯坦', NZ: '新西兰', SEMPORNA: '仙本那', BATAM: '巴淡岛', THAILAND: '泰国', KOREA: '韩国',
+    'SRI LANKA': '斯里兰卡', TAIWAN: '台湾', MALAYSIA: '马来西亚', SINGAPORE: '新加坡', AUSTRALIA: '澳大利亚',
+    TURKEY: '土耳其', EGYPT: '埃及', MOROCCO: '摩洛哥', DUBAI: '迪拜', 'HONG KONG': '香港', MACAU: '澳门',
+  };
+  function category(c) {
+    c = String(c || '');
+    return (currentLang === 'zh' && CATEGORY_ZH[c.toUpperCase()]) || c;
+  }
+
   global.TC_I18N = {
-    t, setLang, applyStatic, onChange,
+    t, setLang, applyStatic, onChange, trip, category,
     get lang() { return currentLang; },
     SUPPORTED,
   };

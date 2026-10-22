@@ -612,7 +612,8 @@ function durationRange(pkgs, fallback) {
 const params  = new URLSearchParams(location.search);
 const tripKey = (params.get('slug') || params.get('id') || '').trim();
 
-let currentTrip = null;
+let currentTrip = null;   // the trip as shown, i.e. TC_I18N.trip(rawTrip)
+let rawTrip = null;
 let memberLoggedIn = false;
 let waNumber = '';
 
@@ -697,7 +698,7 @@ function renderTrip(t) {
   const meta = [];
   if (t.region) meta.push(`<span>${ICONS.pin}${esc(t.region)}</span>`);
   if (dur) meta.push(`<span>${ICONS.cal}${dur} ${esc(L.days)}</span>`);
-  if (t.category) meta.push(`<span>${ICONS.group}${esc(t.category)}</span>`);
+  if (t.category) meta.push(`<span>${ICONS.group}${esc(TC_I18N.category(t.category))}</span>`);
   if (t.max_pax) meta.push(`<span>${esc(L.max)} ${Number(t.max_pax)}</span>`);
   document.getElementById('tp-meta').innerHTML = meta.join('');
   document.getElementById('tp-tags').innerHTML = jsonList(t.tags).filter(Boolean)
@@ -962,13 +963,13 @@ function renderRelated() {
   document.getElementById('tp-rel-track').innerHTML = list.map(r => `
     <a class="tp-rel" href="trip.html?slug=${encodeURIComponent(r.slug || r.id)}">
       ${r.cover_image ? `<img src="${esc(r.cover_image)}" alt="" loading="lazy">` : ''}
-      <span class="tp-rel-foot"><span class="tp-rel-name">${esc(r.title || '')}</span>${
+      <span class="tp-rel-foot"><span class="tp-rel-name">${esc(TC_I18N.trip(r).title || '')}</span>${
         Number(r.price_usd) > 0 ? `<span class="tp-rel-price">${esc(from)} <b>RM ${Number(r.price_usd).toLocaleString()}</b></span>` : ''}</span>
     </a>`).join('');
   document.getElementById('tp-related').hidden = false;
 }
 async function loadRelated() {
-  const { data } = await sb.from('trips').select('id,title,slug,cover_image,price_usd,region,category')
+  const { data } = await sb.from('trips').select('id,title,slug,cover_image,price_usd,region,category,i18n')
     .eq('is_active', true).order('created_at', { ascending: false }).limit(80);
   relatedTrips = data || [];
   renderRelated();
@@ -993,7 +994,8 @@ async function loadTrip() {
   if (error) console.warn('trip load failed:', error.message);
   const t = Array.isArray(data) && data[0];
   if (!t) { showMissing(); return; }
-  renderTrip(t);
+  rawTrip = t;
+  renderTrip(TC_I18N.trip(t));
 }
 
 function applyFooterContact(d) {
@@ -1034,7 +1036,7 @@ async function loadNav() {
 }
 
 // Re-translate the dynamic parts when the language changes.
-TC_I18N.onChange(() => { if (currentTrip) renderTrip(currentTrip); else showMissing(); });
+TC_I18N.onChange(() => { if (rawTrip) renderTrip(TC_I18N.trip(rawTrip)); else showMissing(); });
 
 // ── Navbar shadow on scroll
 const navbarEl = document.getElementById('navbar');

@@ -437,6 +437,7 @@ function renderTrips(trips) {
     const pkgDays = (Array.isArray(t.packages) ? t.packages : []).map(p => Number(p.days)).filter(n => n > 0);
     const dur = pkgDays.length > 1 && Math.min(...pkgDays) !== Math.max(...pkgDays)
       ? `${Math.min(...pkgDays)}–${Math.max(...pkgDays)}` : (t.duration_days || '');
+    t = TC_I18N.trip(t);
     const tripHref = `trip.html?slug=${encodeURIComponent(t.slug || t.id || '')}`;
     const waHref = waNumber
       ? `https://wa.me/${waNumber}?text=${encodeURIComponent(waMsgTpl.replace('{trip}', t.title || ''))}`
@@ -557,7 +558,7 @@ tfCol.addEventListener('click', () => { clearCol(); applyFilters(); });
 function fillSelect(sel, values, allKey) {
   const cur = sel.value;
   sel.innerHTML = `<option value="">${esc(TC_I18N.t(allKey))}</option>`
-    + values.map(v => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+    + values.map(v => `<option value="${esc(v)}">${esc(TC_I18N.category(v))}</option>`).join('');
   if (values.includes(cur)) sel.value = cur;
 }
 
@@ -595,7 +596,8 @@ function applyFilters() {
   paintColChip();
   const filtered = lastTrips.filter(t => {
     if (colMatch && !colMatch(t)) return false;
-    if (q && !`${t.title || ''} ${t.summary || ''} ${t.region || ''} ${t.category || ''}`.toLowerCase().includes(q)) return false;
+    const z = TC_I18N.trip(t);
+    if (q && !`${t.title || ''} ${t.summary || ''} ${t.region || ''} ${t.category || ''} ${z.title || ''} ${z.summary || ''} ${TC_I18N.category(t.category)}`.toLowerCase().includes(q)) return false;
     // Trips with no listed dates are "dates on request", so they stay in for any month.
     if ((m || y) && (t.departure_dates || []).length &&
         !t.departure_dates.some(d => (!y || String(d).slice(0, 4) === y) && (!m || String(d).slice(5, 7) === m))) return false;

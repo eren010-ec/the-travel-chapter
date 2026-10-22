@@ -1198,8 +1198,8 @@ function renderTrips() {
     return `<div class="trip-card">
       <div class="trip-thumb" style="${thumbStyle}">${hasImage?'':emoji}</div>
       <div class="trip-body">
-        <div class="trip-name">${t.title}</div>
-        <div class="trip-desc">${t.summary||''}</div>
+        <div class="trip-name">${TC_I18N.trip(t).title}</div>
+        <div class="trip-desc">${TC_I18N.trip(t).summary||''}</div>
         <div class="trip-tags">
           <span class="trip-tag">📅 ${dur} ${TC_I18N.t('dash.days_label')}</span>
           <span class="trip-tag">👥 ${TC_I18N.t('dash.max_label')} ${t.max_pax}</span>

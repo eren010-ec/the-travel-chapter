@@ -662,7 +662,7 @@ function coverOf(trips, word) {
   const t = trips.find(x => x.cover_image && String(x.title || '').toUpperCase().includes(word));
   return t ? t.cover_image : '';
 }
-function prettyCat(c) { c = String(c || ''); return c.length <= 3 ? c : c.toLowerCase().replace(/(^|[\s&+\/-])\S/g, m => m.toUpperCase()); }
+function prettyCat(c) { c = String(c || ''); if (TC_I18N.category(c) !== c) return TC_I18N.category(c); return c.length <= 3 ? c : c.toLowerCase().replace(/(^|[\s&+\/-])\S/g, m => m.toUpperCase()); }
 // target → { label, href, image, trips }
 function resolveTarget(target, trips) {
   target = String(target || '');
@@ -721,6 +721,7 @@ function renderHome(trips) {
     trips.slice().reverse().forEach(t => { if (picked.length < 6 && t.cover_image && !picked.includes(t)) picked.push(t); });
   }
   document.getElementById('special-rail').innerHTML = picked.map(t => {
+    t = TC_I18N.trip(t);
     const sub = t.summary || (Number(t.duration_days) > 0 ? `${t.duration_days} ${TC_I18N.t('trips.days')}` : '');
     return `<a class="tile pkg-tile" href="trip.html?slug=${encodeURIComponent(t.slug || t.id || '')}">
       ${img(t.cover_image, t.title)}
@@ -754,12 +755,12 @@ function applyHomeLayout(d) {
 }
 
 // Paint from the last visit's copy at once, then refresh from the DB.
-const TRIPS_CACHE = 'tc_home_trips_v1';
+const TRIPS_CACHE = 'tc_home_trips_v2';
 try { const c = JSON.parse(localStorage.getItem(TRIPS_CACHE) || 'null'); if (Array.isArray(c) && c.length) renderHome(c); } catch (e) {}
 fillSearch(lastTrips);
 async function loadTrips() {
   const { data, error } = await sb.from('trips')
-    .select('id,title,slug,cover_image,category,region,duration_days,summary')
+    .select('id,title,slug,cover_image,category,region,duration_days,summary,i18n')
     .eq('is_active', true).order('created_at');
   if (error || !Array.isArray(data)) { if (!lastTrips) renderHome([]); return; }
   renderHome(data);

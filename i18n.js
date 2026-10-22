@@ -1025,10 +1025,14 @@
 
   // Trip content translations live in trips.i18n:
   //   { zh: { title, summary, description, inclusions, exclusions,
-  //           highlights: { "<English title>": "<translated>" },
+  //           highlights: { "<English title>": "<translated>" }, itinerary_days: [{ title, desc }],
   //           packages: { "<option id>": { label, itinerary_days: [{ title, desc }] } } } }
   // trip(t) returns a copy of t with the current language's text swapped in; anything
-  // missing (or an itinerary whose day count no longer matches) stays English.
+  // missing (a blank day, or an itinerary whose day count no longer matches) stays English.
+  function days(en, tr) {
+    if (!Array.isArray(en) || !Array.isArray(tr) || tr.length !== en.length) return en;
+    return en.map((d, i) => Object.assign({}, d, { title: (tr[i] && tr[i].title) || d.title, desc: (tr[i] && tr[i].desc) || d.desc }));
+  }
   function trip(t) {
     const tr = t && t.i18n && t.i18n[currentLang];
     if (!tr) return t;
@@ -1036,13 +1040,14 @@
     ['title', 'summary', 'description', 'inclusions', 'exclusions'].forEach(k => { if (tr[k] && t[k]) out[k] = tr[k]; });
     const hl = tr.highlights || {};
     if (Array.isArray(t.highlights)) out.highlights = t.highlights.map(h => (h && hl[h.title]) ? Object.assign({}, h, { title: hl[h.title] }) : h);
+    if (Array.isArray(t.itinerary_days)) out.itinerary_days = days(t.itinerary_days, tr.itinerary_days);
     const pk = tr.packages || {};
     if (Array.isArray(t.packages)) out.packages = t.packages.map(p => {
       const z = p && p.id && pk[p.id];
       if (!z) return p;
       const q = Object.assign({}, p);
       if (z.label) q.label = z.label;
-      if (Array.isArray(z.itinerary_days) && Array.isArray(p.itinerary_days) && z.itinerary_days.length === p.itinerary_days.length) q.itinerary_days = z.itinerary_days;
+      if (Array.isArray(p.itinerary_days)) q.itinerary_days = days(p.itinerary_days, z.itinerary_days);
       return q;
     });
     return out;

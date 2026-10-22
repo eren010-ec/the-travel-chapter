@@ -144,7 +144,10 @@ tr:hover td { background:var(--cream); }
 .tm-row .btn { padding:6px 10px; }
 .tm-row.day { grid-template-columns:1fr auto; align-items:start; padding:10px; border:1px solid var(--border); border-radius:10px; }
 .tm-row.day > div { display:flex; flex-direction:column; gap:6px; }
-.tm-row.media { grid-template-columns:56px 1fr auto; }
+.tm-row.media { grid-template-columns:56px 1fr 1fr auto; }
+.tm-row.pkg .pk-label-zh { grid-column:1 / 2; }
+.zh-in { background:#fbf8ef; }
+.zh-in::placeholder { color:#b9a77a; }
 .tm-row.hotel { grid-template-columns:56px 1fr 1.4fr 70px auto; }
 .tm-img-pick { width:56px; height:42px; border-radius:6px; border:1px dashed var(--border); background:var(--cream2) center/cover no-repeat; cursor:pointer; font-size:0.9rem; color:var(--smoke); display:flex; align-items:center; justify-content:center; }
 .tm-img-pick.busy { opacity:0.5; }
@@ -861,10 +864,14 @@ textarea { resize:vertical; min-height:70px; }
   <div class="modal">
     <h2 id="trip-modal-title">New Trip</h2>
     <div class="form-grid">
+      <div class="field full"><span style="font-size:0.72rem;color:var(--smoke);">Fields marked <strong>中文</strong> are shown to visitors who switch the site to Chinese. Leave one blank to show the English text there.</span></div>
       <div class="field full"><label>Trip Title</label><input type="text" id="tm-title" placeholder="Kyoto in Autumn"></div>
+      <div class="field full"><label>Trip Title — 中文</label><input type="text" id="tm-title-zh" class="zh-in" placeholder="京都之秋"></div>
       <div class="field full"><label>Slug (URL key)</label><input type="text" id="tm-slug" placeholder="kyoto-autumn"></div>
       <div class="field full"><label>Summary</label><textarea id="tm-summary" placeholder="One-line description…"></textarea></div>
+      <div class="field full"><label>Summary — 中文</label><textarea id="tm-summary-zh" class="zh-in" placeholder="一句话简介…"></textarea></div>
       <div class="field full"><label>Description</label><textarea id="tm-description" rows="4" placeholder="Full overview shown on the trip detail page. Falls back to the summary if left blank."></textarea></div>
+      <div class="field full"><label>Description — 中文</label><textarea id="tm-description-zh" class="zh-in" rows="4" placeholder="行程详情页的完整介绍"></textarea></div>
       <div class="field full">
         <label>Cover Image</label>
         <div id="tm-image-preview-wrap" style="display:none;margin-bottom:8px;">
@@ -937,6 +944,8 @@ textarea { resize:vertical; min-height:70px; }
       </div>
       <div class="field"><label>Inclusions (one per line)</label><textarea id="tm-inclusions" rows="5" placeholder="Return flight (economy)&#10;5 nights hotel (twin sharing)"></textarea></div>
       <div class="field"><label>Exclusions (one per line)</label><textarea id="tm-exclusions" rows="5" placeholder="Personal expenses&#10;Travel visa (if required)"></textarea></div>
+      <div class="field"><label>Inclusions — 中文</label><textarea id="tm-inclusions-zh" class="zh-in" rows="5" placeholder="往返机票（经济舱）&#10;5晚酒店（双人房）"></textarea></div>
+      <div class="field"><label>Exclusions — 中文</label><textarea id="tm-exclusions-zh" class="zh-in" rows="5" placeholder="个人消费&#10;签证费（如需）"></textarea></div>
       <div class="field full">
         <label>Map &amp; Route Image</label>
         <div class="tm-thumbs" id="tm-route"></div>
@@ -1986,13 +1995,15 @@ function addPackageRow(p = {}) {
   row.innerHTML = `<input type="text" class="pk-label" placeholder="Label, e.g. 3D2N" maxlength="80">
     <input type="number" class="pk-days" min="0" placeholder="Days">
     <input type="number" class="pk-price" min="0" step="0.01" placeholder="Price RM">
-    <button type="button" class="btn btn-ghost btn-sm" title="Remove" onclick="this.parentElement.remove()">✕</button>`;
+    <button type="button" class="btn btn-ghost btn-sm" title="Remove" onclick="this.parentElement.remove()">✕</button>
+    <input type="text" class="pk-label-zh zh-in" placeholder="中文名称，例如 3天2晚" maxlength="80">`;
   row.querySelector('.pk-label').value = p.label || '';
+  row.querySelector('.pk-label-zh').value = p.label_zh || '';
   row.querySelector('.pk-days').value  = p.days ?? '';
   row.querySelector('.pk-price').value = p.price ?? '';
   row.dataset.id = p.id || ('p' + Math.random().toString(36).slice(2, 8));
   // Fields edited elsewhere (per-option itinerary days / brochure) ride along untouched
-  const { id, label, days, price, ...extra } = p;
+  const { id, label, label_zh, days, price, ...extra } = p;
   row.dataset.extra = JSON.stringify(extra);
   const n = Array.isArray(extra.itinerary_days) ? extra.itinerary_days.length : 0;
   if (n || extra.itinerary_pdf) {
@@ -2071,9 +2082,13 @@ function addDayRow(d = {}) {
   const row = document.createElement('div');
   row.className = 'tm-row day';
   row.innerHTML = `<div><input type="text" class="dy-title" placeholder="Title, e.g. Kuala Lumpur → Tokyo">
-    <textarea class="dy-desc" rows="2" placeholder="What happens this day"></textarea></div>`;
+    <textarea class="dy-desc" rows="2" placeholder="What happens this day"></textarea>
+    <input type="text" class="dy-title-zh zh-in" placeholder="中文标题，例如 吉隆坡 → 东京">
+    <textarea class="dy-desc-zh zh-in" rows="2" placeholder="中文内容"></textarea></div>`;
   row.querySelector('.dy-title').value = d.title || '';
   row.querySelector('.dy-desc').value = d.desc || '';
+  row.querySelector('.dy-title-zh').value = d.title_zh || '';
+  row.querySelector('.dy-desc-zh').value = d.desc_zh || '';
   row.appendChild(removeBtn());
   document.getElementById('tm-days').appendChild(row);
 }
@@ -2085,7 +2100,8 @@ function pkgRowById(id) {
 }
 function readDayRows() {
   return [...document.querySelectorAll('#tm-days .tm-row')]
-    .map(r => ({ title: r.querySelector('.dy-title').value.trim(), desc: r.querySelector('.dy-desc').value.trim() }))
+    .map(r => ({ title: r.querySelector('.dy-title').value.trim(), desc: r.querySelector('.dy-desc').value.trim(),
+      title_zh: r.querySelector('.dy-title-zh').value.trim(), desc_zh: r.querySelector('.dy-desc-zh').value.trim() }))
     .filter(d => d.title || d.desc);
 }
 function flushDays() {
@@ -2126,6 +2142,9 @@ function addHighlightRow(h = {}) {
   const inp = document.createElement('input');
   inp.type = 'text'; inp.className = 'hl-title'; inp.placeholder = 'e.g. Iconic Cherry Blossom Spots'; inp.value = h.title || '';
   row.appendChild(inp);
+  const zh = document.createElement('input');
+  zh.type = 'text'; zh.className = 'hl-title-zh zh-in'; zh.placeholder = '中文，例如 赏樱胜地'; zh.value = h.title_zh || '';
+  row.appendChild(zh);
   row.appendChild(removeBtn());
   document.getElementById('tm-highlights').appendChild(row);
 }
@@ -2192,7 +2211,7 @@ function readTripContent() {
     gallery: tripGallery,
     route_image: tripRouteImage || null,
     itinerary_days: tripDays,
-    highlights: rows('tm-highlights', r => ({ title: r.querySelector('.hl-title').value.trim(), image: r.querySelector('.tm-img-pick').dataset.url || '' }))
+    highlights: rows('tm-highlights', r => ({ title: r.querySelector('.hl-title').value.trim(), title_zh: r.querySelector('.hl-title-zh').value.trim(), image: r.querySelector('.tm-img-pick').dataset.url || '' }))
       .filter(h => h.title || h.image),
     accommodations: rows('tm-hotels', r => ({
       city: r.querySelector('.hl-city').value.trim(), hotel: r.querySelector('.hl-hotel').value.trim(),
@@ -2203,11 +2222,56 @@ function readTripContent() {
   };
 }
 
+// Chinese text lives in trips.i18n.zh (migration 20261022120000_trip_i18n). While the editor
+// is open it rides on the English items as *_zh fields: tripWithZh() merges it in on open,
+// splitZh() moves it back out into payload.i18n on save. Days pair up by position.
+const ZH_TEXT = ['title', 'summary', 'description', 'inclusions', 'exclusions'];
+function zhDays(days, zhList) {
+  const zl = Array.isArray(zhList) ? zhList : [];
+  return days.map((d, i) => ({ ...d, title_zh: zl[i]?.title || '', desc_zh: zl[i]?.desc || '' }));
+}
+function tripWithZh(t) {
+  const zh = t.i18n?.zh || {}, hl = zh.highlights || {}, pk = zh.packages || {};
+  return { ...t,
+    itinerary_days: zhDays(Array.isArray(t.itinerary_days) ? t.itinerary_days : [], zh.itinerary_days),
+    highlights: (Array.isArray(t.highlights) ? t.highlights : []).map(h => ({ ...h, title_zh: (h && hl[h.title]) || '' })),
+    packages: tripPackages(t).map(p => {
+      const z = (p.id && pk[p.id]) || {};
+      return { ...p, label_zh: z.label || '', ...(Array.isArray(p.itinerary_days) ? { itinerary_days: zhDays(p.itinerary_days, z.itinerary_days) } : {}) };
+    }),
+  };
+}
+function splitZh(payload, prev) {
+  const zh = {};
+  ZH_TEXT.forEach(k => { const v = document.getElementById(`tm-${k}-zh`).value.trim(); if (v) zh[k] = v; });
+  const days = list => {
+    const z = list.map(d => ({ title: d.title_zh || '', desc: d.desc_zh || '' }));
+    return { en: list.map(({ title_zh, desc_zh, ...d }) => d), zh: z.some(d => d.title || d.desc) ? z : null };
+  };
+  const td = days(payload.itinerary_days || []);
+  payload.itinerary_days = td.en;
+  if (td.zh) zh.itinerary_days = td.zh;
+  const hl = {};
+  payload.highlights = payload.highlights.map(({ title_zh, ...h }) => { if (title_zh && h.title) hl[h.title] = title_zh; return h; });
+  if (Object.keys(hl).length) zh.highlights = hl;
+  const pk = {};
+  payload.packages = payload.packages.map(({ label_zh, ...p }) => {
+    const e = {};
+    if (label_zh) e.label = label_zh;
+    if (Array.isArray(p.itinerary_days)) { const d = days(p.itinerary_days); p.itinerary_days = d.en; if (d.zh) e.itinerary_days = d.zh; }
+    if (Object.keys(e).length) pk[p.id] = e;
+    return p;
+  });
+  if (Object.keys(pk).length) zh.packages = pk;
+  payload.i18n = { ...(prev?.i18n || {}), zh };
+}
+
 function readPackageRows() {
   return [...document.querySelectorAll('#tm-packages .tm-row')].map(r => ({
     ...JSON.parse(r.dataset.extra || '{}'),
     id:    r.dataset.id,
     label: r.querySelector('.pk-label').value.trim(),
+    label_zh: r.querySelector('.pk-label-zh').value.trim(),
     days:  parseInt(r.querySelector('.pk-days').value) || 0,
     price: parseFloat(r.querySelector('.pk-price').value) || 0,
   })).filter(p => p.label || p.days || p.price);
@@ -2291,6 +2355,8 @@ function openTripModal(id) {
   let existingImage = '';
   if (id) {
     const t=allTrips.find(x=>x.id===id); if (!t) return;
+    const z=tripWithZh(t);
+    ZH_TEXT.forEach(k=>document.getElementById(`tm-${k}-zh`).value = t.i18n?.zh?.[k] || '');
     document.getElementById('tm-title').value   = t.title;
     document.getElementById('tm-slug').value    = t.slug;
     document.getElementById('tm-summary').value = t.summary||'';
@@ -2301,15 +2367,16 @@ function openTripModal(id) {
     document.getElementById('tm-region').value  = t.region || '';
     document.getElementById('tm-packages').innerHTML = '';
     document.getElementById('tm-departures').innerHTML = '';
-    tripPackages(t).forEach(p => addPackageRow(p));
+    z.packages.forEach(p => addPackageRow(p));
     tripDepartures(t).forEach(d => addDepartureRow(d));
     if (!tripPackages(t).length) addPackageRow();
-    fillTripContent(t);
+    fillTripContent(z);
     document.getElementById('tm-active').checked= t.is_active;
     document.getElementById('tm-cost').value    = allTripCosts[t.id] ?? '';
     existingImage = t.cover_image || '';
   } else {
     ['tm-title','tm-slug','tm-summary','tm-description','tm-itinerary','tm-cost','tm-category','tm-region'].forEach(i=>document.getElementById(i).value='');
+    ZH_TEXT.forEach(k=>document.getElementById(`tm-${k}-zh`).value='');
     document.getElementById('tm-packages').innerHTML = '';
     document.getElementById('tm-departures').innerHTML = '';
     addPackageRow({ days: 7 });
@@ -2388,6 +2455,7 @@ async function saveTrip() {
     region:document.getElementById('tm-region').value.trim() || null,
     departure_dates:dates, is_active:document.getElementById('tm-active').checked,
   };
+  splitZh(payload, editingTripId && allTrips.find(t=>t.id===editingTripId));
 
   if (tripImageFile) {
     const ext = (tripImageFile.name.split('.').pop() || 'jpg').toLowerCase();

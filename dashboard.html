@@ -592,6 +592,7 @@ textarea { resize:vertical; min-height:80px; }
       <div class="field"><label data-i18n="dash.rewards_qty">Quantity</label><input type="number" id="pm-qty" value="1" min="1" max="99"></div>
       <div class="field"><label data-i18n="dash.rewards_note">Note (optional)</label><textarea id="pm-note" placeholder="Delivery address, size, colour…" data-i18n-placeholder="dash.rewards_note_ph"></textarea></div>
       <div class="total-box"><div class="lbl" data-i18n="dash.rewards_total">Total</div><div class="val" id="pm-total">—</div></div>
+      <div id="pm-short" style="display:none;font-size:0.8rem;color:#c0392b;"></div>
     </div>
     <div class="modal-actions">
       <button class="btn-ghost" id="pm-cancel" data-i18n="dash.cancel">Cancel</button>
@@ -1421,6 +1422,24 @@ function openProductModal(pid) {
   document.getElementById('product-modal').classList.add('open');
 }
 
+// Points still to be deducted by staff: open (pending / approved) points requests.
+function pointsOnHold() {
+  return productRequests
+    .filter(r => r.method === 'points' && (r.status === 'pending' || r.status === 'approved'))
+    .reduce((s, r) => s + Number(r.points_cost_snapshot || 0) * (r.quantity || 1), 0);
+}
+function availablePoints() {
+  return Math.max(0, (profile?.reward_points || 0) - pointsOnHold());
+}
+
+// Points needed for the current modal selection beyond what the member has (0 = enough).
+function pmShortfall() {
+  const method = document.getElementById('pm-method').value || (activeProduct.points_cost != null ? 'points' : 'cash');
+  if (method !== 'points') return 0;
+  const qty = Math.min(99, Math.max(1, parseInt(document.getElementById('pm-qty').value) || 1));
+  return Math.max(0, Number(activeProduct.points_cost || 0) * qty - availablePoints());
+}
+
 function updatePmTotal() {
   if (!activeProduct) return;
   const method = document.getElementById('pm-method').value || (activeProduct.points_cost != null ? 'points' : 'cash');
@@ -1428,10 +1447,16 @@ function updatePmTotal() {
   const el = document.getElementById('pm-total');
   if (method === 'points') el.textContent = `${(Number(activeProduct.points_cost||0) * qty).toLocaleString()} ${TC_I18N.t('dash.rewards_pts')}`;
   else el.textContent = `RM ${(Number(activeProduct.price_myr||0) * qty).toLocaleString()}`;
+  const short = pmShortfall();
+  const warn = document.getElementById('pm-short');
+  warn.style.display = short ? 'block' : 'none';
+  warn.textContent = short ? TC_I18N.t('dash.rewards_not_enough', { have: availablePoints().toLocaleString(), need: short.toLocaleString() }) : '';
+  document.getElementById('pm-submit').disabled = !!short;
 }
 
 async function submitProductRequest() {
   if (!activeProduct) return;
+  if (pmShortfall()) { updatePmTotal(); return; }
   const btn = document.getElementById('pm-submit');
   btn.disabled = true; btn.textContent = TC_I18N.t('dash.confirming');
   const method = document.getElementById('pm-method').value || (activeProduct.points_cost != null ? 'points' : 'cash');

@@ -422,7 +422,7 @@ input:focus { border-color: var(--gold); background: var(--white); }
           <span class="err-msg" id="forgot-verify-err"></span>
         </div>
         <button class="btn-submit" id="btn-forgot-reset" onclick="handleForgotReset()" data-i18n="login.reset_button">Reset Password</button>
-        <p class="form-footer"><a onclick="resendForgotCode()" data-i18n="login.resend_code">Resend code</a> · <a onclick="showForm('login')" data-i18n="login.back_to_signin">Back to sign in</a></p>
+        <p class="form-footer"><a onclick="resendForgotCode()" id="forgot-resend-link" data-i18n="login.resend_code">Resend code</a> · <a onclick="showForm('login')" data-i18n="login.back_to_signin">Back to sign in</a></p>
       </div>
     </div>
   </div>
@@ -529,7 +529,7 @@ function isValidPhone(v) {
 
 let pendingPhone = '';
 let forgotVerifiedPhone = '';
-let resendCooldownTimer = null;
+const resendCooldownTimers = {};
 
 async function handleLogin() {
   clearErrors();
@@ -633,17 +633,18 @@ async function resendCode() {
   else { showToast(TC_I18N.t('login.toast_code_resent')); startResendCooldown(); }
 }
 
-function startResendCooldown() {
-  const link = document.getElementById('resend-link');
+// One timer per link, so the register and forgot-password countdowns don't cancel each other.
+function startResendCooldown(linkId = 'resend-link') {
+  const link = document.getElementById(linkId);
   let secs = 30;
   link.style.pointerEvents = 'none'; link.style.opacity = '0.5';
   const label = () => link.textContent = TC_I18N.t('login.resend_code_cooldown', { secs });
   label();
-  clearInterval(resendCooldownTimer);
-  resendCooldownTimer = setInterval(() => {
+  clearInterval(resendCooldownTimers[linkId]);
+  resendCooldownTimers[linkId] = setInterval(() => {
     secs--;
     if (secs <= 0) {
-      clearInterval(resendCooldownTimer);
+      clearInterval(resendCooldownTimers[linkId]);
       link.textContent = TC_I18N.t('login.resend_code');
       link.style.pointerEvents = 'auto'; link.style.opacity = '1';
     } else label();
@@ -670,13 +671,14 @@ async function handleForgotSend() {
   forgotVerifiedPhone = '';
   document.getElementById('forgot-verify-label').textContent = TC_I18N.t('login.forgot_verify_sent', { phone });
   showForm('forgot-verify');
+  startResendCooldown('forgot-resend-link');
 }
 
 async function resendForgotCode() {
   if (!pendingPhone) return;
   const { error } = await sb.auth.signInWithOtp({ phone: pendingPhone, options: { channel: 'sms', shouldCreateUser: false } });
   if (error) showErr('forgot-verify-err', forgotErrMsg(error));
-  else showToast(TC_I18N.t('login.toast_code_resent'));
+  else { showToast(TC_I18N.t('login.toast_code_resent')); startResendCooldown('forgot-resend-link'); }
 }
 
 async function handleForgotReset() {

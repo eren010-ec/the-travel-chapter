@@ -1066,4 +1066,5 @@ Cards show only image, name, points badge and price badge (price now shows even 
 - [x] **Workstream AF (2026-10-22 → 23) — SHIPPED.** Trip content in 中文 + BM (`trips.i18n`, admin fields); members can't request points gifts above available points.
 - [x] **Workstream AG (2026-11-02) — SHIPPED.** Confirmed bookings earn 5% of the total as points; deducted on cancel/delete. Forgot-password error messages + used-code retry fix. Pushed through `b1cd14f`, admin site deployed.
 - [ ] Follow-up (verification): confirm, cancel and delete a test booking in admin and check the member's points move +5% / back.
-- [ ] Follow-up (optional): forgot-password "Resend code" has no cooldown (register's does); Twilio Verify Voice channel as a backup if SMS keeps getting filtered.
+- [x] Forgot-password "Resend code" now has the same 30s cooldown as register (per-link timers in `startResendCooldown(linkId)`), 2026-11-03.
+- [ ] Follow-up (optional): Twilio Verify Voice channel as a backup if SMS keeps getting filtered.

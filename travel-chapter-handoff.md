@@ -959,6 +959,44 @@ Inserted straight into `trips` (same fields `saveTrip` writes; legacy `price_usd
 ### Free Gifts page (`free-gifts.html`, commit `f58e529`)
 Cards show only image, name, points badge and price badge (price now shows even when points are set) and a **Details** button; the description opens in a popup (`#gift-modal`, Esc/✕/backdrop close, `white-space:pre-line`). i18n keys `gifts.details`, `gifts.close` (en/zh/ms).
 
+---
+
+## Workstream AF — Trip content in 中文 + BM; rewards points limit (2026-10-22 → 23) — SHIPPED
+
+### Trip translations (commits `324c28f`, `b0d8c36`, `d600a90`; migration `20261022120000_trip_i18n` applied)
+- New `trips.i18n` jsonb: `{zh:{…}, ms:{…}}` with title, summary, description, inclusions/exclusions, `highlights:{<English title>: text}`, `packages:{<option id>:{label, itinerary_days}}`. All 91 trips translated to Simplified Chinese and Malay (data loaded by SQL, not in the repo).
+- Front end: `TC_I18N.trip(t)` overlays the selected language (falls back to English per field/day); `TC_I18N.category(c)` maps category codes. Used by `trip.html`, `trips.html` (cards + search), `index.html` special rail (cache key `tc_home_trips_v2`), `dashboard.html` trip cards. `index.html`/`trip.html` select `i18n` explicitly, so the column must exist.
+- Admin trip editor: a 中文 and a BM input under every trip text field (`TR_LANGS=[zh,ms]`, `tripWithI18n()` on open / `splitI18n()` on save; days pair by position, highlights keyed by English title).
+- Bookings still store the English package label.
+
+### Rewards: can't request more points than available (commit `ee8869d`; migration `20261023120000_product_request_points_check` applied)
+- available = `reward_points` − points held by the member's own open (pending/approved) points-method `product_requests`. Points are deducted manually by staff on fulfilment, so open requests are held back.
+- `dashboard.html`: Redeem modal shows a shortfall warning (`dash.rewards_not_enough`) and disables Submit.
+- DB trigger `product_requests_points_check` raises "Not enough points: X available, Y needed". Exempt: staff/admin, cash method, 0-cost prizes.
+
+---
+
+## Workstream AG — Booking points 5%, deduct on cancel/delete; forgot-password fixes (2026-11-02) — SHIPPED
+
+### Booking points (commits `eb0277d`, `a794dcc`; migrations `20261102120000`, `20261102140000`, `20261102160000` all applied + verified in SQL Editor)
+- `award_points_on_confirm()` (trigger `award_points_on_confirm`, `BEFORE INSERT OR UPDATE OF status` on `bookings`) now credits `ROUND(total_usd × 0.05)` points (was 1 pt per RM). Stored in `bookings.points_earned`.
+  - Awards when status enters confirmed/completed; confirmed → completed does not award again.
+  - Also awards on INSERT of an already-confirmed booking, **only if the inserter is admin/staff** (`is_admin_or_staff()`), so members can't self-insert confirmed bookings for points. Previously admin "Add Booking" with status Confirmed earned nothing.
+  - Leaving confirmed/completed (→ cancelled or back to pending) deducts `OLD.points_earned` and zeroes it, so a re-confirm awards exactly once.
+- `deduct_points_on_booking_delete()` (AFTER DELETE): admin deleting a confirmed/completed booking deducts its points. Skipped when `pg_trigger_depth() > 1` (FK cascade from deleting a whole member via the `admin-users` edge function — that runs as service role, where `protect_position_flags()` would reject the `reward_points` change and abort the member delete).
+- Balances can go **negative** if the member already spent the points (no `reward_points >= 0` constraint); the AF points-limit check then blocks redemptions.
+- Existing bookings/balances were **not** recalculated.
+- Copy updated (en/zh/ms): dashboard Points subtitle, admin member-modal hint, `rewards.card1_perk1`. `dashboard.html`'s fallback for bookings without `points_earned` uses 5% too. Both sites deployed and checked live.
+- The earlier 2026-08 note "1 pt / RM" (Workstream U) is superseded.
+
+### Forgot password (commit `b1cd14f`, `login.html` + `i18n.js`, live)
+- Investigated "reset code not received": Twilio Verify logs (console → Identity → Verify → Logs) showed the SMS **Delivered**; the phone was filtering/delaying it. Then "Token has expired or is invalid": Twilio showed the code verified successfully at 13:20:27 — the error came from a second submit of the already-used code (codes are single-use, valid 10 min from the *first* send; Resend re-sends the same code and does **not** extend the deadline).
+- `forgotErrMsg()` maps Supabase errors to translated messages: `otp_disabled`/"Signups not allowed for otp" → `login.err_no_account`; `otp_expired` → `login.err_code_invalid`; 429/`over_*` → `login.err_too_many`; `sms_send_failed` → `login.err_sms_failed`; `same_password` → `login.err_same_password`; else raw message / `login.err_generic`.
+- If the code was accepted but the password save failed, a retry skips `verifyOtp` (`forgotVerifiedPhone`) instead of re-checking the used code.
+- `normalizePhone()` drops a trunk 0 typed after `+60` (`+60 012…` → `+6012…`) — affects login and register too.
+- `login.forgot_verify_sent` now says the code expires in 10 minutes.
+- Twilio balance at the time: $15.61. No fraud-blocked verifications.
+
 ## Task checklist
 
 - [x] Open all 6 pages in a real browser, confirm logo renders correctly (sizing/placement) — done 2026-07-26 at desktop size.
@@ -1019,3 +1057,7 @@ Cards show only image, name, points badge and price badge (price now shows even 
 - [ ] Follow-up (optional): admin editor for an option's day-by-day / PDF (currently only preserved on save, not editable).
 - [ ] Follow-up (verification): fill one trip's new content in the admin (gallery, days, highlights, hotels, map) and check it on the live trip page, desktop + phone; test Book Now → login → dashboard pre-filled booking.
 - [ ] Follow-up (optional): per-trip reviews/rating if the user wants them (needs a real reviews table + admin moderation — not faked).
+- [x] **Workstream AF (2026-10-22 → 23) — SHIPPED.** Trip content in 中文 + BM (`trips.i18n`, admin fields); members can't request points gifts above available points.
+- [x] **Workstream AG (2026-11-02) — SHIPPED.** Confirmed bookings earn 5% of the total as points; deducted on cancel/delete. Forgot-password error messages + used-code retry fix. Pushed through `b1cd14f`, admin site deployed.
+- [ ] Follow-up (verification): confirm, cancel and delete a test booking in admin and check the member's points move +5% / back.
+- [ ] Follow-up (optional): forgot-password "Resend code" has no cooldown (register's does); Twilio Verify Voice channel as a backup if SMS keeps getting filtered.

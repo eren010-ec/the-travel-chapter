@@ -997,6 +997,12 @@ Cards show only image, name, points badge and price badge (price now shows even 
 - `login.forgot_verify_sent` now says the code expires in 10 minutes.
 - Twilio balance at the time: $15.61. No fraud-blocked verifications.
 
+### Points top-up SMS — built, then dropped (2026-11-03)
+- Built an SMS on booking/admin points top-ups (`20261103120000_points_sms`: `sms_outbox` + pg_net → `points-sms` edge function → Twilio Messaging), then removed it at the user's request (`20261103140000_remove_points_sms`; the edge function was never deployed and is deleted from the repo).
+- Why: Twilio Verify can only send OTP codes; Twilio sells no SMS-capable Malaysian numbers (Mobile/Toll-free greyed out for SMS); an overseas (US, $1.15/mo) number works but costs **US$0.3389 per SMS** to Malaysia. Malaysian SMS must start with "RM 0.00", include the brand, and contain no links/phone numbers.
+- If it comes back: a local Malaysian SMS gateway or WhatsApp utility templates are the cheaper routes. `award_points_on_confirm()` still tags its credit with `app.tc_points_ctx = 'booking'`, so a trigger can tell booking credits from admin edits and check-in ('checkin').
+- SMS is used only for login/register/reset codes (Twilio Verify).
+
 ## Task checklist
 
 - [x] Open all 6 pages in a real browser, confirm logo renders correctly (sizing/placement) — done 2026-07-26 at desktop size.

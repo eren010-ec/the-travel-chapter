@@ -530,7 +530,7 @@ textarea { resize:vertical; min-height:80px; }
   <div class="page" id="page-points">
     <div class="page-header">
       <h1 data-i18n="dash.points_heading" data-i18n-html>My <em>Points</em></h1>
-      <p data-i18n="dash.points_subtitle">Earn 1 point for every RM spent on a confirmed booking. Spend them in the Rewards Store.</p>
+      <p data-i18n="dash.points_subtitle">Earn points worth 5% of the trip price on every confirmed booking. Spend them in the Rewards Store.</p>
     </div>
     <div class="stat-card" style="margin-bottom:20px;"><div class="stat-value" id="pt-balance">—</div><div class="stat-label" data-i18n="dash.points_balance">Points</div></div>
     <div class="card">
@@ -1280,7 +1280,7 @@ function renderPoints() {
 
   const events = [];
   bookings.filter(b => b.status === 'confirmed' || b.status === 'completed').forEach(b => {
-    const n = b.points_earned != null ? b.points_earned : Math.floor(Number(b.total_usd) || 0);
+    const n = b.points_earned != null ? b.points_earned : Math.round((Number(b.total_usd) || 0) * 0.05);
     events.push({ date: b.booked_at || b.departure_date, label: b.trips?.title || TC_I18N.t('dash.rewards_pts'), delta: `+${n.toLocaleString()}`, kind: 'earn' });
   });
   checkins.filter(c => c.reward_kind !== 'voucher' && (c.points_awarded || 0) > 0).forEach(c => {

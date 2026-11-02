@@ -504,17 +504,31 @@ function checkStrength(pw, prefix) {
   for (let i = 0; i < score; i++) bars[i].classList.add(cls);
 }
 
-// Keep a leading "+" and strip everything else non-numeric, e.g. "+65 9123 4567" -> "+6591234567"
+// Keep a leading "+" and strip everything else non-numeric, e.g. "+65 9123 4567" -> "+6591234567".
+// Also drops the local trunk 0 typed after the prefilled +60 ("+60 012…" -> "+6012…").
 function normalizePhone(v) {
   v = (v || '').trim();
   const plus = v.startsWith('+') ? '+' : '';
-  return plus + v.replace(/[^\d]/g, '');
+  return (plus + v.replace(/[^\d]/g, '')).replace(/^\+600/, '+60');
+}
+
+// Turn Supabase/Twilio auth errors into plain, translated messages for the forgot-password flow.
+function forgotErrMsg(error) {
+  const code = error?.code || '';
+  const msg  = (error?.message || '').toLowerCase();
+  if (code === 'otp_disabled' || msg.includes('signups not allowed')) return TC_I18N.t('login.err_no_account');
+  if (code === 'otp_expired' || msg.includes('expired or is invalid')) return TC_I18N.t('login.err_code_invalid');
+  if (error?.status === 429 || code.startsWith('over_') || msg.includes('security purposes')) return TC_I18N.t('login.err_too_many');
+  if (code === 'sms_send_failed' || msg.includes('otp to provider')) return TC_I18N.t('login.err_sms_failed');
+  if (code === 'same_password') return TC_I18N.t('login.err_same_password');
+  return error?.message || TC_I18N.t('login.err_generic');
 }
 function isValidPhone(v) {
   return /^\+[1-9]\d{7,14}$/.test(v);
 }
 
 let pendingPhone = '';
+let forgotVerifiedPhone = '';
 let resendCooldownTimer = null;
 
 async function handleLogin() {
@@ -651,8 +665,9 @@ async function handleForgotSend() {
   btn.disabled = true; btn.textContent = TC_I18N.t('login.sending_loading');
   const { error } = await sb.auth.signInWithOtp({ phone, options: { channel: 'sms', shouldCreateUser: false } });
   btn.disabled = false; btn.textContent = TC_I18N.t('login.forgot_send_button');
-  if (error) { showErr('forgot-err', error.message); return; }
+  if (error) { showErr('forgot-err', forgotErrMsg(error)); return; }
   pendingPhone = phone;
+  forgotVerifiedPhone = '';
   document.getElementById('forgot-verify-label').textContent = TC_I18N.t('login.forgot_verify_sent', { phone });
   showForm('forgot-verify');
 }
@@ -660,7 +675,7 @@ async function handleForgotSend() {
 async function resendForgotCode() {
   if (!pendingPhone) return;
   const { error } = await sb.auth.signInWithOtp({ phone: pendingPhone, options: { channel: 'sms', shouldCreateUser: false } });
-  if (error) showErr('forgot-verify-err', error.message);
+  if (error) showErr('forgot-verify-err', forgotErrMsg(error));
   else showToast(TC_I18N.t('login.toast_code_resent'));
 }
 
@@ -676,12 +691,17 @@ async function handleForgotReset() {
   // verifyOtp already creates a session, and a redirect firing before updateUser()
   // finishes would leave the account stuck on the old password.
   suppressAutoRedirect = true;
-  const { error: verifyError } = await sb.auth.verifyOtp({ phone: pendingPhone, token: code, type: 'sms' });
-  if (verifyError) { suppressAutoRedirect = false; showErr('forgot-verify-err', verifyError.message); btn.disabled = false; btn.textContent = TC_I18N.t('login.reset_button'); return; }
+  // A code can only be used once — if it was already accepted and only the password save
+  // failed (e.g. same as the old one), retry the save without re-checking the code.
+  if (forgotVerifiedPhone !== pendingPhone) {
+    const { error: verifyError } = await sb.auth.verifyOtp({ phone: pendingPhone, token: code, type: 'sms' });
+    if (verifyError) { suppressAutoRedirect = false; showErr('forgot-verify-err', forgotErrMsg(verifyError)); btn.disabled = false; btn.textContent = TC_I18N.t('login.reset_button'); return; }
+    forgotVerifiedPhone = pendingPhone;
+  }
   const { error: updateError } = await sb.auth.updateUser({ password: newPw });
   suppressAutoRedirect = false;
   btn.disabled = false; btn.textContent = TC_I18N.t('login.reset_button');
-  if (updateError) { showErr('forgot-verify-err', updateError.message); return; }
+  if (updateError) { showErr('forgot-verify-err', forgotErrMsg(updateError)); return; }
   showToast(TC_I18N.t('login.toast_password_updated'));
   const { data: { session } } = await sb.auth.getSession();
   routeSession(session);

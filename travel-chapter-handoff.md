@@ -1068,3 +1068,4 @@ Cards show only image, name, points badge and price badge (price now shows even 
 - [ ] Follow-up (verification): confirm, cancel and delete a test booking in admin and check the member's points move +5% / back.
 - [x] Forgot-password "Resend code" now has the same 30s cooldown as register (per-link timers in `startResendCooldown(linkId)`), 2026-11-03.
 - [ ] Follow-up (optional): Twilio Verify Voice channel as a backup if SMS keeps getting filtered.
+- [x] Dashboard Overview "Points Summary" card no longer shows the 5% earn-rate line (commit `9b89c29`, `dashboard.html` only), 2026-11-02.

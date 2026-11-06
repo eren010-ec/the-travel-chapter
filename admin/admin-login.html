@@ -35,39 +35,84 @@ body {
   font-family: 'DM Sans', sans-serif;
   background: var(--navy3);
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
-/* Background atmosphere */
+/* The dark wall behind the lamp */
 .bg {
   position: fixed; inset: 0; z-index: 0;
   background:
-    radial-gradient(ellipse 60% 60% at 15% 85%, rgba(184,149,90,0.12) 0%, transparent 55%),
-    radial-gradient(ellipse 50% 50% at 85% 15%, rgba(184,149,90,0.07) 0%, transparent 50%),
-    linear-gradient(135deg, #1a1f2e 0%, #0e1118 100%);
+    radial-gradient(ellipse 90% 80% at 50% 45%, #161a26 0%, #0c0e15 70%, #07080d 100%);
 }
 
-/* Subtle grid lines */
-.bg::after {
-  content: '';
-  position: fixed; inset: 0;
-  background-image:
-    linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-  background-size: 48px 48px;
+/* Light thrown by the lamp. --lx/--ly (the bulb's screen position) are set from JS. */
+.light {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  opacity: 0; transition: opacity 0.25s ease;
 }
+.light::before, .light::after { content: ''; position: absolute; inset: 0; }
+.light::before { /* soft wash on the wall */
+  background: radial-gradient(circle 70vmax at calc(var(--lx, 30vw) + 18vmin) calc(var(--ly, 30vh) + 18vmin),
+    rgba(255,214,160,0.20) 0%, rgba(214,170,112,0.08) 38%, transparent 72%);
+}
+.light::after { /* the cone itself */
+  background: conic-gradient(from 103deg at var(--lx, 30vw) var(--ly, 30vh),
+    rgba(255,221,170,0) 0deg, rgba(255,221,170,0.30) 20deg, rgba(255,221,170,0.30) 64deg,
+    rgba(255,221,170,0) 84deg, transparent 84deg);
+  -webkit-mask-image: radial-gradient(circle 95vmin at var(--lx, 30vw) var(--ly, 30vh), #000 0%, rgba(0,0,0,0.5) 45%, transparent 100%);
+          mask-image: radial-gradient(circle 95vmin at var(--lx, 30vw) var(--ly, 30vh), #000 0%, rgba(0,0,0,0.5) 45%, transparent 100%);
+}
+#dust { position: fixed; inset: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+
+/* Lamp + login side by side */
+.scene {
+  position: relative; z-index: 1;
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; gap: clamp(16px, 6vw, 96px);
+  padding: 16px;
+}
+.lamp {
+  order: -1; /* drawn first, but the cord comes after the login fields in tab order */
+  flex: 0 0 auto;
+  height: min(70vh, 460px); aspect-ratio: 280 / 440;
+  overflow: visible; user-select: none; -webkit-user-select: none;
+}
+.lamp .lit { opacity: 0; transition: opacity 0.25s ease; }
+.lamp-on .light, .lamp-on .lamp .lit { opacity: 1; animation: lampFlick 0.6s linear; }
+@keyframes lampFlick {
+  0% { opacity: 0; } 12% { opacity: 0.85; } 20% { opacity: 0.15; }
+  34% { opacity: 1; } 42% { opacity: 0.4; } 58%, 100% { opacity: 1; }
+}
+.cord-grab { cursor: grab; touch-action: none; outline: none; }
+.cord-grab.dragging { cursor: grabbing; }
+.cord-pulse { transform-box: fill-box; transform-origin: center; animation: cordPulse 2.2s ease-out infinite; }
+.lamp-on .cord-pulse { display: none; }
+@keyframes cordPulse { 0% { transform: scale(0.6); opacity: 0.7; } 70%, 100% { transform: scale(1.5); opacity: 0; } }
+.cord-focus { opacity: 0; }
+.cord-grab:focus-visible .cord-focus { opacity: 1; }
 
 .shell {
-  position: relative; z-index: 1;
-  width: 100%; max-width: 400px;
+  position: relative;
+  flex: 0 1 400px; min-width: 0;
   padding: 24px;
-  animation: fadeUp 0.6s ease both;
 }
-@keyframes fadeUp { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
+
+@media (max-width: 860px) {
+  .scene { flex-direction: column; gap: 0; padding: 12px 0 0; }
+  .lamp { height: 190px; }
+  .cord-hit { r: 62px; } /* the lamp is drawn small here: keep the cord easy to grab */
+  .shell { flex: 0 0 auto; width: 100%; max-width: 400px; padding-top: 12px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lamp-on .light, .lamp-on .lamp .lit, .cord-pulse { animation: none; }
+  .light, .lamp .lit, .brand, .card, .back-link,
+  .lamp-on .brand, .lamp-on .card, .lamp-on .back-link { transition: none; transform: none; }
+}
 
 /* Brand */
 .brand { text-align: center; margin-bottom: 32px; }
@@ -98,7 +143,27 @@ body {
   border: 1px solid var(--border);
   border-radius: 18px; padding: 32px 28px;
   backdrop-filter: blur(20px);
+  position: relative;
 }
+/* The sign-in form only exists while the lamp is on: visibility:hidden also
+   takes it out of the tab order, away from pointers and away from autofill. */
+.brand, .card, .back-link {
+  visibility: hidden; opacity: 0; transform: translateY(10px);
+  transition: opacity 0.25s ease, transform 0.25s ease, visibility 0s linear 0.25s,
+              border-color 0.5s ease, box-shadow 0.5s ease;
+}
+.lamp-on .brand, .lamp-on .card, .lamp-on .back-link {
+  visibility: visible; opacity: 1; transform: none;
+  transition: opacity 0.5s ease 0.25s, transform 0.5s ease 0.25s, visibility 0s,
+              border-color 0.5s ease, box-shadow 0.5s ease;
+}
+.card::before { /* warm light catching the lamp-side edge of the card */
+  content: ''; position: absolute; inset: 0; z-index: -1; border-radius: inherit;
+  background: linear-gradient(115deg, rgba(255,214,160,0.13) 0%, rgba(255,214,160,0.03) 45%, transparent 75%);
+  opacity: 0; transition: opacity 0.5s ease;
+}
+.lamp-on .card { border-color: rgba(212,170,112,0.28); box-shadow: 0 30px 80px rgba(0,0,0,0.55), 0 0 70px rgba(255,200,130,0.08); }
+.lamp-on .card::before { opacity: 1; }
 
 .card-title {
   font-size: 0.68rem; font-weight: 500; letter-spacing: 0.2em;
@@ -224,6 +289,8 @@ input:focus { border-color: rgba(184,149,90,0.5); background: rgba(0,0,0,0.35); 
 <body>
 
 <div class="bg"></div>
+<div class="light"></div>
+<canvas id="dust" aria-hidden="true"></canvas>
 
 <!-- Loading overlay -->
 <div class="loading-overlay" id="loading-overlay">
@@ -231,6 +298,7 @@ input:focus { border-color: rgba(184,149,90,0.5); background: rgba(0,0,0,0.35); 
   <div class="loading-text">Verifying admin access…</div>
 </div>
 
+<div class="scene">
 <div class="shell">
   <!-- Brand -->
   <div class="brand">
@@ -277,6 +345,61 @@ input:focus { border-color: rgba(184,149,90,0.5); background: rgba(0,0,0,0.35); 
   <div class="back-link">
     Not an admin? <a href="https://thetravelchapter.my/index.html">Go to Member Portal</a>
   </div>
+</div>
+
+<!-- Desk lamp: pull the cord to switch the light on and off -->
+<svg class="lamp" id="lamp" viewBox="0 0 280 440">
+  <defs>
+    <linearGradient id="lampMetal" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#4a4f5e"/><stop offset="0.45" stop-color="#20232d"/><stop offset="1" stop-color="#0b0c11"/>
+    </linearGradient>
+    <linearGradient id="lampGold" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e9c88f"/><stop offset="1" stop-color="#8a6a38"/>
+    </linearGradient>
+    <radialGradient id="lampGlow">
+      <stop offset="0" stop-color="#fff6e0" stop-opacity="0.95"/>
+      <stop offset="0.35" stop-color="#ffd9a0" stop-opacity="0.5"/>
+      <stop offset="1" stop-color="#ffd9a0" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Base -->
+  <ellipse cx="122" cy="418" rx="96" ry="13" fill="#000" opacity="0.5"/>
+  <g class="lit"><ellipse cx="160" cy="418" rx="110" ry="14" fill="url(#lampGlow)" opacity="0.45"/></g>
+  <path d="M58 404c0-9 29-16 64-16s64 7 64 16v4c0 8-29 14-64 14s-64-6-64-14z" fill="url(#lampMetal)"/>
+  <ellipse cx="122" cy="404" rx="64" ry="15" fill="#2a2d39"/>
+  <g class="lit"><ellipse cx="138" cy="403" rx="44" ry="10" fill="url(#lampGlow)" opacity="0.4"/></g>
+
+  <!-- Arms and joints -->
+  <path d="M122 396 62 255" stroke="#3a3e4c" stroke-width="10" stroke-linecap="round" fill="none"/>
+  <path d="M62 255 116 58" stroke="#3a3e4c" stroke-width="9" stroke-linecap="round" fill="none"/>
+  <circle cx="122" cy="396" r="10" fill="url(#lampGold)"/><circle cx="122" cy="396" r="3.5" fill="#3b2d16"/>
+  <circle cx="62" cy="255" r="11" fill="url(#lampGold)"/><circle cx="62" cy="255" r="4" fill="#3b2d16"/>
+
+  <!-- Shade, tipped towards the login card -->
+  <g transform="translate(158 108) rotate(-35)">
+    <g class="lit"><ellipse cx="0" cy="58" rx="150" ry="110" fill="url(#lampGlow)" opacity="0.5"/></g>
+    <path d="M-70 40C-70-30-35-70 0-70S70-30 70 40Z" fill="url(#lampMetal)"/>
+    <path d="M-52 18C-48-22-28-50-6-58" stroke="#fff" stroke-opacity="0.16" stroke-width="5" stroke-linecap="round" fill="none"/>
+    <circle cx="0" cy="-70" r="8" fill="url(#lampGold)"/>
+    <ellipse cx="0" cy="40" rx="70" ry="15" fill="url(#lampGold)"/>
+    <ellipse cx="0" cy="40" rx="64" ry="11.5" fill="#15161c"/>
+    <ellipse class="lit" cx="0" cy="40" rx="64" ry="11.5" fill="#fff2d6"/>
+    <ellipse cx="0" cy="43" rx="17" ry="7" fill="#5b5a55"/>
+    <ellipse class="lit" cx="0" cy="43" rx="28" ry="11" fill="#fff"/>
+  </g>
+
+  <!-- Pull cord. Position is driven from JS. -->
+  <path id="cord-line" d="M199 135 L199 262" stroke="#c9a877" stroke-width="1.6" fill="none"/>
+  <g class="cord-grab" id="cord" role="button" tabindex="0" aria-label="Lamp cord: switch the light on to show the sign-in form" aria-pressed="false">
+    <g id="cord-knob">
+      <circle class="cord-hit" cx="199" cy="268" r="30" fill="transparent"/>
+      <circle class="cord-pulse" cx="199" cy="268" r="17" fill="none" stroke="#d4aa70" stroke-width="1.5"/>
+      <circle class="cord-focus" cx="199" cy="268" r="16" fill="none" stroke="#fff" stroke-width="2"/>
+      <path d="M199 258c5 0 8 5 8 11s-3 10-8 10-8-4-8-10 3-11 8-11z" fill="url(#lampGold)"/>
+    </g>
+  </g>
+</svg>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -371,7 +494,7 @@ async function handleAdminLogin() {
 
 // Allow Enter key to submit
 document.addEventListener('keydown', e => {
-  if (e.key === 'Enter') handleAdminLogin();
+  if (e.key === 'Enter' && document.body.classList.contains('lamp-on')) handleAdminLogin();
 });
 
 function showLoading(show) {
@@ -392,6 +515,208 @@ function showToast(msg, err) {
 
 // Check on load
 checkExistingSession();
+
+// ── Desk lamp: pull the cord to light the room
+(function () {
+  const svg   = document.getElementById('lamp');
+  const cord  = document.getElementById('cord');
+  const line  = document.getElementById('cord-line');
+  const knob  = document.getElementById('cord-knob');
+  const calm  = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // SVG coordinates (viewBox units)
+  const ANCHOR = { x: 199, y: 135 };
+  const REST   = { x: 199, y: 262 };
+  const BULB   = { x: 181, y: 141 };
+  const PULL_TO_SWITCH = 24;
+
+  let lampOn = false;
+  let audioCtx = null;
+
+  function setLamp(on, withSound) {
+    if (on === lampOn) return;
+    lampOn = on;
+    document.body.classList.toggle('lamp-on', on);
+    cord.setAttribute('aria-pressed', String(on));
+    if (withSound) playSwitch(on);
+  }
+
+  // Click of the switch, plus a short mains hum as the bulb catches
+  function playSwitch(turningOn) {
+    try {
+      audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+      audioCtx.resume();
+      const now = audioCtx.currentTime;
+
+      const noise = audioCtx.createBuffer(1, Math.floor(audioCtx.sampleRate * 0.04), audioCtx.sampleRate);
+      const samples = noise.getChannelData(0);
+      for (let i = 0; i < samples.length; i++) samples[i] = (Math.random() * 2 - 1) * (1 - i / samples.length);
+      const click = audioCtx.createBufferSource();
+      click.buffer = noise;
+      const tone = audioCtx.createBiquadFilter();
+      tone.type = 'bandpass';
+      tone.frequency.value = turningOn ? 2600 : 1500;
+      const clickGain = audioCtx.createGain();
+      clickGain.gain.value = 0.3;
+      click.connect(tone); tone.connect(clickGain); clickGain.connect(audioCtx.destination);
+      click.start(now);
+
+      if (turningOn) {
+        const hum = audioCtx.createOscillator();
+        const humGain = audioCtx.createGain();
+        hum.type = 'sine';
+        hum.frequency.setValueAtTime(120, now + 0.05);
+        humGain.gain.setValueAtTime(0.001, now);
+        humGain.gain.linearRampToValueAtTime(0.06, now + 0.08);
+        humGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
+        hum.connect(humGain); humGain.connect(audioCtx.destination);
+        hum.start(now + 0.05);
+        hum.stop(now + 0.38);
+      }
+    } catch (e) { /* no audio available: the lamp still works */ }
+  }
+
+  // ── Cord physics
+  const pos = { x: REST.x, y: REST.y };
+  const vel = { x: 0, y: 0 };
+  let dragging = false, springing = false, grab = null, travelled = 0, switchedThisPull = false, lastT = 0;
+
+  function drawCord() {
+    line.setAttribute('d', `M${ANCHOR.x} ${ANCHOR.y} Q${ANCHOR.x} ${(ANCHOR.y + pos.y) / 2} ${pos.x} ${pos.y}`);
+    knob.setAttribute('transform', `translate(${pos.x - REST.x} ${pos.y - REST.y})`);
+  }
+  function spring(t) {
+    if (dragging) { springing = false; return; }
+    // Fixed small steps, so the swing takes the same real time at any frame rate
+    const STEP = 1 / 120;
+    const steps = Math.min(Math.round(Math.max(t - lastT, 0) / 1000 / STEP), 60);
+    lastT = t;
+    for (let i = 0; i < steps; i++) {
+      for (const k of ['x', 'y']) {
+        vel[k] += (-190 * (pos[k] - REST[k]) - 7 * vel[k]) * STEP;
+        pos[k] += vel[k] * STEP;
+      }
+    }
+    drawCord();
+    if (Math.abs(vel.x) + Math.abs(vel.y) < 2 && Math.abs(pos.x - REST.x) + Math.abs(pos.y - REST.y) < 0.3) {
+      pos.x = REST.x; pos.y = REST.y; drawCord();
+      springing = false;
+      return;
+    }
+    requestAnimationFrame(spring);
+  }
+  function release() {
+    if (calm) { pos.x = REST.x; pos.y = REST.y; drawCord(); return; }
+    if (springing) return;
+    springing = true;
+    lastT = performance.now();
+    requestAnimationFrame(spring);
+  }
+  function tug() { // used for a plain click or tap, and for the keyboard
+    setLamp(!lampOn, true);
+    vel.y = 260; vel.x = 50;
+    release();
+  }
+  function toSvg(e) {
+    return new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM().inverse());
+  }
+
+  cord.addEventListener('pointerdown', e => {
+    e.preventDefault();
+    cord.setPointerCapture(e.pointerId);
+    cord.classList.add('dragging');
+    dragging = true; travelled = 0; switchedThisPull = false;
+    grab = toSvg(e);
+  });
+  cord.addEventListener('pointermove', e => {
+    if (!dragging) return;
+    const p = toSvg(e);
+    const dx = p.x - grab.x, dy = p.y - grab.y;
+    travelled = Math.max(travelled, Math.hypot(dx, dy));
+    pos.x = REST.x + Math.max(-46, Math.min(46, dx * 0.8));
+    pos.y = REST.y + Math.max(-8, Math.min(64, dy));
+    drawCord();
+    if (!switchedThisPull && pos.y - REST.y >= PULL_TO_SWITCH) {
+      switchedThisPull = true;
+      setLamp(!lampOn, true);
+    }
+  });
+  function endPull() {
+    if (!dragging) return;
+    dragging = false;
+    cord.classList.remove('dragging');
+    vel.x = 0; vel.y = 0;
+    if (!switchedThisPull && travelled < 6) tug(); else release();
+  }
+  cord.addEventListener('pointerup', endPull);
+  cord.addEventListener('pointercancel', endPull);
+  cord.addEventListener('keydown', e => {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    e.preventDefault();
+    e.stopPropagation(); // don't let Enter submit the login form
+    tug();
+    // Keyboard users go straight to the form that just appeared
+    if (lampOn) document.getElementById('admin-email').focus();
+  });
+
+  // ── Keep the light anchored to the bulb
+  let bulbX = 0, bulbY = 0;
+  function placeLight() {
+    const p = new DOMPoint(BULB.x, BULB.y).matrixTransform(svg.getScreenCTM());
+    bulbX = p.x; bulbY = p.y;
+    document.body.style.setProperty('--lx', bulbX + 'px');
+    document.body.style.setProperty('--ly', bulbY + 'px');
+  }
+  window.addEventListener('resize', placeLight);
+  window.addEventListener('scroll', placeLight, { passive: true });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(placeLight);
+  placeLight();
+  drawCord();
+
+  // ── Dust drifting through the air, bright where it crosses the beam
+  if (calm) return;
+  const canvas = document.getElementById('dust');
+  const ctx = canvas.getContext('2d');
+  let w = 0, h = 0;
+  function sizeDust() {
+    const dpr = window.devicePixelRatio || 1;
+    w = window.innerWidth; h = window.innerHeight;
+    canvas.width = w * dpr; canvas.height = h * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  window.addEventListener('resize', sizeDust);
+  sizeDust();
+  const motes = Array.from({ length: 42 }, () => ({
+    x: Math.random(), y: Math.random(),
+    r: 0.5 + Math.random() * 1.1,
+    vx: (Math.random() - 0.5) * 0.008,
+    vy: -0.003 - Math.random() * 0.008,
+    glow: 0
+  }));
+  function inBeam(x, y) {
+    const dx = x - bulbX, dy = y - bulbY;
+    const angle = (Math.atan2(dx, -dy) * 180 / Math.PI + 360) % 360;
+    return angle > 108 && angle < 182 && Math.hypot(dx, dy) < Math.min(w, h) * 0.95;
+  }
+  let lastDust = performance.now();
+  (function drawDust(t) {
+    const dt = Math.min((t - lastDust) / 1000 || 0, 0.05);
+    lastDust = t;
+    ctx.clearRect(0, 0, w, h);
+    for (const m of motes) {
+      m.x = (m.x + m.vx * dt + 1) % 1;
+      m.y = (m.y + m.vy * dt + 1) % 1;
+      const px = m.x * w, py = m.y * h;
+      const target = lampOn ? (inBeam(px, py) ? 0.85 : 0.14) : 0.07;
+      m.glow += (target - m.glow) * Math.min(dt * 4, 1);
+      ctx.fillStyle = `rgba(255,232,196,${m.glow})`;
+      ctx.beginPath();
+      ctx.arc(px, py, m.r, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    requestAnimationFrame(drawDust);
+  })(lastDust);
+})();
 
 // ── PWA: service worker registration
 if ('serviceWorker' in navigator) {

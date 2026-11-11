@@ -256,6 +256,9 @@ body { font-family:'Nunito',sans-serif; background:var(--cream); color:var(--tex
 .tp-total { display:flex; justify-content:space-between; align-items:baseline; padding:10px 2px 14px; font-size:0.84rem; font-weight:700; color:var(--smoke); }
 .tp-total b { font-size:1.15rem; font-weight:900; color:var(--navy); }
 .tp-total[hidden] { display:none; }
+.tp-deposit { margin:-8px 0 14px; padding:10px 12px; border-radius:12px; background:#f1f6fd; font-size:0.78rem; line-height:1.5; color:#4b5563; }
+.tp-deposit b { color:var(--navy); }
+.tp-deposit[hidden] { display:none; }
 .tp-btn { display:flex; align-items:center; justify-content:center; gap:10px; width:100%; padding:14px 18px; border-radius:14px; font-family:inherit; font-size:1rem; font-weight:800; text-decoration:none; cursor:pointer; transition:filter 0.2s, box-shadow 0.2s, background 0.2s; }
 .tp-btn svg { width:22px; height:22px; flex-shrink:0; }
 .tp-btn-book { border:none; background:linear-gradient(180deg, #f8c443, #f0a91c); color:#fff; box-shadow:0 8px 20px rgba(240,169,28,0.35); }
@@ -444,6 +447,7 @@ footer { background:var(--navy); padding:56px 6% 32px; }
           </div>
         </div>
         <div class="tp-total" id="tp-total" hidden><span data-i18n="tp.est_total">Estimated total</span><b id="tp-total-val"></b></div>
+        <div class="tp-deposit" id="tp-deposit" hidden></div>
         <div class="tp-book-btns">
           <a class="tp-btn tp-btn-book" id="trip-book" href="login.html"><span id="trip-book-label" data-i18n="trips.book_now">Book Now</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="rgba(255,255,255,0.25)" stroke="none"/><path d="M8 12h8M13 8l4 4-4 4"/></svg></a>
           <a class="tp-btn tp-btn-enq" id="trip-wa" href="contact.html" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 2C6.5 2 2 5.9 2 10.7c0 2.7 1.4 5.1 3.7 6.7L5 22l4.6-2.6c.8.2 1.6.3 2.4.3 5.5 0 10-3.9 10-8.7S17.5 2 12 2Zm-4 10.2a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6Zm4 0a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6Zm4 0a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6Z"/></svg><span data-i18n="tp.enquire">Enquire Now</span></a>
@@ -889,7 +893,37 @@ function updateBookTotal() {
   const price = Number(selectedDeparture()?.price) || Number(pkg?.price) || 0;
   document.getElementById('tp-total-val').textContent = 'RM ' + (price * pax).toLocaleString();
   document.getElementById('tp-total').hidden = !price;
+  const depEl = document.getElementById('tp-deposit');
+  const plan = price && currentTrip ? paymentPlan(currentTrip, price * pax, pax, selectedDeparture()?.date) : null;
+  const P = PAY_TXT[TC_I18N.lang] || PAY_TXT.en;
+  depEl.innerHTML = !plan ? '' : plan.full
+    ? `<b>${esc(P.full)}</b>`
+    : `${esc(P.deposit)} <b>RM ${plan.deposit.toLocaleString()}</b><br>${esc(P.balance.replace('{a}', 'RM ' + plan.balance.toLocaleString()).replace('{d}', plan.dueDate ? fmtDateDay(plan.dueDate) : P.before))}`;
+  depEl.hidden = !plan;
   if (currentTrip) { applyBookCta(currentTrip); applyWhatsApp(currentTrip); }
+}
+// Deposit now, balance 3 months before departure. Mirrors the booking_payment_plan
+// DB trigger (which sets the real amounts): trip.deposit_per_pax × travellers, else 30%.
+const PAY_TXT = {
+  en: { deposit: 'Deposit to confirm your booking:', balance: 'Balance {a} due by {d}', before: '3 months before departure', full: 'Departs within 3 months — full payment when you book' },
+  zh: { deposit: '预订时需付订金：', balance: '余款 {a} 须于 {d} 前付清', before: '出发前3个月', full: '出发日期在3个月内 — 预订时须付全款' },
+  ms: { deposit: 'Deposit untuk mengesahkan tempahan:', balance: 'Baki {a} perlu dibayar sebelum {d}', before: '3 bulan sebelum berlepas', full: 'Berlepas dalam 3 bulan — bayaran penuh semasa menempah' },
+};
+function minusMonths(iso, n) {
+  const [y, m, d] = String(iso).slice(0, 10).split('-').map(Number);
+  if (!y) return null;
+  const first = new Date(Date.UTC(y, m - 1 - n, 1));
+  const last = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate();
+  first.setUTCDate(Math.min(d, last));
+  return first.toISOString().slice(0, 10);
+}
+function paymentPlan(t, total, pax, departureDate) {
+  const dueDate = departureDate ? minusMonths(departureDate, 3) : null;
+  const today = new Date().toISOString().slice(0, 10);
+  const per = Number(t.deposit_per_pax) || 0;
+  const full = !!dueDate && dueDate <= today;
+  const deposit = full ? total : per > 0 ? Math.min(total, per * pax) : Math.round(total * 0.3);
+  return { full: full || deposit >= total, deposit, balance: Math.max(0, total - deposit), dueDate };
 }
 document.getElementById('tp-pkg').addEventListener('change', () => {
   fillDates(); updateBookTotal();

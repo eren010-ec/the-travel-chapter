@@ -288,6 +288,11 @@ textarea { resize:vertical; min-height:80px; }
     background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); border-radius:8px;
   }
   .hamburger span { display:block; width:17px; height:2px; background:var(--gold2); border-radius:2px; transition:transform 0.25s, opacity 0.2s; }
+.pay-plan { margin-top:8px; padding-top:8px; border-top:1px solid var(--border); font-size:0.78rem; line-height:1.5; color:var(--smoke); }
+.pay-plan:empty { display:none; }
+.pay-plan b { color:var(--ink, #1f2937); }
+.booking-pay { font-size:0.72rem; font-weight:600; margin-top:3px; }
+.booking-pay.due { color:#b45309; } .booking-pay.deposit { color:#1d4ed8; } .booking-pay.late { color:#b91c1c; } .booking-pay.paid { color:#15803d; }
   .topbar.nav-open .hamburger span:nth-child(1) { transform:translateY(6px) rotate(45deg); }
   .topbar.nav-open .hamburger span:nth-child(2) { opacity:0; }
   .topbar.nav-open .hamburger span:nth-child(3) { transform:translateY(-6px) rotate(-45deg); }
@@ -571,7 +576,7 @@ textarea { resize:vertical; min-height:80px; }
       <div class="field"><label data-i18n="dash.departure_date">Departure Date</label><select id="modal-date"></select></div>
       <div class="field"><label data-i18n="dash.num_travellers">Number of Travellers</label><input type="number" id="modal-pax" value="1" min="1" max="10"></div>
       <div class="field"><label data-i18n="dash.special_requests">Special Requests (optional)</label><textarea id="modal-requests" placeholder="Dietary requirements, accessibility needs…" data-i18n-placeholder="dash.special_requests_ph"></textarea></div>
-      <div class="total-box"><div class="lbl" data-i18n="dash.estimated_total">Estimated Total</div><div class="val" id="modal-total">RM 0</div></div>
+      <div class="total-box"><div class="lbl" data-i18n="dash.estimated_total">Estimated Total</div><div class="val" id="modal-total">RM 0</div><div class="pay-plan" id="modal-deposit"></div></div>
     </div>
     <div class="modal-actions">
       <button class="btn-ghost" id="btn-close-modal" data-i18n="dash.cancel">Cancel</button>
@@ -1219,7 +1224,7 @@ function renderBookings() {
   if (!bookings.length) { list.innerHTML = `<div class="empty-state"><div class="icon">📋</div><p>${TC_I18N.t('dash.no_bookings')}</p></div>`; return; }
   list.innerHTML = bookings.map(b => `<div class="booking-row">
     <div><div class="booking-trip">${b.trips?.title||'—'}</div>
-    <div class="booking-meta">${fmtDate(b.departure_date)}${b.departure_time?' '+fmtTime(b.departure_time):''} · ${b.num_travellers} ${TC_I18N.t(b.num_travellers>1?'dash.traveller_plural':'dash.traveller_singular')} · ${b.package_label?escHtml(b.package_label)+' · ':''}${b.package_days||b.trips?.duration_days||'?'} ${TC_I18N.t('dash.days_label')}</div></div>
+    <div class="booking-meta">${fmtDate(b.departure_date)}${b.departure_time?' '+fmtTime(b.departure_time):''} · ${b.num_travellers} ${TC_I18N.t(b.num_travellers>1?'dash.traveller_plural':'dash.traveller_singular')} · ${b.package_label?escHtml(b.package_label)+' · ':''}${b.package_days||b.trips?.duration_days||'?'} ${TC_I18N.t('dash.days_label')}</div>${bookingPayLine(b)}</div>
     <div class="booking-price">RM ${Number(b.total_usd).toLocaleString()}</div>
     <span class="status-pill status-${b.status}">${TC_I18N.t('status.'+b.status)}</span>
   </div>`).join('');
@@ -1541,7 +1546,53 @@ function closeBookingModal() { document.getElementById('booking-modal').classLis
 function updateTotal() {
   if (!bookingTrip) return;
   const pax=parseInt(document.getElementById('modal-pax').value)||1;
-  document.getElementById('modal-total').textContent='RM '+(pax*bookingPrice()).toLocaleString();
+  const total=pax*bookingPrice();
+  document.getElementById('modal-total').textContent='RM '+total.toLocaleString();
+  const P=PAY_TXT[TC_I18N.lang]||PAY_TXT.en;
+  const plan=total ? paymentPlan(bookingTrip, total, pax, bookingDeparture()?.date) : null;
+  document.getElementById('modal-deposit').innerHTML = !plan ? '' : plan.full
+    ? `<b>${escHtml(P.full)}</b>`
+    : `${escHtml(P.deposit)} <b>RM ${plan.deposit.toLocaleString()}</b><br>${escHtml(fillPay(P.balance, plan.balance, plan.dueDate ? fmtDate(plan.dueDate) : P.before))}`;
+}
+// ── PAYMENT PLAN: deposit when booking, balance 3 months before departure ──
+// Mirrors the booking_payment_plan DB trigger, which sets the real amounts.
+const PAY_TXT = {
+  en: { deposit: 'Deposit to confirm your booking:', balance: 'Balance {a} due by {d}', before: '3 months before departure', full: 'Departs within 3 months — full payment when you book',
+        st_due: 'Deposit {a} to pay', st_full: 'Full payment {a} to pay', st_dep: 'Deposit paid · balance {a} due by {d}', st_late: 'Balance {a} overdue (due {d})', st_paid: 'Paid in full' },
+  zh: { deposit: '预订时需付订金：', balance: '余款 {a} 须于 {d} 前付清', before: '出发前3个月', full: '出发日期在3个月内 — 预订时须付全款',
+        st_due: '待付订金 {a}', st_full: '待付全款 {a}', st_dep: '订金已付 · 余款 {a} 须于 {d} 前付清', st_late: '余款 {a} 已逾期（应于 {d} 付清）', st_paid: '已全额付清' },
+  ms: { deposit: 'Deposit untuk mengesahkan tempahan:', balance: 'Baki {a} perlu dibayar sebelum {d}', before: '3 bulan sebelum berlepas', full: 'Berlepas dalam 3 bulan — bayaran penuh semasa menempah',
+        st_due: 'Deposit {a} perlu dibayar', st_full: 'Bayaran penuh {a} perlu dibayar', st_dep: 'Deposit dibayar · baki {a} sebelum {d}', st_late: 'Baki {a} tertunggak (sepatutnya {d})', st_paid: 'Dibayar sepenuhnya' },
+};
+function fillPay(s, amount, date) { return s.replace('{a}', 'RM ' + Number(amount || 0).toLocaleString()).replace('{d}', date || ''); }
+function minusMonths(iso, n) {
+  const [y, m, d] = String(iso).slice(0, 10).split('-').map(Number);
+  if (!y) return null;
+  const first = new Date(Date.UTC(y, m - 1 - n, 1));
+  const last = new Date(Date.UTC(first.getUTCFullYear(), first.getUTCMonth() + 1, 0)).getUTCDate();
+  first.setUTCDate(Math.min(d, last));
+  return first.toISOString().slice(0, 10);
+}
+function paymentPlan(t, total, pax, departureDate) {
+  const dueDate = departureDate ? minusMonths(departureDate, 3) : null;
+  const per = Number(t?.deposit_per_pax) || 0;
+  const full = !!dueDate && dueDate <= new Date().toISOString().slice(0, 10);
+  const deposit = full ? total : per > 0 ? Math.min(total, per * pax) : Math.round(total * 0.3);
+  return { full: full || deposit >= total, deposit, balance: Math.max(0, total - deposit), dueDate };
+}
+// Status line on My Bookings (amounts come from the booking row itself)
+function bookingPayLine(b) {
+  if (b.status === 'cancelled' || b.deposit_amount == null) return '';
+  const P = PAY_TXT[TC_I18N.lang] || PAY_TXT.en;
+  const total = Number(b.total_usd) || 0, dep = Number(b.deposit_amount) || 0;
+  let cls, text;
+  if (b.balance_paid_at || (b.deposit_paid_at && dep >= total)) { cls = 'paid'; text = P.st_paid; }
+  else if (b.deposit_paid_at) {
+    const late = b.balance_due_date && b.balance_due_date < new Date().toISOString().slice(0, 10);
+    cls = late ? 'late' : 'deposit';
+    text = fillPay(late ? P.st_late : P.st_dep, total - dep, fmtDate(b.balance_due_date));
+  } else { cls = 'due'; text = fillPay(dep >= total ? P.st_full : P.st_due, dep >= total ? total : dep); }
+  return `<div class="booking-pay ${cls}">${escHtml(text)}</div>`;
 }
 function bookingPackage() { return tripPackages(bookingTrip)[parseInt(document.getElementById('modal-package').value)||0]; }
 // Dates follow the chosen option (d.pkg = option id); a date may carry its own price.

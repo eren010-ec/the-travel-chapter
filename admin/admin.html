@@ -422,8 +422,8 @@ textarea { resize:vertical; min-height:70px; }
       </div>
       <div class="tbl-wrap">
         <table>
-          <thead><tr><th>Member</th><th>Trip</th><th>Departure</th><th>Pax</th><th>Total</th><th>Status</th><th>Booked On</th><th>Actions</th></tr></thead>
-          <tbody id="bookings-body"><tr><td colspan="8" class="loading">Loading…</td></tr></tbody>
+          <thead><tr><th>Member</th><th>Trip</th><th>Departure</th><th>Pax</th><th>Total</th><th>Payment</th><th>Status</th><th>Booked On</th><th>Actions</th></tr></thead>
+          <tbody id="bookings-body"><tr><td colspan="9" class="loading">Loading…</td></tr></tbody>
         </table>
       </div>
     </div>
@@ -856,6 +856,7 @@ textarea { resize:vertical; min-height:70px; }
       <div class="field"><label>Departure Time</label><input type="time" id="ebm-time"></div>
       <div class="field"><label>Travellers</label><input type="number" id="ebm-pax" min="1" max="20"></div>
       <div class="field full"><label>Special Requests</label><textarea id="ebm-requests"></textarea></div>
+      <div class="field full" id="ebm-pay"></div>
     </div>
     <div class="modal-actions">
       <button class="btn btn-danger" id="btn-delete-booking" onclick="deleteBooking()">Delete Booking</button>
@@ -902,6 +903,8 @@ textarea { resize:vertical; min-height:70px; }
         <span style="font-size:0.7rem;color:var(--smoke);">e.g. “3D2N” · 3 days · RM 1,200. Members pick one when booking; listings show the cheapest as “From”.</span>
       </div>
       <div class="field"><label>Max Pax</label><input type="number" id="tm-pax" min="0" value="12" placeholder="0 = TBA"></div>
+      <div class="field"><label>Deposit per Traveller (RM)</label><input type="number" id="tm-deposit" min="0" step="0.01" placeholder="Blank = 30% of total"></div>
+      <div class="field full"><span style="font-size:0.72rem;color:var(--smoke);">Members pay this deposit when they book; the balance is due <strong>3 months before departure</strong>. Booked less than 3 months ahead = pay in full.</span></div>
       <div class="field full"><span style="font-size:0.72rem;color:var(--smoke);">Leave the options and departures empty (or price <strong>0</strong>) to show the trip as <strong>“TBA”</strong> — it stays listed but not bookable.</span></div>
       <div class="field"><label>Category</label><input type="text" id="tm-category" placeholder="e.g. Cultural, Adventure"></div>
       <div class="field"><label>Destination / Region</label><input type="text" id="tm-region" placeholder="e.g. Japan, Morocco"></div>
@@ -1032,9 +1035,10 @@ textarea { resize:vertical; min-height:70px; }
         <option value="completed">Completed</option>
       </select>
     </div>
+    <div class="field" id="bsm-pay" style="margin-top:12px;"></div>
     <div class="modal-actions">
       <button class="btn btn-ghost" onclick="closeModal('booking-status-modal')">Cancel</button>
-      <button class="btn btn-primary" id="btn-update-bsm" onclick="updateBookingStatus()">Update Status</button>
+      <button class="btn btn-primary" id="btn-update-bsm" onclick="updateBookingStatus()">Save</button>
     </div>
   </div>
 </div>
@@ -1463,7 +1467,7 @@ async function loadBookings() {
   const [{ data }, { data: extra }] = await Promise.all([
     sb.rpc('get_admin_bookings').order('booked_at', { ascending: false }),
     // get_admin_bookings predates the package/time columns — merge them in
-    sb.from('bookings').select('id, package_label, package_days, departure_time'),
+    sb.from('bookings').select('id, package_label, package_days, departure_time, deposit_amount, balance_due_date, deposit_paid_at, balance_paid_at'),
   ]);
   const byId = Object.fromEntries((extra || []).map(x => [x.id, x]));
   allBookings = (data || []).map(b => ({ ...byId[b.id], ...b }));
@@ -1925,6 +1929,7 @@ async function openEditBookingModal(bookingId) {
   document.getElementById('ebm-time').value     = b.departure_time || '';
   document.getElementById('ebm-pax').value      = b.num_travellers;
   document.getElementById('ebm-requests').value = b.special_requests || '';
+  renderPaymentFields('ebm-pay', b);
   openModal('edit-booking-modal');
 }
 
@@ -1937,6 +1942,7 @@ async function saveBooking() {
     departure_time:  document.getElementById('ebm-time').value || null,
     num_travellers:  parseInt(document.getElementById('ebm-pax').value)||1,
     special_requests:document.getElementById('ebm-requests').value.trim()||null,
+    ...readPaymentFields('ebm-pay'),
   };
   const { error } = await sb.from('bookings').update(updates).eq('id', editingBookingId);
   if (error) showToast('Error: '+error.message, true);
@@ -1961,6 +1967,67 @@ async function deleteBooking() {
   }
 }
 
+// ── BOOKING PAYMENTS (deposit now, balance 3 months before departure) ──
+// Amounts/due dates are worked out by the booking_payment_plan trigger
+// (migration 20261111140000); admin/staff tick when the money is received.
+function paymentState(b) {
+  const total = Number(b.total_usd) || 0;
+  const dep = b.deposit_amount == null ? null : Number(b.deposit_amount);
+  if (b.status === 'cancelled') return { key: 'na', text: '—' };
+  if (b.balance_paid_at || (b.deposit_paid_at && dep != null && dep >= total)) return { key: 'paid', text: 'Paid in full' };
+  if (b.deposit_paid_at) {
+    const late = b.balance_due_date && b.balance_due_date < new Date().toISOString().slice(0, 10);
+    return { key: late ? 'late' : 'deposit', text: `${late ? 'Balance overdue' : 'Deposit paid'} · RM ${(total - (dep || 0)).toLocaleString()} by ${fmtDate(b.balance_due_date)}` };
+  }
+  if (dep == null) return { key: 'due', text: 'Deposit due' };
+  return { key: 'due', text: dep >= total ? `Full payment RM ${total.toLocaleString()} due` : `Deposit RM ${dep.toLocaleString()} due` };
+}
+function paymentCell(b) {
+  const s = paymentState(b);
+  if (s.key === 'na') return '<span style="color:var(--smoke);">—</span>';
+  const color = { paid: '#15803d', deposit: '#1d4ed8', late: '#b91c1c', due: '#b45309' }[s.key];
+  return `<span style="font-size:0.74rem;font-weight:600;color:${color};">${escapeHtml(s.text)}</span>`;
+}
+function renderPaymentFields(boxId, b) {
+  const box = document.getElementById(boxId);
+  box.dataset.total = Number(b.total_usd) || 0;
+  const tick = (cls, at, text) => `<label style="display:flex;align-items:center;gap:6px;margin:0;font-size:0.78rem;text-transform:none;letter-spacing:0;cursor:pointer;">
+        <input type="checkbox" class="${cls}" style="width:auto;margin:0;" ${at ? 'checked' : ''} data-at="${at || ''}"> ${text}</label>`;
+  box.innerHTML = `<label>Payment</label>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px;border:1px solid var(--border);border-radius:9px;background:var(--cream2);">
+      <div><div style="font-size:0.66rem;color:var(--smoke);margin-bottom:3px;">Deposit (RM)</div>
+        <input type="number" class="pay-dep" min="0" step="0.01" value="${b.deposit_amount ?? ''}" placeholder="Auto" oninput="paymentBalanceText('${boxId}')"></div>
+      <div><div style="font-size:0.66rem;color:var(--smoke);margin-bottom:3px;">Balance due by</div>
+        <input type="date" class="pay-due" value="${b.balance_due_date || ''}"></div>
+      ${tick('pay-dep-paid', b.deposit_paid_at, 'Deposit received')}
+      ${tick('pay-bal-paid', b.balance_paid_at, 'Balance received')}
+      <div class="pay-note" style="grid-column:1/-1;font-size:0.72rem;color:var(--smoke);"></div>
+    </div>`;
+  paymentBalanceText(boxId);
+}
+function paymentBalanceText(boxId) {
+  const box = document.getElementById(boxId);
+  const total = Number(box.dataset.total) || 0;
+  const dep = parseFloat(box.querySelector('.pay-dep').value);
+  box.querySelector('.pay-note').textContent = isNaN(dep)
+    ? `Total RM ${total.toLocaleString()} — the deposit is worked out automatically on save.`
+    : `Total RM ${total.toLocaleString()} · balance RM ${Math.max(0, total - dep).toLocaleString()}`;
+}
+function readPaymentFields(boxId) {
+  const box = document.getElementById(boxId);
+  const stamp = el => el.checked ? (el.dataset.at || new Date().toISOString()) : null;
+  const dep = parseFloat(box.querySelector('.pay-dep').value);
+  const out = {
+    balance_due_date: box.querySelector('.pay-due').value || null,
+    deposit_paid_at: stamp(box.querySelector('.pay-dep-paid')),
+    balance_paid_at: stamp(box.querySelector('.pay-bal-paid')),
+  };
+  if (!isNaN(dep)) out.deposit_amount = dep;
+  // Balance received means everything is in, deposit included
+  if (out.balance_paid_at && !out.deposit_paid_at) out.deposit_paid_at = out.balance_paid_at;
+  return out;
+}
+
 // ── BOOKINGS TABLE ─────────────────────────────────────────
 function filterBookings() {
   const q=document.getElementById('bk-search').value.toLowerCase();
@@ -1978,11 +2045,12 @@ function renderBookingsRows(list) {
         <td>${fmtDate(b.departure_date)}${b.departure_time?`<br><span style="font-size:0.7rem;color:var(--smoke);">${fmtTime(b.departure_time)}</span>`:''}</td>
         <td>${b.num_travellers}</td>
         <td style="color:var(--gold);font-weight:500;">RM ${Number(b.total_usd).toLocaleString()}</td>
+        <td>${paymentCell(b)}</td>
         <td><span class="pill pill-${b.status}">${b.status}</span></td>
         <td style="font-size:0.75rem;color:var(--smoke);">${fmtDate(b.booked_at)}</td>
         <td><button class="btn btn-ghost btn-sm" onclick="openBsmModal('${b.id}')">Update</button></td>
       </tr>`).join('')
-    : '<tr><td colspan="8" class="empty">No bookings found.</td></tr>';
+    : '<tr><td colspan="9" class="empty">No bookings found.</td></tr>';
 }
 
 function openBsmModal(id) {
@@ -1990,15 +2058,16 @@ function openBsmModal(id) {
   const b=allBookings.find(x=>x.id===id);
   document.getElementById('bsm-info').textContent=`${b?.trip_title||'—'} — ${b?.first_name||''} ${b?.last_name||''}`;
   document.getElementById('bsm-status').value=b?.status||'pending';
+  renderPaymentFields('bsm-pay', b || {});
   openModal('booking-status-modal');
 }
 async function updateBookingStatus() {
   const btn=document.getElementById('btn-update-bsm');
   btn.disabled=true; btn.textContent='Saving…';
-  const { error } = await sb.from('bookings').update({ status: document.getElementById('bsm-status').value }).eq('id', editingBsmId);
+  const { error } = await sb.from('bookings').update({ status: document.getElementById('bsm-status').value, ...readPaymentFields('bsm-pay') }).eq('id', editingBsmId);
   if (error) showToast('Error: '+error.message, true);
-  else { closeModal('booking-status-modal'); await loadBookings(); renderBookingsTable(); renderDashboard(); showToast('Booking status updated ✓'); }
-  btn.disabled=false; btn.textContent='Update Status';
+  else { closeModal('booking-status-modal'); await loadBookings(); renderBookingsTable(); renderDashboard(); showToast('Booking updated ✓'); }
+  btn.disabled=false; btn.textContent='Save';
 }
 
 // ── TRIP OPTIONS / DEPARTURES ──────────────────────────────
@@ -2620,6 +2689,7 @@ function openTripModal(id) {
     document.getElementById('tm-description').value = t.description||'';
     document.getElementById('tm-itinerary').value   = t.itinerary||'';
     document.getElementById('tm-pax').value     = t.max_pax;
+    document.getElementById('tm-deposit').value = Number(t.deposit_per_pax) > 0 ? t.deposit_per_pax : '';
     document.getElementById('tm-category').value= t.category || '';
     document.getElementById('tm-region').value  = t.region || '';
     document.getElementById('tm-packages').innerHTML = '';
@@ -2632,7 +2702,7 @@ function openTripModal(id) {
     document.getElementById('tm-cost').value    = allTripCosts[t.id] ?? '';
     existingImage = t.cover_image || '';
   } else {
-    ['tm-title','tm-slug','tm-summary','tm-description','tm-itinerary','tm-cost','tm-category','tm-region'].forEach(i=>document.getElementById(i).value='');
+    ['tm-title','tm-slug','tm-summary','tm-description','tm-itinerary','tm-cost','tm-category','tm-region','tm-deposit'].forEach(i=>document.getElementById(i).value='');
     TR_LANGS.forEach(l=>TR_TEXT.forEach(k=>document.getElementById(`tm-${k}-${l}`).value=''));
     document.getElementById('tm-packages').innerHTML = '';
     document.getElementById('tm-departures').innerHTML = '';
@@ -2708,6 +2778,7 @@ async function saveTrip() {
     packages, departures,
     ...readTripContent(),
     max_pax:parseInt(document.getElementById('tm-pax').value) || 0,
+    deposit_per_pax:parseFloat(document.getElementById('tm-deposit').value) > 0 ? parseFloat(document.getElementById('tm-deposit').value) : null,
     category:document.getElementById('tm-category').value.trim() || null,
     region:document.getElementById('tm-region').value.trim() || null,
     departure_dates:dates, is_active:document.getElementById('tm-active').checked,

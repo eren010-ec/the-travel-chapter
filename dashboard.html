@@ -1549,22 +1549,25 @@ function updateTotal() {
   const total=pax*bookingPrice();
   document.getElementById('modal-total').textContent='RM '+total.toLocaleString();
   const P=PAY_TXT[TC_I18N.lang]||PAY_TXT.en;
-  const plan=total ? paymentPlan(bookingTrip, total, pax, bookingDeparture()?.date) : null;
+  const plan=total ? paymentPlan(bookingDeparture()?.date) : null;
   document.getElementById('modal-deposit').innerHTML = !plan ? '' : plan.full
     ? `<b>${escHtml(P.full)}</b>`
-    : `${escHtml(P.deposit)} <b>RM ${plan.deposit.toLocaleString()}</b><br>${escHtml(fillPay(P.balance, plan.balance, plan.dueDate ? fmtDate(plan.dueDate) : P.before))}`;
+    : `<b>${escHtml(P.deposit)}</b><br>${escHtml(fillPay(P.balance, 0, plan.dueDate ? fmtDate(plan.dueDate) : P.before))}`;
 }
 // ── PAYMENT PLAN: deposit when booking, balance 3 months before departure ──
-// Mirrors the booking_payment_plan DB trigger, which sets the real amounts.
+// The deposit received is entered by admin on the booking (bookings.deposit_amount).
 const PAY_TXT = {
-  en: { deposit: 'Deposit to confirm your booking:', balance: 'Balance {a} due by {d}', before: '3 months before departure', full: 'Departs within 3 months — full payment when you book',
-        st_due: 'Deposit {a} to pay', st_full: 'Full payment {a} to pay', st_dep: 'Deposit paid · balance {a} due by {d}', st_late: 'Balance {a} overdue (due {d})', st_paid: 'Paid in full' },
-  zh: { deposit: '预订时需付订金：', balance: '余款 {a} 须于 {d} 前付清', before: '出发前3个月', full: '出发日期在3个月内 — 预订时须付全款',
-        st_due: '待付订金 {a}', st_full: '待付全款 {a}', st_dep: '订金已付 · 余款 {a} 须于 {d} 前付清', st_late: '余款 {a} 已逾期（应于 {d} 付清）', st_paid: '已全额付清' },
-  ms: { deposit: 'Deposit untuk mengesahkan tempahan:', balance: 'Baki {a} perlu dibayar sebelum {d}', before: '3 bulan sebelum berlepas', full: 'Berlepas dalam 3 bulan — bayaran penuh semasa menempah',
-        st_due: 'Deposit {a} perlu dibayar', st_full: 'Bayaran penuh {a} perlu dibayar', st_dep: 'Deposit dibayar · baki {a} sebelum {d}', st_late: 'Baki {a} tertunggak (sepatutnya {d})', st_paid: 'Dibayar sepenuhnya' },
+  en: { deposit: 'Pay a deposit to confirm your booking', balance: 'The balance is due by {d}', before: '3 months before departure', full: 'Departs within 3 months — full payment when you book',
+        st_due: 'Deposit not yet received', st_dep: 'Deposit {a} received · balance {b} due by {d}', st_late: 'Deposit {a} received · balance {b} overdue (due {d})', st_paid: 'Paid in full' },
+  zh: { deposit: '支付订金即可确认预订', balance: '余款须于 {d} 前付清', before: '出发前3个月', full: '出发日期在3个月内 — 预订时须付全款',
+        st_due: '尚未收到订金', st_dep: '已收订金 {a} · 余款 {b} 须于 {d} 前付清', st_late: '已收订金 {a} · 余款 {b} 已逾期（应于 {d} 付清）', st_paid: '已全额付清' },
+  ms: { deposit: 'Bayar deposit untuk mengesahkan tempahan', balance: 'Baki perlu dibayar sebelum {d}', before: '3 bulan sebelum berlepas', full: 'Berlepas dalam 3 bulan — bayaran penuh semasa menempah',
+        st_due: 'Deposit belum diterima', st_dep: 'Deposit {a} diterima · baki {b} sebelum {d}', st_late: 'Deposit {a} diterima · baki {b} tertunggak (sepatutnya {d})', st_paid: 'Dibayar sepenuhnya' },
 };
-function fillPay(s, amount, date) { return s.replace('{a}', 'RM ' + Number(amount || 0).toLocaleString()).replace('{d}', date || ''); }
+function fillPay(s, amount, date, balance) {
+  const rm = v => 'RM ' + Number(v || 0).toLocaleString();
+  return s.replace('{a}', rm(amount)).replace('{b}', rm(balance)).replace('{d}', date || '');
+}
 function minusMonths(iso, n) {
   const [y, m, d] = String(iso).slice(0, 10).split('-').map(Number);
   if (!y) return null;
@@ -1573,25 +1576,22 @@ function minusMonths(iso, n) {
   first.setUTCDate(Math.min(d, last));
   return first.toISOString().slice(0, 10);
 }
-function paymentPlan(t, total, pax, departureDate) {
+function paymentPlan(departureDate) {
   const dueDate = departureDate ? minusMonths(departureDate, 3) : null;
-  const per = Number(t?.deposit_per_pax) || 0;
-  const full = !!dueDate && dueDate <= new Date().toISOString().slice(0, 10);
-  const deposit = full ? total : per > 0 ? Math.min(total, per * pax) : Math.round(total * 0.3);
-  return { full: full || deposit >= total, deposit, balance: Math.max(0, total - deposit), dueDate };
+  return { full: !!dueDate && dueDate <= new Date().toISOString().slice(0, 10), dueDate };
 }
-// Status line on My Bookings (amounts come from the booking row itself)
+// Status line on My Bookings (deposit received is entered by admin on the booking)
 function bookingPayLine(b) {
-  if (b.status === 'cancelled' || b.deposit_amount == null) return '';
+  if (b.status === 'cancelled') return '';
   const P = PAY_TXT[TC_I18N.lang] || PAY_TXT.en;
   const total = Number(b.total_usd) || 0, dep = Number(b.deposit_amount) || 0;
   let cls, text;
-  if (b.balance_paid_at || (b.deposit_paid_at && dep >= total)) { cls = 'paid'; text = P.st_paid; }
-  else if (b.deposit_paid_at) {
+  if (b.balance_paid_at || (dep > 0 && dep >= total)) { cls = 'paid'; text = P.st_paid; }
+  else if (dep > 0) {
     const late = b.balance_due_date && b.balance_due_date < new Date().toISOString().slice(0, 10);
     cls = late ? 'late' : 'deposit';
-    text = fillPay(late ? P.st_late : P.st_dep, total - dep, fmtDate(b.balance_due_date));
-  } else { cls = 'due'; text = fillPay(dep >= total ? P.st_full : P.st_due, dep >= total ? total : dep); }
+    text = fillPay(late ? P.st_late : P.st_dep, dep, fmtDate(b.balance_due_date), total - dep);
+  } else { cls = 'due'; text = P.st_due; }
   return `<div class="booking-pay ${cls}">${escHtml(text)}</div>`;
 }
 function bookingPackage() { return tripPackages(bookingTrip)[parseInt(document.getElementById('modal-package').value)||0]; }

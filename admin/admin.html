@@ -902,10 +902,7 @@ textarea { resize:vertical; min-height:70px; }
         <button type="button" class="btn btn-ghost btn-sm" style="align-self:flex-start;" onclick="addPackageRow()">+ Add Option</button>
         <span style="font-size:0.7rem;color:var(--smoke);">e.g. “3D2N” · 3 days · RM 1,200. Members pick one when booking; listings show the cheapest as “From”.</span>
       </div>
-      <div class="field"><label>Max Pax</label><input type="number" id="tm-pax" min="0" value="12" placeholder="0 = TBA"></div>
-      <div class="field"><label>Deposit per Traveller (RM)</label><input type="number" id="tm-deposit" min="0" step="0.01" placeholder="Blank = 30% of total"></div>
-      <div class="field full"><span style="font-size:0.72rem;color:var(--smoke);">Members pay this deposit when they book; the balance is due <strong>3 months before departure</strong>. Booked less than 3 months ahead = pay in full.</span></div>
-      <div class="field full"><span style="font-size:0.72rem;color:var(--smoke);">Leave the options and departures empty (or price <strong>0</strong>) to show the trip as <strong>“TBA”</strong> — it stays listed but not bookable.</span></div>
+      <div class="field"><label>Max Pax</label><input type="number" id="tm-pax" min="0" value="12" placeholder="0 = TBA"></div>      <div class="field full"><span style="font-size:0.72rem;color:var(--smoke);">Leave the options and departures empty (or price <strong>0</strong>) to show the trip as <strong>“TBA”</strong> — it stays listed but not bookable.</span></div>
       <div class="field"><label>Category</label><input type="text" id="tm-category" placeholder="e.g. Cultural, Adventure"></div>
       <div class="field"><label>Destination / Region</label><input type="text" id="tm-region" placeholder="e.g. Japan, Morocco"></div>
       <div class="field" id="tm-cost-field" style="display:none;">
@@ -1968,19 +1965,19 @@ async function deleteBooking() {
 }
 
 // ── BOOKING PAYMENTS (deposit now, balance 3 months before departure) ──
-// Amounts/due dates are worked out by the booking_payment_plan trigger
-// (migration 20261111140000); admin/staff tick when the money is received.
+// Admin/staff type the deposit actually received on each booking (blank = not paid);
+// the booking_payment_plan trigger (migration 20261111160000) stamps deposit_paid_at
+// and sets balance_due_date = departure − 3 months.
 function paymentState(b) {
   const total = Number(b.total_usd) || 0;
-  const dep = b.deposit_amount == null ? null : Number(b.deposit_amount);
+  const dep = Number(b.deposit_amount) || 0;
   if (b.status === 'cancelled') return { key: 'na', text: '—' };
-  if (b.balance_paid_at || (b.deposit_paid_at && dep != null && dep >= total)) return { key: 'paid', text: 'Paid in full' };
-  if (b.deposit_paid_at) {
+  if (b.balance_paid_at || (dep > 0 && dep >= total)) return { key: 'paid', text: 'Paid in full' };
+  if (dep > 0) {
     const late = b.balance_due_date && b.balance_due_date < new Date().toISOString().slice(0, 10);
-    return { key: late ? 'late' : 'deposit', text: `${late ? 'Balance overdue' : 'Deposit paid'} · RM ${(total - (dep || 0)).toLocaleString()} by ${fmtDate(b.balance_due_date)}` };
+    return { key: late ? 'late' : 'deposit', text: `Deposit RM ${dep.toLocaleString()} paid · ${late ? 'balance overdue' : 'balance'} RM ${(total - dep).toLocaleString()}${b.balance_due_date ? ' by ' + fmtDate(b.balance_due_date) : ''}` };
   }
-  if (dep == null) return { key: 'due', text: 'Deposit due' };
-  return { key: 'due', text: dep >= total ? `Full payment RM ${total.toLocaleString()} due` : `Deposit RM ${dep.toLocaleString()} due` };
+  return { key: 'due', text: 'Deposit not received' };
 }
 function paymentCell(b) {
   const s = paymentState(b);
@@ -1991,16 +1988,15 @@ function paymentCell(b) {
 function renderPaymentFields(boxId, b) {
   const box = document.getElementById(boxId);
   box.dataset.total = Number(b.total_usd) || 0;
-  const tick = (cls, at, text) => `<label style="display:flex;align-items:center;gap:6px;margin:0;font-size:0.78rem;text-transform:none;letter-spacing:0;cursor:pointer;">
-        <input type="checkbox" class="${cls}" style="width:auto;margin:0;" ${at ? 'checked' : ''} data-at="${at || ''}"> ${text}</label>`;
+  box.dataset.depAt = b.deposit_paid_at || '';
   box.innerHTML = `<label>Payment</label>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px;border:1px solid var(--border);border-radius:9px;background:var(--cream2);">
-      <div><div style="font-size:0.66rem;color:var(--smoke);margin-bottom:3px;">Deposit (RM)</div>
-        <input type="number" class="pay-dep" min="0" step="0.01" value="${b.deposit_amount ?? ''}" placeholder="Auto" oninput="paymentBalanceText('${boxId}')"></div>
+      <div><div style="font-size:0.66rem;color:var(--smoke);margin-bottom:3px;">Deposit received (RM)</div>
+        <input type="number" class="pay-dep" min="0" step="0.01" value="${Number(b.deposit_amount) > 0 ? b.deposit_amount : ''}" placeholder="Not received yet" oninput="paymentBalanceText('${boxId}')"></div>
       <div><div style="font-size:0.66rem;color:var(--smoke);margin-bottom:3px;">Balance due by</div>
         <input type="date" class="pay-due" value="${b.balance_due_date || ''}"></div>
-      ${tick('pay-dep-paid', b.deposit_paid_at, 'Deposit received')}
-      ${tick('pay-bal-paid', b.balance_paid_at, 'Balance received')}
+      <label style="grid-column:1/-1;display:flex;align-items:center;gap:6px;margin:0;font-size:0.78rem;text-transform:none;letter-spacing:0;cursor:pointer;">
+        <input type="checkbox" class="pay-bal-paid" style="width:auto;margin:0;" ${b.balance_paid_at ? 'checked' : ''} data-at="${b.balance_paid_at || ''}"> Balance received (paid in full)</label>
       <div class="pay-note" style="grid-column:1/-1;font-size:0.72rem;color:var(--smoke);"></div>
     </div>`;
   paymentBalanceText(boxId);
@@ -2008,24 +2004,21 @@ function renderPaymentFields(boxId, b) {
 function paymentBalanceText(boxId) {
   const box = document.getElementById(boxId);
   const total = Number(box.dataset.total) || 0;
-  const dep = parseFloat(box.querySelector('.pay-dep').value);
-  box.querySelector('.pay-note').textContent = isNaN(dep)
-    ? `Total RM ${total.toLocaleString()} — the deposit is worked out automatically on save.`
-    : `Total RM ${total.toLocaleString()} · balance RM ${Math.max(0, total - dep).toLocaleString()}`;
+  const dep = parseFloat(box.querySelector('.pay-dep').value) || 0;
+  box.querySelector('.pay-note').textContent = dep > 0
+    ? `Total RM ${total.toLocaleString()} · balance RM ${Math.max(0, total - dep).toLocaleString()}`
+    : `Total RM ${total.toLocaleString()} — enter the deposit once it's received.`;
 }
 function readPaymentFields(boxId) {
   const box = document.getElementById(boxId);
-  const stamp = el => el.checked ? (el.dataset.at || new Date().toISOString()) : null;
-  const dep = parseFloat(box.querySelector('.pay-dep').value);
-  const out = {
+  const dep = parseFloat(box.querySelector('.pay-dep').value) || 0;
+  const bal = box.querySelector('.pay-bal-paid');
+  return {
+    deposit_amount: dep > 0 ? dep : null,
+    deposit_paid_at: dep > 0 ? (box.dataset.depAt || new Date().toISOString()) : null,
     balance_due_date: box.querySelector('.pay-due').value || null,
-    deposit_paid_at: stamp(box.querySelector('.pay-dep-paid')),
-    balance_paid_at: stamp(box.querySelector('.pay-bal-paid')),
+    balance_paid_at: bal.checked ? (bal.dataset.at || new Date().toISOString()) : null,
   };
-  if (!isNaN(dep)) out.deposit_amount = dep;
-  // Balance received means everything is in, deposit included
-  if (out.balance_paid_at && !out.deposit_paid_at) out.deposit_paid_at = out.balance_paid_at;
-  return out;
 }
 
 // ── BOOKINGS TABLE ─────────────────────────────────────────
@@ -2688,9 +2681,7 @@ function openTripModal(id) {
     document.getElementById('tm-summary').value = t.summary||'';
     document.getElementById('tm-description').value = t.description||'';
     document.getElementById('tm-itinerary').value   = t.itinerary||'';
-    document.getElementById('tm-pax').value     = t.max_pax;
-    document.getElementById('tm-deposit').value = Number(t.deposit_per_pax) > 0 ? t.deposit_per_pax : '';
-    document.getElementById('tm-category').value= t.category || '';
+    document.getElementById('tm-pax').value     = t.max_pax;    document.getElementById('tm-category').value= t.category || '';
     document.getElementById('tm-region').value  = t.region || '';
     document.getElementById('tm-packages').innerHTML = '';
     document.getElementById('tm-departures').innerHTML = '';
@@ -2702,7 +2693,7 @@ function openTripModal(id) {
     document.getElementById('tm-cost').value    = allTripCosts[t.id] ?? '';
     existingImage = t.cover_image || '';
   } else {
-    ['tm-title','tm-slug','tm-summary','tm-description','tm-itinerary','tm-cost','tm-category','tm-region','tm-deposit'].forEach(i=>document.getElementById(i).value='');
+    ['tm-title','tm-slug','tm-summary','tm-description','tm-itinerary','tm-cost','tm-category','tm-region'].forEach(i=>document.getElementById(i).value='');
     TR_LANGS.forEach(l=>TR_TEXT.forEach(k=>document.getElementById(`tm-${k}-${l}`).value=''));
     document.getElementById('tm-packages').innerHTML = '';
     document.getElementById('tm-departures').innerHTML = '';
@@ -2777,9 +2768,7 @@ async function saveTrip() {
     price_usd:cheapest?.price || 0,
     packages, departures,
     ...readTripContent(),
-    max_pax:parseInt(document.getElementById('tm-pax').value) || 0,
-    deposit_per_pax:parseFloat(document.getElementById('tm-deposit').value) > 0 ? parseFloat(document.getElementById('tm-deposit').value) : null,
-    category:document.getElementById('tm-category').value.trim() || null,
+    max_pax:parseInt(document.getElementById('tm-pax').value) || 0,    category:document.getElementById('tm-category').value.trim() || null,
     region:document.getElementById('tm-region').value.trim() || null,
     departure_dates:dates, is_active:document.getElementById('tm-active').checked,
   };

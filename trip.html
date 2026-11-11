@@ -202,6 +202,9 @@ body { font-family:'Nunito',sans-serif; background:var(--cream); color:var(--tex
 .tp-day-title { font-size:0.95rem; font-weight:800; color:var(--navy); }
 .tp-day-desc { margin-top:3px; font-size:0.83rem; line-height:1.55; color:#4b5563; display:-webkit-box; -webkit-line-clamp:1; -webkit-box-orient:vertical; overflow:hidden; white-space:pre-line; }
 .tp-day.open .tp-day-desc { -webkit-line-clamp:unset; display:block; }
+.tp-day-meals { display:flex; align-items:flex-start; gap:6px; margin-top:6px; font-size:0.76rem; font-weight:600; color:var(--navy); }
+.tp-day-meals svg { width:14px; height:14px; flex:none; margin-top:1px; opacity:0.75; }
+.tp-day-meals i { font-style:normal; font-weight:400; color:#6b7280; }
 .tp-day-card > svg { width:18px; height:18px; flex-shrink:0; color:var(--gold); transition:transform 0.2s; }
 .tp-day.open .tp-day-card > svg { transform:rotate(90deg); }
 .tp-days-more { margin-top:10px; width:100%; padding:11px; border:none; border-radius:12px; background:var(--blue-soft, #e8f1fd); color:var(--gold); font-family:inherit; font-size:0.88rem; font-weight:800; cursor:pointer; }
@@ -800,6 +803,19 @@ function renderTrip(t) {
   document.getElementById('trip-missing').hidden = true;
 }
 
+// Per-day meals: d.meals = ['B','L','D'] (included), d.meals_note = free text from admin
+const MEAL_NAMES = {
+  en: { B: 'Breakfast', L: 'Lunch', D: 'Dinner' },
+  zh: { B: '早餐', L: '午餐', D: '晚餐' },
+  ms: { B: 'Sarapan', L: 'Makan Tengah Hari', D: 'Makan Malam' },
+};
+function dayMeals(d) {
+  const names = MEAL_NAMES[TC_I18N.lang] || MEAL_NAMES.en;
+  const list = jsonList(d.meals).filter(k => names[k]).map(k => names[k]);
+  const note = String(d.meals_note || '').trim();
+  if (!list.length && !note) return '';
+  return `<span class="tp-day-meals">${ICONS.meals}<span>${esc(list.join(' · '))}${list.length && note ? ' — ' : ''}${note ? `<i>${esc(note)}</i>` : ''}</span></span>`;
+}
 function renderItinerary(t) {
   const wrap = document.getElementById('trip-itinerary');
   const days = itineraryDays(t);
@@ -825,7 +841,7 @@ function renderItinerary(t) {
     <div class="tp-day"${collapse && i >= ITIN_PREVIEW ? ' hidden' : ''}>
       <div class="tp-day-badge"><small>${esc(TC_I18N.t('tp.day'))}</small><b>${i + 1}</b></div>
       <button type="button" class="tp-day-card" aria-expanded="false">
-        <span class="tp-day-text"><span class="tp-day-title">${esc(d.title || '')}</span>${d.desc ? `<span class="tp-day-desc">${esc(d.desc)}</span>` : ''}</span>
+        <span class="tp-day-text"><span class="tp-day-title">${esc(d.title || '')}</span>${d.desc ? `<span class="tp-day-desc">${esc(d.desc)}</span>` : ''}${dayMeals(d)}</span>
         ${d.desc ? ICONS.arrow : ''}
       </button>
     </div>`).join('')}</div>${

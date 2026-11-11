@@ -144,6 +144,11 @@ tr:hover td { background:var(--cream); }
 .tm-row .btn { padding:6px 10px; }
 .tm-row.day { grid-template-columns:1fr auto; align-items:start; padding:10px; border:1px solid var(--border); border-radius:10px; }
 .tm-row.day > div { display:flex; flex-direction:column; gap:6px; }
+.dy-meals { display:flex; flex-wrap:wrap; align-items:center; gap:6px 12px; padding:6px 8px; background:var(--cream2); border-radius:8px; font-size:0.75rem; }
+.dy-meals > span { font-weight:600; color:var(--smoke); }
+.dy-meals label { display:inline-flex; align-items:center; gap:4px; margin:0; font-size:0.75rem; text-transform:none; letter-spacing:0; color:inherit; cursor:pointer; }
+.dy-meals input[type=checkbox] { width:auto; margin:0; }
+.dy-meals .dy-meals-note { flex:1 1 220px; min-width:0; padding:5px 8px; font-size:0.75rem; }
 .tm-row.media { grid-template-columns:56px 1fr 1fr 1fr auto; }
 .tm-row.pkg .pk-label-zh { grid-column:1 / 2; }
 .tm-row.pkg .pk-label-ms { grid-column:2 / 4; }
@@ -785,10 +790,11 @@ textarea { resize:vertical; min-height:70px; }
     <h2>Add Booking</h2>
     <div class="form-grid">
       <div class="field full">
-        <label>Member</label>
+        <label>Members <span style="text-transform:none;letter-spacing:0;color:var(--smoke);font-weight:400;">— tick one or more</span></label>
         <input type="text" id="abm-member-search" placeholder="Search name, phone or email…" oninput="filterAddBookingMembers()" autocomplete="off" style="margin-bottom:6px;">
-        <select id="abm-member" size="6" style="height:auto;"></select>
+        <div id="abm-member" style="max-height:180px;overflow-y:auto;border:1px solid var(--border);border-radius:8px;padding:4px 0;background:#fff;"></div>
         <div id="abm-member-count" style="font-size:0.68rem;color:var(--smoke);margin-top:3px;"></div>
+        <div id="abm-member-picked" style="display:flex;flex-wrap:wrap;gap:5px;margin-top:6px;"></div>
       </div>
       <div class="field full">
         <label>Trip</label>
@@ -820,6 +826,7 @@ textarea { resize:vertical; min-height:70px; }
       <div class="field full" style="padding:12px 14px;background:var(--cream2);border:1px solid var(--border);border-radius:9px;">
         <div style="font-size:0.67rem;letter-spacing:0.1em;text-transform:uppercase;color:var(--smoke);margin-bottom:4px;">Total</div>
         <div id="abm-total" style="font-family:'Cormorant Garamond',serif;font-size:1.5rem;color:var(--gold);">RM 0</div>
+        <div id="abm-total-note" style="font-size:0.68rem;color:var(--smoke);margin-top:2px;"></div>
       </div>
     </div>
     <div class="modal-actions">
@@ -933,7 +940,12 @@ textarea { resize:vertical; min-height:70px; }
         <label>Day-by-Day Itinerary</label>
         <select id="tm-days-for" style="align-self:flex-start;" title="Each package option can have its own days" onmousedown="fillDaysFor()" onfocus="fillDaysFor()" onchange="switchDaysFor(this.value)"></select>
         <div id="tm-days" class="tm-rows"></div>
-        <button type="button" class="btn btn-ghost btn-sm" style="align-self:flex-start;" onclick="addDayRow()">+ Add Day</button>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+          <button type="button" class="btn btn-ghost btn-sm" onclick="addDayRow()">+ Add Day</button>
+          <button type="button" class="btn btn-ghost btn-sm" id="tm-days-import-btn" onclick="document.getElementById('tm-days-pdf').click()">📄 Import from PDF</button>
+          <input type="file" id="tm-days-pdf" accept="application/pdf,.pdf" style="display:none;" onchange="importItineraryPdf(event)">
+          <span style="font-size:0.7rem;color:var(--smoke);">Reads “Day 1 / 第1天 / Hari 1” sections and their meals from an itinerary PDF into the days above.</span>
+        </div>
       </div>
       <div class="field full"><label>Itinerary Notes (plain text — only shown when there are no day rows)</label><textarea id="tm-itinerary" rows="4" placeholder="Older trips: “Day 1: …” lines here are still shown as day cards."></textarea></div>
       <div class="field full">
@@ -1780,25 +1792,44 @@ function resetToDefault() {
 }
 
 // ── ADD BOOKING (Bookings page) ────────────────────────────
+// Picked members survive search changes; one booking is created per picked member.
+let addBookingPicked = [];
+function abmMemberName(m) { return `${m.first_name||''} ${m.last_name||''}`.trim() || '—'; }
 function filterAddBookingMembers() {
   const q = document.getElementById('abm-member-search').value.trim().toLowerCase();
-  const sel = document.getElementById('abm-member');
-  const keep = sel.value;
+  const box = document.getElementById('abm-member');
   const members = allMembers.filter(m=>!m.is_admin&&!m.is_staff)
     .filter(m => !q || `${m.first_name||''} ${m.last_name||''} ${m.phone||''} ${m.email||''} ${m.contact_email||''}`.toLowerCase().includes(q))
     .sort((a,b)=>`${a.first_name||''}`.localeCompare(`${b.first_name||''}`));
-  sel.innerHTML = members.map(m=>`<option value="${m.id}">${escapeHtml(`${m.first_name||''} ${m.last_name||''}`.trim() || '—')} — ${escapeHtml(m.phone || m.email || '')}</option>`).join('');
-  // keep the current pick if it still matches, otherwise pre-select the only/first match while searching
-  if (members.some(m => m.id === keep)) sel.value = keep;
-  else if (q && members.length) sel.value = members[0].id;
-  else sel.value = '';
+  box.innerHTML = members.length
+    ? members.map(m=>`<label style="display:flex;align-items:center;gap:8px;padding:5px 10px;cursor:pointer;font-size:0.82rem;text-transform:none;letter-spacing:0;margin:0;">
+        <input type="checkbox" value="${m.id}" ${addBookingPicked.includes(m.id)?'checked':''} onchange="toggleAddBookingMember('${m.id}', this.checked)" style="width:auto;margin:0;">
+        <span>${escapeHtml(abmMemberName(m))} <span style="color:var(--smoke);">— ${escapeHtml(m.phone || m.email || '')}</span></span>
+      </label>`).join('')
+    : '<div style="padding:8px 10px;font-size:0.78rem;color:var(--smoke);">No members match.</div>';
   document.getElementById('abm-member-count').textContent = members.length
     ? `${members.length} member${members.length > 1 ? 's' : ''}${q ? ' match' + (members.length > 1 ? '' : 'es') : ''}`
-    : 'No members match.';
+    : '';
+  renderAddBookingPicked();
+}
+function toggleAddBookingMember(id, on) {
+  addBookingPicked = addBookingPicked.filter(x => x !== id);
+  if (on) addBookingPicked.push(id);
+  filterAddBookingMembers();
+}
+function renderAddBookingPicked() {
+  document.getElementById('abm-member-picked').innerHTML = addBookingPicked.map(id => {
+    const m = allMembers.find(x => x.id === id);
+    return m ? `<span style="display:inline-flex;align-items:center;gap:4px;padding:3px 6px 3px 10px;border-radius:99px;background:var(--cream2);border:1px solid var(--border);font-size:0.72rem;">
+      ${escapeHtml(abmMemberName(m))}
+      <button type="button" onclick="toggleAddBookingMember('${id}', false)" style="border:none;background:none;cursor:pointer;color:var(--smoke);font-size:0.9rem;line-height:1;padding:0 2px;" title="Remove">×</button>
+    </span>` : '';
+  }).join('');
+  updateAddTotal();
 }
 function openAddBookingModal() {
   document.getElementById('abm-member-search').value = '';
-  document.getElementById('abm-member').innerHTML = '';
+  addBookingPicked = [];
   filterAddBookingMembers();
 
   // Populate trip dropdown
@@ -1845,7 +1876,12 @@ function addBookingPrice() {
 function updateAddTotal() {
   const price = addBookingPrice();
   const pax   = parseInt(document.getElementById('abm-pax').value)||1;
-  document.getElementById('abm-total').textContent = 'RM ' + (price*pax).toLocaleString();
+  const n     = Math.max(addBookingPicked.length, 1);
+  document.getElementById('abm-total').textContent = 'RM ' + (price*pax*n).toLocaleString();
+  document.getElementById('abm-total-note').textContent = addBookingPicked.length > 1
+    ? `${n} separate bookings × RM ${(price*pax).toLocaleString()} each (travellers count is per member)`
+    : '';
+  document.getElementById('btn-confirm-add-booking').textContent = addBookingPicked.length > 1 ? `Add ${n} Bookings` : 'Add Booking';
 }
 
 async function confirmAddBooking() {
@@ -1858,23 +1894,24 @@ async function confirmAddBooking() {
   const [date, time] = document.getElementById('abm-date').value.split('|');
   const reqs  = document.getElementById('abm-requests').value.trim();
   const status= document.getElementById('abm-status').value;
-  const memberId = document.getElementById('abm-member').value;
-  if (!memberId) { showToast('Please pick a member.', true); btn.disabled=false; btn.textContent='Add Booking'; return; }
-  if (!sel.value) { showToast('Please select a trip.', true); btn.disabled=false; btn.textContent='Add Booking'; return; }
-  const { error } = await sb.from('bookings').insert({
+  const memberIds = [...addBookingPicked];
+  if (!memberIds.length) { showToast('Please pick at least one member.', true); btn.disabled=false; updateAddTotal(); return; }
+  if (!sel.value) { showToast('Please select a trip.', true); btn.disabled=false; updateAddTotal(); return; }
+  // One booking per member, so each member gets their own record and booking points.
+  const { error } = await sb.from('bookings').insert(memberIds.map(memberId => ({
     member_id: memberId, trip_id: sel.value,
     departure_date: date || null, departure_time: time || null, num_travellers: pax,
     package_label: pkg?.label || null, package_days: pkg?.days || null,
     total_usd: price*pax, special_requests: reqs||null, status
-  });
+  })));
   if (error) showToast('Error: '+error.message, true);
   else {
     closeModal('add-booking-modal');
     await loadBookings();
     renderBookingsTable(); renderDashboard();
-    showToast('Booking added ✓');
+    showToast(memberIds.length > 1 ? `${memberIds.length} bookings added ✓` : 'Booking added ✓');
   }
-  btn.disabled=false; btn.textContent='Add Booking';
+  btn.disabled=false; updateAddTotal();
 }
 
 // ── EDIT BOOKING ───────────────────────────────────────────
@@ -2094,9 +2131,18 @@ function addDayRow(d = {}) {
     <input type="text" class="dy-title-zh tr-in" placeholder="中文标题，例如 吉隆坡 → 东京">
     <textarea class="dy-desc-zh tr-in" rows="2" placeholder="中文内容"></textarea>
     <input type="text" class="dy-title-ms tr-in" placeholder="Tajuk BM, cth. Kuala Lumpur → Tokyo">
-    <textarea class="dy-desc-ms tr-in" rows="2" placeholder="Kandungan BM"></textarea></div>`;
+    <textarea class="dy-desc-ms tr-in" rows="2" placeholder="Kandungan BM"></textarea>
+    <div class="dy-meals"><span>🍽 Meals</span>
+      <label><input type="checkbox" value="B"> Breakfast</label>
+      <label><input type="checkbox" value="L"> Lunch</label>
+      <label><input type="checkbox" value="D"> Dinner</label>
+      <input type="text" class="dy-meals-note" placeholder="Meal details (optional), e.g. Hotel buffet · Seafood dinner" maxlength="160">
+    </div></div>`;
   row.querySelector('.dy-title').value = d.title || '';
   row.querySelector('.dy-desc').value = d.desc || '';
+  const meals = Array.isArray(d.meals) ? d.meals : [];
+  row.querySelectorAll('.dy-meals input[type=checkbox]').forEach(c => { c.checked = meals.includes(c.value); });
+  row.querySelector('.dy-meals-note').value = d.meals_note || '';
   TR_LANGS.forEach(l => {
     row.querySelector('.dy-title-' + l).value = d['title_' + l] || '';
     row.querySelector('.dy-desc-' + l).value = d['desc_' + l] || '';
@@ -2114,8 +2160,11 @@ function readDayRows() {
   return [...document.querySelectorAll('#tm-days .tm-row')]
     .map(r => ({ title: r.querySelector('.dy-title').value.trim(), desc: r.querySelector('.dy-desc').value.trim(),
       title_zh: r.querySelector('.dy-title-zh').value.trim(), desc_zh: r.querySelector('.dy-desc-zh').value.trim(),
-      title_ms: r.querySelector('.dy-title-ms').value.trim(), desc_ms: r.querySelector('.dy-desc-ms').value.trim() }))
-    .filter(d => d.title || d.desc);
+      title_ms: r.querySelector('.dy-title-ms').value.trim(), desc_ms: r.querySelector('.dy-desc-ms').value.trim(),
+      meals: [...r.querySelectorAll('.dy-meals input[type=checkbox]:checked')].map(c => c.value),
+      meals_note: r.querySelector('.dy-meals-note').value.trim() }))
+    .filter(d => d.title || d.desc)
+    .map(d => { if (!d.meals.length) delete d.meals; if (!d.meals_note) delete d.meals_note; return d; });
 }
 function flushDays() {
   const days = readDayRows();
@@ -2147,6 +2196,175 @@ function switchDaysFor(target) {
   document.getElementById('tm-days').innerHTML = '';
   days.forEach(d => addDayRow(d));
   fillDaysFor();
+}
+// ── Import day-by-day itinerary from a PDF ──
+// pdf.js (lazy-loaded) pulls the text out line by line; parseItineraryLines() then finds the
+// "Day 1 / DAY 01 / 第1天 / Hari 1" sections and each day's meals. Text PDFs only, not scans.
+let pdfjsLib = null;
+async function loadPdfJs() {
+  if (pdfjsLib) return pdfjsLib;
+  const base = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.10.38/build/';
+  pdfjsLib = await import(base + 'pdf.min.mjs');
+  pdfjsLib.GlobalWorkerOptions.workerSrc = base + 'pdf.worker.min.mjs';
+  return pdfjsLib;
+}
+async function pdfToLines(file) {
+  const lib = await loadPdfJs();
+  const pdf = await lib.getDocument({ data: await file.arrayBuffer() }).promise;
+  const out = [];
+  for (let p = 1; p <= pdf.numPages; p++) {
+    const { items } = await (await pdf.getPage(p)).getTextContent();
+    const rows = [];  // text pieces grouped by baseline
+    items.forEach(it => {
+      if (!it.str || !it.str.trim()) return;
+      const x = it.transform[4], y = it.transform[5], h = Math.abs(it.transform[3]) || it.height || 10;
+      let r = rows.find(r => Math.abs(r.y - y) < Math.max(2, h * 0.5));
+      if (!r) rows.push(r = { y, parts: [] });
+      r.parts.push({ x, s: it.str, w: it.width || 0 });
+    });
+    rows.sort((a, b) => b.y - a.y).forEach(r => {
+      let s = '', end = null;
+      r.parts.sort((a, b) => a.x - b.x).forEach(pt => {
+        if (s && end != null && pt.x - end > 1 && !/\s$/.test(s)) s += ' ';
+        s += pt.s; end = pt.x + pt.w;
+      });
+      s = s.replace(/\s+/g, ' ').trim();
+      if (s) out.push(s);
+    });
+  }
+  return out;
+}
+// ITIN-PARSER-START
+const MEAL_KEYS = 'breakfast|lunch|dinner|brunch|早餐|午餐|晚餐|sarapan|makan tengah hari|makan malam';
+const MEAL_NONE = /^(?:x|×|✗|✕|nil|none|no|n\/a|-|—|–|自理|敬请自理|自费|不含|无|own|own arrangement|at own expense|tiada|sendiri)(?![a-z])/i;
+const MEAL_TOKEN = t => /^(?:b|breakfast|早|早餐|sarapan)$/i.test(t) ? 'B'
+  : /^(?:l|lunch|午|午餐|brunch)$/i.test(t) ? 'L'
+  : /^(?:d|dinner|晚|晚餐)$/i.test(t) ? 'D' : null;
+const MEAL_WORD = w => /breakfast|早餐|sarapan/i.test(w) ? 'B' : /lunch|午餐|tengah hari|brunch/i.test(w) ? 'L' : 'D';
+const MEAL_LINE_RE = new RegExp(`^[\\(\\[【（]?\\s*(?:meals?|餐食|用餐|膳食|餐|makan(?:an)?|hidangan|${MEAL_KEYS})\\s*[:：]`, 'i');
+const MEAL_CODE_RE = /[\(\[【（]\s*((?:[BLDX]|早|午|晚|-)(?:\s*[\/,、]\s*(?:[BLDX]|早|午|晚|-))*|[BLD]{2,3})\s*[\)\]】）]/i;
+// Reads "Meals: B/L/D", "早/午/晚", "Breakfast: Hotel / Lunch: X / Dinner: Seafood", "(B,L)", "BLD"
+function parseMealText(text, acc) {
+  const keyed = new RegExp(`(${MEAL_KEYS})\\s*[:：]\\s*(.*?)(?=\\s*[\\/|;；,，]?\\s*(?:${MEAL_KEYS})\\s*[:：]|\\s*[\\/|;；]|$)`, 'gi');
+  let m, hit = false;
+  while ((m = keyed.exec(text))) {
+    hit = true;
+    const v = m[2].trim().replace(/[，,。.]+$/, '');
+    if (!v || MEAL_NONE.test(v)) continue;
+    acc.meals.add(MEAL_WORD(m[1]));
+    if (!/^(?:yes|included|include|provided|✓|✔|√|o|ok|有|含|包含)$/i.test(v) && !acc.notes.includes(v)) acc.notes.push(v);
+  }
+  if (hit) return;
+  const rest = text.replace(/^[\(\[【（]?\s*(?:meals?|餐食|用餐|膳食|餐|makan(?:an)?|hidangan)\s*[:：]\s*/i, '').replace(/[\)\]】）]\s*$/, '')
+    .replace(/makan\s+tengah\s+hari/gi, 'L').replace(/makan\s+malam/gi, 'D');
+  let found = false;
+  rest.split(/[\/,，、\s+&|]+/).forEach(tok => {
+    const t = tok.replace(/[\(\[【（\)\]】）.。]/g, '').trim();
+    if (/^[BLD]{2,3}$/.test(t)) { found = true; return [...t].forEach(c => acc.meals.add(c)); }
+    const k = MEAL_TOKEN(t);
+    if (k) { found = true; acc.meals.add(k); }
+  });
+  // e.g. "Meals: On board" — no meal named, keep the words as the note
+  const v = rest.trim();
+  if (!found && v && !MEAL_NONE.test(v) && !acc.notes.includes(v)) acc.notes.push(v.slice(0, 1) + v.slice(1).toLowerCase());
+}
+function matchDayHead(line) {
+  let m = /^(?:day|hari)\s*[-.]?\s*0?(\d{1,2})(?!\d)(?:\s*(?:&|-|–|to|\/|,)\s*(?:day\s*)?0?(\d{1,2}))?\s*[:：.\-–—)|]?\s*(.*)$/i.exec(line);
+  if (m) return { n: +m[1], to: m[2] ? +m[2] : +m[1], rest: m[3] };
+  m = /^第\s*([0-9一二三四五六七八九十]{1,3})\s*[天日]\s*[:：.\-–—)|]?\s*(.*)$/.exec(line);
+  if (m) {
+    const CN = { 一: 1, 二: 2, 三: 3, 四: 4, 五: 5, 六: 6, 七: 7, 八: 8, 九: 9 };
+    const s = m[1];
+    const n = /^\d+$/.test(s) ? +s : s.includes('十')
+      ? (s.split('十')[0] ? CN[s.split('十')[0]] : 1) * 10 + (s.split('十')[1] ? CN[s.split('十')[1]] : 0)
+      : CN[s] || 0;
+    return n ? { n, to: n, rest: m[2] } : null;
+  }
+  m = /^D\s?0?(\d{1,2})(?!\d)\s*[:：.\-–—)|]\s*(.*)$/.exec(line);
+  if (m) return { n: +m[1], to: +m[1], rest: m[2] };
+  return null;
+}
+function parseItineraryLines(lines) {
+  lines = lines.map(l => String(l).replace(/\s+/g, ' ').trim()).filter(Boolean);
+  // Running headers/footers (company name, page numbers) repeat on every page; drop them
+  const freq = {};
+  lines.forEach(l => { freq[l] = (freq[l] || 0) + 1; });
+  const isNoise = l => /^(?:page\s*)?\d{1,3}(?:\s*(?:\/|of)\s*\d{1,3})?$/i.test(l) ||
+    (freq[l] >= 3 && l.length < 80 && !matchDayHead(l) && !MEAL_LINE_RE.test(l) && !MEAL_CODE_RE.test(l));
+  // A run is Day 1, 2, 3… in order; a fresh "Day 1" (e.g. after a summary table) starts a new run
+  const runs = [];
+  let cur = null;
+  lines.forEach(l => {
+    if (isNoise(l)) return;
+    const h = matchDayHead(l);
+    if (h && h.n === 1) { cur = { last: 0, days: [] }; runs.push(cur); }
+    if (h && cur && h.n === cur.last + 1) {
+      cur.days.push({ head: h.rest, body: [] });
+      cur.last = Math.max(h.n, h.to);
+      return;
+    }
+    if (cur && cur.days.length) cur.days[cur.days.length - 1].body.push(l);
+  });
+  const size = r => r.days.reduce((s, d) => s + d.head.length + d.body.join('').length, 0);
+  const best = runs.sort((a, b) => b.days.length - a.days.length || size(b) - size(a))[0];
+  if (!best) return [];
+  return best.days.map(d => {
+    const acc = { meals: new Set(), notes: [] };
+    const takeCode = s => {
+      // "(MEALS: B/L)" / "【餐食：早】" inside a line
+      s = s.replace(/[\(\[【（]\s*(?:meals?|餐食|用餐|膳食|makanan|hidangan)\s*[:：][^\)\]】）]*[\)\]】）]/i, x => { parseMealText(x, acc); return ' '; }).trim();
+      const m = MEAL_CODE_RE.exec(s);
+      if (!m) return s;
+      parseMealText(m[1], acc);
+      return (s.slice(0, m.index) + s.slice(m.index + m[0].length)).replace(/\s{2,}/g, ' ').trim();
+    };
+    let title = takeCode(d.head).replace(/^[:：.\-–—|\s]+/, '');
+    const body = [];
+    d.body.forEach(l => {
+      if (MEAL_LINE_RE.test(l)) { parseMealText(l, acc); return; }
+      const c = takeCode(l);
+      if (c) body.push(c);
+    });
+    if (!title && body.length) title = body.shift();
+    // Re-flow wrapped lines: break after sentence ends or before bullets/times
+    let desc = '';
+    body.forEach(l => {
+      const bullet = /^(?:[•\-*●▪◆◇■□✓✔➢➤►]|\d{1,2}[:.]\d{2}\b|\d{1,2}\s*[.)、]\s)/.test(l);
+      if (!desc) desc = l;
+      else if (bullet || /[.!?。！？:：]$/.test(desc)) desc += '\n' + l;
+      else desc += (/[　-鿿]$/.test(desc) || /^[　-鿿]/.test(l) ? '' : ' ') + l;
+    });
+    const day = { title: title.slice(0, 200), desc };
+    const meals = ['B', 'L', 'D'].filter(k => acc.meals.has(k));
+    if (meals.length) day.meals = meals;
+    if (acc.notes.length) day.meals_note = acc.notes.join(' · ').slice(0, 160);
+    return day;
+  }).filter(d => d.title || d.desc);
+}
+// ITIN-PARSER-END
+async function importItineraryPdf(event) {
+  const file = event.target.files[0];
+  event.target.value = '';
+  if (!file) return;
+  const btn = document.getElementById('tm-days-import-btn');
+  btn.disabled = true; btn.textContent = '📄 Reading PDF…';
+  try {
+    const lines = await pdfToLines(file);
+    if (!lines.length) { showToast('No text found in this PDF — it looks like a scanned image, so it can’t be read.', true); return; }
+    const days = parseItineraryLines(lines);
+    if (!days.length) { showToast('Couldn’t find “Day 1, Day 2…” sections in this PDF.', true); return; }
+    if (readDayRows().length && !confirm(`Found ${days.length} days in the PDF. Replace the current day rows with them?`)) return;
+    document.getElementById('tm-days').innerHTML = '';
+    days.forEach(d => addDayRow(d));
+    flushDays();
+    const withMeals = days.filter(d => d.meals || d.meals_note).length;
+    showToast(`Imported ${days.length} days${withMeals ? ` (meals on ${withMeals})` : ''} — check them, then save the trip.`);
+  } catch (e) {
+    console.error(e);
+    showToast('Could not read the PDF: ' + (e.message || e), true);
+  } finally {
+    btn.disabled = false; btn.textContent = '📄 Import from PDF';
+  }
 }
 function addHighlightRow(h = {}) {
   const row = document.createElement('div');

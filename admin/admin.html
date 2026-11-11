@@ -343,7 +343,7 @@ textarea { resize:vertical; min-height:70px; }
     </div>
     <div class="card" style="margin-top:18px;">
       <div class="card-header"><div class="card-title">Recent Bookings</div></div>
-      <div class="tbl-wrap"><table><thead><tr><th>Member</th><th>Trip</th><th>Departure</th><th>Total</th><th>Status</th></tr></thead><tbody id="dash-recent-body"><tr><td colspan="5" class="loading">Loading…</td></tr></tbody></table></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Member</th><th>Trip</th><th>Departure</th><th>Total</th><th>Payment</th><th>Status</th></tr></thead><tbody id="dash-recent-body"><tr><td colspan="6" class="loading">Loading…</td></tr></tbody></table></div>
     </div>
   </div>
 
@@ -1526,10 +1526,16 @@ function renderDashboard() {
   const totalRev = allBookings.filter(b=>b.status!=='cancelled').reduce((s,b)=>s+Number(b.total_usd),0);
   const pending  = allBookings.filter(b=>b.status==='pending').length;
   const memberCount = allMembers.filter(m=>!m.is_admin&&!m.is_staff).length;
+  // Deposits typed in on bookings (not cancelled); balance = what those bookings still owe
+  const withDep = allBookings.filter(b=>b.status!=='cancelled' && Number(b.deposit_amount)>0);
+  const depTotal = withDep.reduce((s,b)=>s+Number(b.deposit_amount),0);
+  const balOwed = withDep.filter(b=>!b.balance_paid_at).reduce((s,b)=>s+Math.max(0,Number(b.total_usd)-Number(b.deposit_amount)),0);
+  document.getElementById('dash-stats').classList.toggle('cols-3', currentUserIsAdmin);  // admin: 6 cards = 2 rows of 3
   document.getElementById('dash-stats').innerHTML = `
     <div class="stat-card"><div class="stat-val">${memberCount}</div><div class="stat-lbl">Total Members</div></div>
     <div class="stat-card"><div class="stat-val">${allBookings.length}</div><div class="stat-lbl">Total Bookings</div></div>
     ${currentUserIsAdmin ? `<div class="stat-card"><div class="stat-val">RM ${Math.round(totalRev).toLocaleString()}</div><div class="stat-lbl">Total Revenue</div></div>` : ''}
+    ${currentUserIsAdmin ? `<div class="stat-card"><div class="stat-val">RM ${Math.round(depTotal).toLocaleString()}</div><div class="stat-lbl">Deposits Received · ${withDep.length} booking${withDep.length===1?'':'s'}</div>${balOwed>0?`<div style="font-size:0.7rem;color:var(--smoke);margin-top:4px;">RM ${Math.round(balOwed).toLocaleString()} balance still to collect</div>`:''}</div>` : ''}
     <div class="stat-card"><div class="stat-val">${pending}</div><div class="stat-lbl">Pending Review</div></div>
     <div class="stat-card"><div class="stat-val">${allMessages.filter(m=>m.status==='new').length}</div><div class="stat-lbl">New Messages</div></div>`;
 
@@ -1567,8 +1573,9 @@ function renderDashboard() {
     <td>${b.first_name||''} ${b.last_name||''}<br><span style="font-size:0.7rem;color:var(--smoke);">${b.member_email||''}</span></td>
     <td>${b.trip_title}</td><td>${fmtDate(b.departure_date)}</td>
     <td style="color:var(--gold);font-weight:500;">RM ${Number(b.total_usd).toLocaleString()}</td>
+    <td>${paymentCell(b)}</td>
     <td><span class="pill pill-${b.status}">${b.status}</span></td></tr>`).join('') ||
-    '<tr><td colspan="5" class="empty">No bookings yet.</td></tr>';
+    '<tr><td colspan="6" class="empty">No bookings yet.</td></tr>';
 }
 
 // ── MEMBERS TABLE ──────────────────────────────────────────
@@ -1688,9 +1695,7 @@ async function openMemberModal(id) {
   document.getElementById('mm-nationality').value = m.nationality   || '';
   document.getElementById('mm-passport').value    = m.passport_no   || '';
   document.getElementById('mm-position').value    = m.is_admin ? 'admin' : m.is_staff ? 'staff' : 'member';
-  // reward_points fetched directly (independent of the admin_members view)
-  const { data: rpRow } = await sb.from('profiles').select('reward_points').eq('id', id).single();
-  document.getElementById('mm-reward-points').value = rpRow?.reward_points ?? 0;
+  await refreshMemberPoints(id);
 
   const isAdminPanelAccount = m.is_admin || m.is_staff;
   // Points section is for regular members only, not admin/staff accounts
@@ -1711,6 +1716,16 @@ async function openMemberModal(id) {
   openModal('member-modal');
 }
 
+// reward_points fetched directly (independent of the admin_members view). Re-run after
+// a booking is confirmed/cancelled from this modal: the DB trigger changes the balance,
+// and a stale number here would otherwise be written back by Save All Changes.
+async function refreshMemberPoints(id) {
+  if (!id) return;
+  const { data: rpRow } = await sb.from('profiles').select('reward_points').eq('id', id).single();
+  const el = document.getElementById('mm-reward-points');
+  el.value = rpRow?.reward_points ?? 0;
+  el.dataset.loaded = el.value;
+}
 async function loadMemberBookings(memberId, firstName) {
   const list = document.getElementById('mm-bookings-list');
   list.innerHTML = '<div class="loading">Loading…</div>';
@@ -1756,8 +1771,11 @@ async function saveMember() {
     is_staff:      position === 'staff',
   };
   // Redeemable points are for regular members only, not admin/staff accounts
-  if (!isAdminPanelAccount) {
-    updates.reward_points = parseInt(document.getElementById('mm-reward-points').value)||0;
+  // Only write points when the admin actually changed the number — never echo back
+  // a balance that bookings (or check-ins) may have changed since the modal opened.
+  const rpEl = document.getElementById('mm-reward-points');
+  if (!isAdminPanelAccount && rpEl.value !== rpEl.dataset.loaded) {
+    updates.reward_points = parseInt(rpEl.value)||0;
   }
   const { error } = await sb.from('profiles').update(updates).eq('id', editingMemberId);
   if (error) { showToast('Error: '+error.message, true); btn.disabled=false; btn.textContent='Save All Changes'; return; }
@@ -1945,7 +1963,7 @@ async function saveBooking() {
   if (error) showToast('Error: '+error.message, true);
   else {
     closeModal('edit-booking-modal');
-    await Promise.all([loadBookings(), loadMemberBookings(addBookingMemberId)]);
+    await Promise.all([loadBookings(), loadMemberBookings(addBookingMemberId), refreshMemberPoints(addBookingMemberId)]);
     renderBookingsTable(); renderDashboard();
     showToast('Booking updated ✓');
   }
@@ -1958,7 +1976,7 @@ async function deleteBooking() {
   if (error) showToast('Error: '+error.message, true);
   else {
     closeModal('edit-booking-modal');
-    await Promise.all([loadBookings(), loadMemberBookings(addBookingMemberId)]);
+    await Promise.all([loadBookings(), loadMemberBookings(addBookingMemberId), refreshMemberPoints(addBookingMemberId)]);
     renderBookingsTable(); renderDashboard();
     showToast('Booking deleted.');
   }

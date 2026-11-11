@@ -1003,6 +1003,36 @@ Cards show only image, name, points badge and price badge (price now shows even 
 - If it comes back: a local Malaysian SMS gateway or WhatsApp utility templates are the cheaper routes. `award_points_on_confirm()` still tags its credit with `app.tc_points_ctx = 'booking'`, so a trigger can tell booking credits from admin edits and check-in ('checkin').
 - SMS is used only for login/register/reset codes (Twilio Verify).
 
+## Workstream AH — Multi-member bookings, PDF itinerary import + meals, deposit/balance payments (2026-11-11) — SHIPPED
+
+All pushed through `a43bc2d`; admin site deployed after each change; customer site auto-deployed.
+
+### Admin Add Booking: several members at once (`1a58a0d`)
+- Member picker is a checkbox list (ticks survive searching) with removable name chips. Creates **one booking per ticked member** (same trip/option/date/pax/status), so each member gets their own record and 5% points. Travellers count is per booking.
+- Hit `new row violates row-level security policy for table "bookings"` — there was no admin/staff INSERT policy (bookings' RLS policies are dashboard-created, not in the repo). Fixed by `20261111120000_bookings_admin_insert` (`for insert to authenticated with check (is_admin_or_staff())`), applied.
+
+### Trip editor: Import itinerary from PDF + per-day meals (`1a58a0d`)
+- "📄 Import from PDF" next to "+ Add Day": pdf.js 4.10.38 (lazy `import()` from jsdelivr) → lines grouped by baseline → `parseItineraryLines()` (between `// ITIN-PARSER-START/END` in `admin.html`, testable in Node). Finds "Day 1 / DAY 01 / D1: / 第一天 / Hari 1" runs (a fresh Day 1 starts a new run; longest/most-text run wins, so summary tables are skipped), drops repeated headers/footers + page numbers, re-flows wrapped lines.
+- Meals: `Meals: B/L/D`, `(B/L/D)`, `BLD`, `【早/午/晚】`, `早餐：酒店内 午餐：自理`, `Breakfast: Hotel / Lunch: X`, `Sarapan / Makan tengah hari / Makan malam`; X/Nil/自理/own expense = not included; leftover words become the note.
+- Fills the day rows of whichever option the "Day-by-Day Itinerary" dropdown targets (asks before replacing). Text PDFs only — scans show an error. Only tested on synthetic text, **not yet on a real brochure PDF**.
+- Day data: `itinerary_days[].meals` = `['B','L','D']`, `meals_note` (English only, not translated). `trip.html` shows a 🍽 line per day; meal names localised via a local `MEAL_NAMES` table (i18n.js deliberately not touched — it carries the on-hold travel-map edits).
+
+### Bookings: deposit when booking, balance 3 months before departure (`61a5b58` → `13febe5`, `a43bc2d`)
+- First built with an automatic deposit (trip `deposit_per_pax`, else 30%) — the user then asked to **type the deposit received per booking** instead. Current behaviour (`20261111160000_booking_deposit_manual`, applied; supersedes the calc in `20261111140000`):
+  - `bookings.deposit_amount` = deposit received, typed by admin/staff; blank = not received. `booking_payment_plan` BEFORE INSERT/UPDATE trigger stamps `deposit_paid_at`, sets `balance_due_date = departure_date − 3 months` (follows departure changes unless admin edited the date), and resets all payment fields for non-admin/staff callers.
+  - `balance_paid_at` via the "Balance received (paid in full)" tick.
+  - `trips.deposit_per_pax` still exists but is unused.
+- Admin: Payment section in both booking modals (Update on Bookings page, Edit in member modal); Payment column on Bookings + dashboard Recent Bookings; dashboard "Deposits Received" card (admin only, with balance still to collect).
+- Members: trip page + dashboard booking form say "pay a deposit to confirm, balance due by <date>" (no amount); departing within 3 months → full payment when booking. My Bookings shows received deposit / balance / overdue / paid in full (en/zh/ms, local `PAY_TXT` tables).
+- Payment itself is offline — the site only records it.
+
+### Points not added after confirming (`a43bc2d`)
+- `award_points_on_confirm()` was fine. Cause: member modal loaded `reward_points` once; confirming a booking from inside it credited points, then "Save All Changes" wrote the stale number back. Now `refreshMemberPoints()` reloads after booking save/delete, and `saveMember()` only sends `reward_points` if the admin changed the field. Points already lost were **not** restored — the user was given a SQL query comparing balances with `sum(points_earned)`.
+
+### Notes
+- `dashboard.html` / `i18n.js` / `sw-customer.js` carry uncommitted **travel-map** work (on hold). Commits here staged only the payment hunks of `dashboard.html` (`git apply --cached --unidiff-zero` with filtered `git diff -U0` hunks).
+- Production deploys of the admin site need the user's go-ahead each time (blocked once without it).
+
 ## Task checklist
 
 - [x] Open all 6 pages in a real browser, confirm logo renders correctly (sizing/placement) — done 2026-07-26 at desktop size.
@@ -1069,3 +1099,6 @@ Cards show only image, name, points badge and price badge (price now shows even 
 - [x] Forgot-password "Resend code" now has the same 30s cooldown as register (per-link timers in `startResendCooldown(linkId)`), 2026-11-03.
 - [ ] Follow-up (optional): Twilio Verify Voice channel as a backup if SMS keeps getting filtered.
 - [x] Dashboard Overview "Points Summary" card no longer shows the 5% earn-rate line (commit `9b89c29`, `dashboard.html` only), 2026-11-02.
+- [x] **Workstream AH (2026-11-11) — SHIPPED.** Multi-member Add Booking (+ bookings admin INSERT policy), PDF itinerary import + per-day meals, manual deposit / balance-due-3-months payments, dashboard deposits card, member-modal points overwrite fix. Pushed through `a43bc2d`; migrations `20261111120000`, `20261111140000`, `20261111160000` applied.
+- [ ] Follow-up (verification): import a real itinerary PDF; add a multi-member booking; enter a deposit and tick balance received; confirm a booking from the member modal and check points.
+- [ ] Follow-up (data): compare members' `reward_points` with `sum(points_earned)` and top up anyone who lost booking points to the old member-modal overwrite.

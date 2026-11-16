@@ -237,18 +237,6 @@ img { display: block; max-width: 100%; }
 .home-empty { color: var(--smoke); padding: 10px 0 20px; }
 .home-empty a { color: var(--blue); font-weight: 700; }
 
-/* ── TESTIMONIALS ── */
-#testimonials { padding-top: 64px; padding-bottom: 72px; }
-.test-head { text-align: center; margin-bottom: 30px; }
-.test-eyebrow { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; color: var(--blue); margin-bottom: 8px; }
-.testimonials-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
-.testimonial-card { background: #fff; border: 1px solid #e6ecf5; border-radius: 20px; padding: 26px; }
-.testimonial-stars { color: var(--sun); font-size: 1rem; margin-bottom: 12px; letter-spacing: 2px; }
-.testimonial-text { font-size: 0.98rem; color: #33415c; line-height: 1.7; margin-bottom: 18px; }
-.testimonial-author { display: flex; align-items: center; gap: 12px; }
-.testimonial-avatar { width: 42px; height: 42px; border-radius: 50%; background: linear-gradient(135deg, var(--blue), var(--blue-dark)); display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 800; color: #fff; flex-shrink: 0; }
-.testimonial-name { font-size: 0.92rem; font-weight: 800; color: var(--navy); }
-.testimonial-trip { font-size: 0.78rem; color: var(--smoke); margin-top: 2px; }
 
 /* ── FOOTER ── */
 footer { padding: 56px 4% 32px; }
@@ -324,8 +312,6 @@ footer { padding: 56px 4% 32px; }
   .svc-img { aspect-ratio: 1.05; border-radius: 12px; }
   .svc-name { font-size: 0.74rem; line-height: 1.2; }
 
-  #testimonials { padding-top: 40px; padding-bottom: 40px; }
-  .testimonials-grid { grid-template-columns: 1fr; gap: 14px; }
   .footer-grid { grid-template-columns: 1fr; gap: 30px; }
 }
 @media (max-width: 380px) {
@@ -503,31 +489,6 @@ footer { padding: 56px 4% 32px; }
     <h2 class="sec-title" id="services-heading" data-i18n="home.services">Travel Services</h2>
   </div>
   <div class="svc-grid" id="svc-rail"></div>
-</section>
-
-<!-- ── TESTIMONIALS ── -->
-<section id="testimonials" class="wrap">
-  <div class="test-head">
-    <div class="test-eyebrow" id="test-eyebrow" data-i18n="testimonials.eyebrow">Traveller Stories</div>
-    <h2 class="sec-title reveal" id="test-heading" data-i18n="testimonials.heading" data-i18n-html>What Our Members <em>Say</em></h2>
-  </div>
-  <div class="testimonials-grid" id="test-grid">
-    <div class="testimonial-card reveal">
-      <div class="testimonial-stars">★★★★★</div>
-      <div class="testimonial-text" data-i18n="testimonials.card1.text">"Kyoto in autumn was everything I imagined and more. The access to private temples at dawn was something I could never have arranged on my own."</div>
-      <div class="testimonial-author"><div class="testimonial-avatar">SA</div><div><div class="testimonial-name">Sarah A.</div><div class="testimonial-trip" data-i18n="testimonials.card1.trip">Kyoto in Autumn · Premier Member</div></div></div>
-    </div>
-    <div class="testimonial-card reveal">
-      <div class="testimonial-stars">★★★★★</div>
-      <div class="testimonial-text" data-i18n="testimonials.card2.text">"The Amalfi yacht trip was beyond anything I expected. Waking up in a secluded cove every morning — absolute perfection. Already booked my next trip."</div>
-      <div class="testimonial-author"><div class="testimonial-avatar">MR</div><div><div class="testimonial-name">Marcus R.</div><div class="testimonial-trip" data-i18n="testimonials.card2.trip">Amalfi by Yacht · Elite Member</div></div></div>
-    </div>
-    <div class="testimonial-card reveal">
-      <div class="testimonial-stars">★★★★★</div>
-      <div class="testimonial-text" data-i18n="testimonials.card3.text">"The Travel Chapter doesn't just plan trips — they craft experiences. My Mekong River journey felt like a dream I didn't want to wake up from."</div>
-      <div class="testimonial-author"><div class="testimonial-avatar">LN</div><div><div class="testimonial-name">Liana N.</div><div class="testimonial-trip" data-i18n="testimonials.card3.trip">Mekong River Journey · Explorer Member</div></div></div>
-    </div>
-  </div>
 </section>
 
 <!-- ── FOOTER ── -->
@@ -774,7 +735,7 @@ document.querySelectorAll('.rail-btn').forEach(b => b.addEventListener('click', 
   if (rail) rail.scrollBy({ left: Number(b.dataset.dir) * rail.clientWidth * 0.8, behavior: 'smooth' });
 }));
 
-// ── CMS CONTENT (hero, testimonials, home layout, footer, contact, header links) ─
+// ── CMS CONTENT (hero, home layout, footer, contact, header links) ─
 function txt(id, val) { const el = document.getElementById(id); if (el && val) el.textContent = val; }
 function italicHeading(plain, italic) {
   if (!plain || !italic) return esc(plain || '');
@@ -782,12 +743,11 @@ function italicHeading(plain, italic) {
 }
 async function loadCMS() {
   const { data, error } = await sb.from('cms_content').select('section,content')
-    .in('section', ['hero', 'testimonials', 'footer', 'contact', 'navbar', 'home']);
+    .in('section', ['hero', 'footer', 'contact', 'navbar', 'home']);
   if (error || !data) return;
   const cms = {};
   data.forEach(row => { cms[row.section] = row.content; });
   if (cms.hero)         applyHero(cms.hero);
-  if (cms.testimonials) applyTestimonials(cms.testimonials);
   if (cms.footer)       applyFooter(cms.footer);
   if (cms.contact)      applyFooterContact(cms.contact);
   if (cms.navbar)       applyNavbar(cms.navbar);
@@ -798,7 +758,7 @@ async function loadCMS() {
 
 // Admin-written text is English, so it is shown to English visitors; Chinese / Malay
 // visitors keep the built-in translations of the same elements (they carry data-i18n).
-let cmsHero = null, cmsTest = null;
+let cmsHero = null;
 function applyCmsText() {
   if (TC_I18N.lang !== 'en') return;
   const d = cmsHero || {};
@@ -808,10 +768,6 @@ function applyCmsText() {
   txt('hero-subtext', d.subtext);
   txt('hero-cta-primary', d.cta_primary_label);
   txt('hero-cta-secondary', d.cta_secondary_label);
-  const t = cmsTest || {};
-  txt('test-eyebrow', t.eyebrow);
-  const th = document.getElementById('test-heading');
-  if (th && t.heading) th.innerHTML = italicHeading(t.heading, t.heading_italic);
   const hm = cmsHome || {};
   txt('popular-heading', hm.popular_heading);
   txt('special-heading', hm.special_heading);
@@ -836,21 +792,6 @@ function applyHero(d) {
   p2.href = btns.p2;
   p2.style.display = btns.hide2 ? 'none' : '';
   try { localStorage.setItem('tc_hero_btns', JSON.stringify(btns)); } catch (e) {}
-}
-function applyTestimonials(d) {
-  cmsTest = d;
-  if (d.items) {
-    const grid = document.getElementById('test-grid');
-    if (grid) grid.innerHTML = d.items.map(t => `
-      <div class="testimonial-card reveal">
-        <div class="testimonial-stars">${'★'.repeat(t.stars || 5)}</div>
-        <div class="testimonial-text">"${esc(t.text)}"</div>
-        <div class="testimonial-author">
-          <div class="testimonial-avatar">${esc(t.initials || '?')}</div>
-          <div><div class="testimonial-name">${esc(t.name)}</div><div class="testimonial-trip">${esc(t.trip)}</div></div>
-        </div>
-      </div>`).join('');
-  }
 }
 function applyFooter(d) {
   txt('footer-tagline', d.tagline);

@@ -184,9 +184,6 @@ textarea { resize:vertical; min-height:80px; line-height:1.6; }
     <button class="nav-item" data-section="about">
       <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>About Us
     </button>
-    <button class="nav-item" data-section="testimonials">
-      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Testimonials
-    </button>
     <button class="nav-item" data-section="contact">
       <svg viewBox="0 0 24 24"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>Contact
     </button>
@@ -441,7 +438,7 @@ function renderEditor(section) {
   const main = document.getElementById('editor-content');
   const sectionLabels = {
     home:'Home Page Layout', hero:'Hero Banner', destinations:'Destinations', featured_trips:'Featured Trips',
-    free_gifts:'Free Gifts', about:'About Us', testimonials:'Testimonials',
+    free_gifts:'Free Gifts', about:'About Us',
     cta_banner:'CTA Banner', contact:'Contact', footer:'Footer', navbar:'Navigation'
   };
   const isStandalonePage = section === 'free_gifts';
@@ -474,7 +471,6 @@ function renderEditor(section) {
     case 'featured_trips':html += renderFeaturedTripsForm(data); break;
     case 'free_gifts':  html += renderFreeGiftsForm(data); break;
     case 'about':       html += renderAboutForm(data); break;
-    case 'testimonials':html += renderTestimonialsForm(data); break;
     case 'cta_banner':  html += renderCtaBannerForm(data); break;
     case 'contact':     html += renderContactForm(data); break;
     case 'footer':      html += renderFooterForm(data); break;
@@ -623,7 +619,7 @@ function renderHomeForm(d) {
     <button class="btn-add-item" onclick="homeAdd('services')">+ Add Service</button>
   </div>
   <div class="card">
-    <div class="field-hint">The Hero Banner, Testimonials, Footer and Contact details on the home page have their own sections in this menu. Trip photos and titles come from <a href="admin.html" style="color:var(--gold);">Admin Panel → Trips</a>.</div>
+    <div class="field-hint">The Hero Banner, Footer and Contact details on the home page have their own sections in this menu. Trip photos and titles come from <a href="admin.html" style="color:var(--gold);">Admin Panel → Trips</a>.</div>
     <button class="btn btn-ghost" style="margin-top:12px;" onclick="homeReset()">Reset Home Page to the default layout</button>
   </div>`;
 }
@@ -879,37 +875,6 @@ function renderAboutForm(d) {
   </div>`;
 }
 
-function renderTestimonialsForm(d) {
-  const items = d.items || [];
-  return `
-  <div class="card">
-    <div class="card-title"><span>📝</span> Section Header</div>
-    ${sectionHeaderFields('test', d)}
-  </div>
-  <div class="card">
-    <div class="card-title"><span>💬</span> Testimonials</div>
-    ${items.map((t,i)=>`
-      <div class="array-item">
-        <div class="array-item-header">
-          <div class="array-item-label">Testimonial ${i+1}</div>
-          <div class="array-item-actions">
-            <button class="btn-icon" onclick="removeTestimonial(${i})">✕</button>
-          </div>
-        </div>
-        <div class="field"><label>Quote Text</label><textarea id="test_text_${i}" rows="3">${esc(t.text||'')}</textarea></div>
-        <div class="field-row">
-          <div class="field"><label>Member Name</label><input type="text" id="test_name_${i}" value="${esc(t.name||'')}"></div>
-          <div class="field"><label>Initials (avatar)</label><input type="text" id="test_initials_${i}" value="${esc(t.initials||'')}" maxlength="2"></div>
-        </div>
-        <div class="field-row">
-          <div class="field"><label>Trip / Tier Label</label><input type="text" id="test_trip_${i}" value="${esc(t.trip||'')}"></div>
-          <div class="field"><label>Stars (1–5)</label><input type="number" id="test_stars_${i}" value="${t.stars||5}" min="1" max="5"></div>
-        </div>
-      </div>`).join('')}
-    <button class="btn-add-item" onclick="addTestimonial()">+ Add Testimonial</button>
-  </div>`;
-}
-
 function renderCtaBannerForm(d) {
   return `
   <div class="card">
@@ -1019,13 +984,6 @@ function buildContentFromForm(section) {
       const slides = (d.slides||[]).map(s=>({ image:s.image, _file:s._file, _removed:s._removed }));
       return { ...d, eyebrow:v('about_eyebrow'), heading:v('about_heading'), heading_italic:v('about_heading_italic'), subtext:v('about_subtext'), paragraphs, badge_value:v('about_badge_val'), badge_label:v('about_badge_lbl'), values, slides };
     }
-    case 'testimonials': {
-      const items = (d.items||[]).map((_,i)=>({
-        text:v(`test_text_${i}`), name:v(`test_name_${i}`), initials:v(`test_initials_${i}`),
-        trip:v(`test_trip_${i}`), stars:parseInt(v(`test_stars_${i}`))||5
-      }));
-      return { ...d, eyebrow:v('test_eyebrow'), heading:v('test_heading'), heading_italic:v('test_heading_italic'), items };
-    }
     case 'cta_banner':
       return { ...d, heading:v('cta_heading'), heading_italic:v('cta_heading_italic'), subtext:v('cta_subtext'),
         cta_primary_label:v('cta_primary_label'), cta_primary_href:v('cta_primary_href'),
@@ -1092,18 +1050,6 @@ function moveGift(i, dir) {
   [built.items[i],built.items[j]]=[built.items[j],built.items[i]];
   cmsData['free_gifts'] = built;
   renderEditor('free_gifts');
-}
-function addTestimonial() {
-  const built = buildContentFromForm('testimonials');
-  built.items.push({ text:'', name:'', initials:'', trip:'', stars:5 });
-  cmsData['testimonials'] = built;
-  renderEditor('testimonials');
-}
-function removeTestimonial(i) {
-  const built = buildContentFromForm('testimonials');
-  built.items.splice(i,1);
-  cmsData['testimonials'] = built;
-  renderEditor('testimonials');
 }
 // ── UTILS ──────────────────────────────────────────────────
 function esc(s) { return String(s).replace(/"/g,'&quot;').replace(/</g,'&lt;'); }

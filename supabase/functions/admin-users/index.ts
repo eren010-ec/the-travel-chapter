@@ -75,6 +75,19 @@ Deno.serve(async (req) => {
     return !!(target?.is_admin || target?.is_staff);
   }
 
+  // Members sign in on login.html with phone + password, which looks up auth.users.phone —
+  // so the phone has to live on the auth user, not just on profiles.phone. Supabase stores
+  // phones as bare digits with the country code ("60123456789"). Local Malaysian numbers
+  // ("012…") get the 60 prefix, and a trunk 0 typed after it ("60012…") is dropped.
+  // Returns '' for blank input, null for something that isn't a usable number.
+  function normalizePhone(raw: unknown): string | null {
+    let d = String(raw ?? '').replace(/\D/g, '');
+    if (!d) return '';
+    if (d.startsWith('0')) d = '60' + d.slice(1);
+    if (d.startsWith('600')) d = '60' + d.slice(3);
+    return /^[1-9]\d{7,14}$/.test(d) ? d : null;
+  }
+
   let body: Record<string, unknown>;
   try {
     body = await req.json();
@@ -84,12 +97,15 @@ Deno.serve(async (req) => {
   const { action } = body;
 
   if (action === 'create') {
-    const { email, password, user_metadata } = body as {
-      email: string; password: string; user_metadata?: Record<string, unknown>;
+    const { email, password, phone: rawPhone, user_metadata } = body as {
+      email: string; password: string; phone?: string; user_metadata?: Record<string, unknown>;
     };
     if (!email || !password) return json({ error: 'email and password are required' }, 400, origin);
+    const phone = normalizePhone(rawPhone);
+    if (phone === null) return json({ error: 'Invalid phone number' }, 400, origin);
     const { data, error } = await admin.auth.admin.createUser({
       email, password, email_confirm: true, user_metadata,
+      ...(phone ? { phone, phone_confirm: true } : {}),
     });
     if (error) return json({ error: error.message }, 400, origin);
     return json({ user: data.user }, 200, origin);
@@ -106,12 +122,18 @@ Deno.serve(async (req) => {
   }
 
   if (action === 'update') {
-    const { id, email, password } = body as { id: string; email?: string; password?: string };
+    const { id, email, password, phone: rawPhone } = body as {
+      id: string; email?: string; password?: string; phone?: string;
+    };
     if (!id) return json({ error: 'id is required' }, 400, origin);
     if (await blockedByStaffTargetingAdmin(id)) return json({ error: 'Only admins can modify admin or staff accounts' }, 403, origin);
+    const phone = normalizePhone(rawPhone);
+    if (phone === null) return json({ error: 'Invalid phone number' }, 400, origin);
     const updates: Record<string, unknown> = {};
     if (email) { updates.email = email; updates.email_confirm = true; }
     if (password) updates.password = password;
+    // A blank phone never clears the auth phone — that would lock the member out of login.
+    if (phone) { updates.phone = phone; updates.phone_confirm = true; }
     if (Object.keys(updates).length === 0) return json({ error: 'Nothing to update' }, 400, origin);
     const { error } = await admin.auth.admin.updateUserById(id, updates);
     if (error) return json({ error: error.message }, 400, origin);

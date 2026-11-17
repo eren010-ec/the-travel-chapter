@@ -1784,10 +1784,16 @@ async function saveMember() {
   const newEmail    = document.getElementById('mm-email').value.trim();
   const newPassword = document.getElementById('mm-password').value;
   
-  if (newEmail || newPassword) {
+  // Members log in with phone + password, which matches the auth user's phone (not
+  // profiles.phone) — so keep it in sync on every save for plain members. This also
+  // repairs older admin-created accounts whose phone was only ever saved on the profile.
+  const syncPhone = !isAdminPanelAccount && updates.phone ? updates.phone : '';
+
+  if (newEmail || newPassword || syncPhone) {
     const authUpdates = {};
     if (newEmail)    { authUpdates.email = newEmail; }
     if (newPassword) { authUpdates.password = newPassword; }
+    if (syncPhone)   { authUpdates.phone = syncPhone; }
     const { error: authErr } = await callAdminFn({ action: 'update', id: editingMemberId, ...authUpdates });
     if (authErr) { showToast('Profile saved but auth update failed: ' + authErr.message, true); btn.disabled=false; btn.textContent='Save All Changes'; return; }
   }
@@ -4009,7 +4015,7 @@ function openCreateMemberModal(isAdmin) {
     : 'Create a new member account on behalf of your customer.';
   document.getElementById('cm-note').textContent = isAdmin
     ? 'The new account can log in via admin-login.html using the email and password you set here.'
-    : 'The member can log in via the member portal using the email and password you set. They can change their password after logging in.';
+    : 'The member logs in on the website with their phone number and the password you set — so fill in Phone. They can change their password after logging in.';
 
   // Reset form
   ['cm-first','cm-last','cm-email','cm-password','cm-phone','cm-nationality'].forEach(id => document.getElementById(id).value = '');
@@ -4048,6 +4054,9 @@ async function createMember() {
     action: 'create',
     email: finalEmail,
     password,
+    // Members sign in with phone + password, so the phone must be on the auth user too.
+    // Admin/staff accounts sign in by email on admin-login.html and don't need it.
+    ...(!createIsAdmin && phone ? { phone } : {}),
     user_metadata: {
       first_name: first, last_name: last,
       tier: createIsAdmin ? 'elite' : 'explorer'
